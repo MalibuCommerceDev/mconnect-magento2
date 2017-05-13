@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <body>
+        <referenceContainer name="content">
+            <block class="MalibuCommerce\MConnect\Block\Adminhtml\Connection" name="malibucommerce.mconnect.connection"/>
+        </referenceContainer>
+    </body>
+</page>

@@ -1,0 +1,55 @@
+#!/usr/bin/env php
+
+<?php
+/**
+ * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+use Magento\Framework\App\Bootstrap;
+
+if (PHP_SAPI !== 'cli') {
+    echo 'bin/magento must be run as a CLI application';
+    exit(1);
+}
+
+try {
+    require __DIR__ . '/../app/bootstrap.php';
+
+} catch (\Exception $e) {
+    echo 'Autoload error: ' . $e->getMessage();
+    exit(1);
+}
+
+try {
+
+    $handler = new \Magento\Framework\App\ErrorHandler();
+    set_error_handler([$handler, 'handler']);
+
+    $bootstrap = Bootstrap::create(BP, $_SERVER);
+
+    $obj = $bootstrap->getObjectManager();
+
+    $applicationPrep = $obj->get('MalibuCommerce\MConnect\Model\Cron');
+
+    $state = $obj->get('\Magento\Framework\App\State');
+
+    $state->setAreaCode('adminhtml');
+
+    $applicationPrep->queueCustomerImport();
+
+    $applicationPrep->queueProductImport();
+
+    $application = $obj->get('MalibuCommerce\MConnect\Model\Cron\Queue');
+
+    $application->process();
+
+} catch (\Exception $e) {
+    while ($e) {
+        echo $e->getMessage();
+        echo $e->getTraceAsString();
+        echo "\n\n";
+        $e = $e->getPrevious();
+    }
+    exit;
+}

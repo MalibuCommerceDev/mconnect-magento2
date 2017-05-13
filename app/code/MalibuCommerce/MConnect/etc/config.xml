@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <malibucommerce_mconnect>
+            <general>
+                <enabled>1</enabled>
+            </general>
+            <queue>
+                <cron_expr>* * * * *</cron_expr>
+                <delete_after>90</delete_after>
+                <error_after>30</error_after>
+            </queue>
+            <customer>
+                <cron_expr>0 * * * *</cron_expr>
+                <max_rows>50</max_rows>
+                <default_group_taxable>1</default_group_taxable>
+                <default_group_nontaxable>3</default_group_nontaxable>
+                <new_email_enabled>0</new_email_enabled>
+                <new_email_identity>general</new_email_identity>
+                <new_email_template>malibucommerce_mconnect_customer_new</new_email_template>
+            </customer>
+            <product>
+                <cron_expr>0 * * * *</cron_expr>
+                <max_rows>50</max_rows>
+                <import_attribute_set>4</import_attribute_set>
+                <import_type>simple</import_type>
+                <import_visibility>4</import_visibility>
+                <import_tax_class>2</import_tax_class>
+            </product>
+            <nav_connection>
+                <url>http://8.39.234.61:7047/MCDEV_90_45834/WS/CRONUS%20USA,%20Inc./Codeunit/MalibuV2</url>
+                <username>mconnect</username>
+                <password>dM62946!</password>
+            </nav_connection>
+        </malibucommerce_mconnect>
+    </default>
+</config>
