@@ -3,9 +3,10 @@
     "description": "Connect NAV with Magento 2",
     "type": "magento2-module",
     "autoload": {
-        "files": [ "registration.php" ],
+        "files": ["registration.php"],
         "psr-4": {
              "MalibuCommerce\\MConnect\\": ""
         }
-    }
+    },
+    "bin": ["bin/mconnect_cron"],
 }
