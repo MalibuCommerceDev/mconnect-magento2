@@ -3,7 +3,6 @@
 namespace MalibuCommerce\MConnect\Setup;
 
 use Magento\Eav\Setup\EavSetup;
-use Magento\Eav\Setup\EavSetup;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
