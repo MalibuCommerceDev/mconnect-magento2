@@ -3,7 +3,6 @@
 namespace MalibuCommerce\MConnect\Setup;
 
 use Magento\Eav\Setup\EavSetup;
-use Magento\Eav\Setup\EavSetup;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
@@ -20,7 +19,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
                                 \Magento\Eav\Model\Config $eavConfig,
                                 ModuleDataSetupInterface $moduleDataSetupInterface,
                                 \Magento\Eav\Model\Entity\Attribute\Set $attributeSet,
-                                \Magento\Customer\Setup\CustomerSetup $customerSetup)
+                                \Magento\Customer\Setup\CustomerSetupFactory $customerSetup)
     {
         $this->eavSetup = $eavSetup;
         $this->eavConfig = $eavConfig;
