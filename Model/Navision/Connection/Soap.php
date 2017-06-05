@@ -31,8 +31,6 @@ class Soap
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
         \MalibuCommerce\MConnect\Helper\Data $mConnectHelper,
-        \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
-        \MalibuCommerce\MConnect\Helper\Data $mConnectHelper,
         \MalibuCommerce\MConnect\Model\Navision\Connection\Stream $stream,
         \Psr\Log\LoggerInterface $logger,
         \Magento\Framework\App\Filesystem\DirectoryList $directoryList
