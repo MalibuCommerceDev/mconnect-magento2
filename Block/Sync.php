@@ -10,19 +10,12 @@ class Sync extends \Magento\Framework\View\Element\Template
      */
     protected $registry;
 
-    /**
-     * @var \Psr\Log\LoggerInterface
-     */
-    protected $logger;
-
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Framework\Registry $registry,
-        \Psr\Log\LoggerInterface $logger,
         array $data = []
     ) {
         $this->registry = $registry;
-        $this->logger = $logger;
         parent::__construct(
             $context,
             $data
@@ -50,7 +43,7 @@ class Sync extends \Magento\Framework\View\Element\Template
         try {
             return parent::_toHtml();
         } catch (Exception $e) {
-            $this->logger->critical($e);
+            $this->_logger->critical($e);
             return $this->getLayout()->createBlock('malibucommerce_mconnect/sync_exception')->setException($e)->toHtml();
         }
     }

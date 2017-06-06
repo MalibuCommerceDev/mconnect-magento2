@@ -27,11 +27,6 @@ class Queue extends \Magento\Framework\Model\AbstractModel
     protected $registry;
 
     /**
-     * @var \Psr\Log\LoggerInterface
-     */
-    protected $logger;
-
-    /**
      * @var \MalibuCommerce\MConnect\Model\Resource\Connection\Collection
      */
     protected $mConnectResourceConnectionCollection;
@@ -59,7 +54,6 @@ class Queue extends \Magento\Framework\Model\AbstractModel
     public function __construct(
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
-        \Psr\Log\LoggerInterface $logger,
         \MalibuCommerce\MConnect\Model\Resource\Connection\Collection $mConnectResourceConnectionCollection,
         \Magento\Customer\Model\Customer $customerCustomer,
         \MalibuCommerce\MConnect\Model\Lastsync $mConnectLastsync,
@@ -70,7 +64,6 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         array $data = []
     ) {
         $this->registry = $registry;
-        $this->logger = $logger;
         $this->mConnectResourceConnectionCollection = $mConnectResourceConnectionCollection;
         $this->customerCustomer = $customerCustomer;
         $this->mConnectLastsync = $mConnectLastsync;
@@ -169,7 +162,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
             }
             $this->_endProcess(self::STATUS_SUCCESS, $model->getMessages());
         } catch (Exception $e) {
-            $this->logger->critical($e);
+            $this->_logger->critical($e);
             $this->_endProcess(self::STATUS_ERROR, $e->getMessage());
         }
         $this->registry->unregister('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE', $this->getId());
