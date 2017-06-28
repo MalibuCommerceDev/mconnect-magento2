@@ -82,79 +82,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
             $setup->getConnection()->createTable($table);
 
-
-
-            $table = $setup->getConnection()
-                ->newTable($setup->getTable('malibucommerce_mconnect_connection'))
-                ->addColumn('id', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, array(
-                    'identity' => true,
-                    'unsigned' => true,
-                    'nullable' => false,
-                    'primary'  => true,
-                ), 'Connection ID')
-                ->addColumn('name', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
-                    'nullable' => false,
-                ), 'Name')
-                ->addColumn('url', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
-                    'nullable' => false,
-                ), 'URL')
-                ->addColumn('username', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
-                    'nullable' => false,
-                ), 'Username')
-                ->addColumn('password', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
-                    'nullable' => false,
-                ), 'Password');
-
-            $setup->getConnection()
-                ->addColumn(
-                    $setup->getTable('malibucommerce_mconnect_queue'),
-                    'connection_id',
-                    array(
-                        'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
-                        'comment' => 'Connection ID'
-                    )
-                );
-
-            $setup->getConnection()->createTable($table);
-
-
-
-            $setup->getConnection()
-                ->addColumn(
-                    $setup->getTable('malibucommerce_mconnect_connection'),
-                    'rules',
-                    array(
-                        'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
-                        'comment' => 'Rules'
-                    )
-                );
-
-            $setup->getConnection()
-                ->addColumn(
-                    $setup->getTable('malibucommerce_mconnect_connection'),
-                    'sort_order',
-                    array(
-                        'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
-                        'comment' => 'Sort Order'
-                    )
-                );
-
-
-
-
-
-            /*$setup->addAttribute('customer_address', 'nav_id', array(
-                'type'             => 'varchar',
-                'input'            => 'text',
-                'label'            => 'NAV ID',
-                'global'           => 1,
-                'visible'          => 1,
-                'required'         => 0,
-                'user_defined'     => 0,
-                'visible_on_front' => 0
-            ));*/
-
-
             $customerSetup = $this->customerSetup->create(['setup' => $this->moduleDataSetupInterface]);
 
             $customerEntity = $customerSetup->getEavConfig()->getEntityType('customer_address');
@@ -185,35 +112,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 ]);
             $attribute->save();
 
-            /*
-            $eavSetup = $this->eavSetup->create(['setup' => $this->moduleDataSetupInterface]);
-            $eavSetup->addAttribute(
-                \Magento\Customer\Model\Customer::ENTITY,
-                'nav_id',
-                [
-                    'type' => 'static',
-                    'label' => 'NAV ID',
-                    'input' => 'text',
-                    'required' => false,
-                    'default' => '0',
-                    'sort_order' => 100,
-                    'system' => 0,
-                    'position' => 100,
-                    'validate_rules' => 'a:2:{s:15:"max_text_length";i:255;s:15:"min_text_length";i:1;}',
-                    'is_visible' => 0
-                ]
-            );
-            $customerAttribute = $this->eavConfig->getAttribute(\Magento\Customer\Model\Customer::ENTITY, 'nav_id');
-            $customerAttribute->setData(
-                'used_in_forms',
-                ['adminhtml_customer_address']
-            );
-            $customerAttribute->save();
-            */
-
-
-
-
             $table = $setup->getConnection()
                 ->newTable($setup->getTable('malibucommerce_mconnect_last_sync'))
                 ->addColumn('id', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, array(
@@ -235,15 +133,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $setup->getConnection()->createTable($table);
 
         }
-
-
-        if (version_compare($context->getVersion(), '1.0.1') < 0) {
-            //code to upgrade to 1.0.1
-        }
-
-        // reference comment
-        /*$sql = "ALTER TABLE `{$setup->getTable('salesrule')}` ADD `max_discount_amount` DECIMAL(12,4) NOT NULL DEFAULT '0.0000' AFTER `discount_amount`;";
-        $setup->getConnection()->query($sql);*/
 
         $installer->endSetup();
     }

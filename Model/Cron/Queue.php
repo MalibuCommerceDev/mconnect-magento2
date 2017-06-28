@@ -1,6 +1,8 @@
 <?php
+
 namespace MalibuCommerce\MConnect\Model\Cron;
 
+use \MalibuCommerce\Mconnect\Model\Queue as QueueModel;
 
 class Queue
 {
@@ -28,7 +30,7 @@ class Queue
         if (!$config->getFlag('general/enabled')) {
             return 'Module is disabled.';
         }
-        $queues = $this->mConnectResourceQueueCollection->addFieldToFilter('status', \MalibuCommerce\Mconnect\Model\Queue::STATUS_PENDING);
+        $queues = $this->mConnectResourceQueueCollection->addFieldToFilter('status', QueueModel::STATUS_PENDING);
         $count = $queues->getSize();
         if (!$count) {
             return 'No items in queue need processing.';
@@ -71,14 +73,14 @@ class Queue
             return 'Error marking not enabled.';
         }
         $queues = $this->mConnectResourceQueueCollection->olderThanMinutes($value)
-            ->addFieldToFilter('status', MalibuCommerce_Mconnect_Model_Queue::STATUS_RUNNING)
+            ->addFieldToFilter('status', QueueModel::STATUS_RUNNING)
         ;
         $count = $queues->getSize();
         if (!$count) {
             return 'No items in queue to remove.';
         }
         foreach ($queues as $queue) {
-            $queue->setStatus(MalibuCommerce_Mconnect_Model_Queue::STATUS_ERROR)->save();
+            $queue->setStatus(QueueModel::STATUS_ERROR)->save();
         }
         return sprintf('Marked %d item(s) in queue.', $count);
     }

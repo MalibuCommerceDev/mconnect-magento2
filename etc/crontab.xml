@@ -2,7 +2,6 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
     <group id="default">
         <job name="malibucommerce_mconnect_queue_process" instance="MalibuCommerce\MConnect\Model\Cron\Queue" method="process">
-            <!--<config_path>malibucommerce_mconnect/queue/cron_expr</config_path>TODO-->
             <schedule>* * * * *</schedule>
         </job>
         <job name="malibucommerce_mconnect_queue_clean" instance="MalibuCommerce\MConnect\Model\Cron\Queue" method="clean">
@@ -12,11 +11,9 @@
             <schedule>*/5 * * * *</schedule>
         </job>
         <job name="malibucommerce_mconnect_navision_customer_import" instance="MalibuCommerce\MConnect\Model\Cron" method="queueCustomerImport">
-            <!--<config_path>malibucommerce_mconnect/customer/cron_expr</config_path>TODO-->
             <schedule>0 * * * *</schedule>
         </job>
         <job name="malibucommerce_mconnect_navision_product_import" instance="MalibuCommerce\MConnect\Model\Cron" method="queueProductImport">
-            <!--<config_path>malibucommerce_mconnect/product/cron_expr</config_path>TODO-->
             <schedule>0 * * * *</schedule>
         </job>
     </group>

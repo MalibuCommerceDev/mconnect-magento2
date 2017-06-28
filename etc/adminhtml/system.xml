@@ -1,13 +1,9 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
-        <tab id="malibucommerce_mconnect" translate="label" sortOrder="300">
-            <label>MalibuCommerce MConnect</label>
-        </tab>
-        <section id="malibucommerce_mconnect" translate="label" sortOrder="130" showInDefault="1" showInWebsite="0" showInStore="0">
-            <class>separator-top</class>
+        <section id="malibucommerce_mconnect" translate="label" sortOrder="500" showInDefault="1" showInWebsite="0" showInStore="0">
             <label>M-Connect</label>
-            <tab>malibucommerce_mconnect</tab>
+            <tab>service</tab>
             <resource>MalibuCommerce_MConnect::config</resource>
             <group id="info" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Information</label>
@@ -23,28 +19,8 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
-            <group id="navision" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                <label>Navision</label>
-                <field id="error_recipient" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Error recipient(s)</label>
-                    <comment>Receives an email if an error is encountered.  Separate multiple emails with a comma (,)</comment>
-                </field>
-                <field id="log" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Log Requests</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment>For debugging purposes. This should not be left on for a long period of time on a production server to conserve disk space.  The log is located at var/log/malibucommerce_mconnect_navision_soap.log</comment>
-                </field>
-                <field id="trigger_password" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Trigger Password</label>
-                    <comment>Password used when clicking links in NAV to trigger syncs</comment>
-                </field>
-            </group>
             <group id="queue" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Synchronization Queue</label>
-                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Schedule (cron syntax)</label>
-                    <comment>Need help? http://crontab.guru/</comment>
-                </field>
                 <field id="delete_after" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Remove from queue after (days)</label>
                     <comment>Number of days to keep historical queue data.  Leave empty to disable.</comment>
@@ -56,14 +32,6 @@
             </group>
             <group id="customer" type="text" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Customer</label>
-                <!--<field id="last_sync" translate="label">
-                    <label>Last Sync Timestamp</label>
-                    <frontend_model>\MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Customer\Lastsync</frontend_model>
-                </field>-->
-                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Import Schedule (cron syntax)</label>
-                    <comment>Need help? http://crontab.guru/</comment>
-                </field>
                 <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import entity limit per request</label>
                 </field>
@@ -94,15 +62,6 @@
             </group>
             <group id="product" type="text" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Product</label>
-                <!-- TODO -->
-                <!--<field id="last_sync" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Last Sync Timestamp</label>
-                    <frontend_model>\MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Product\Lastsync</frontend_model>
-                </field>-->
-                <field id="cron_expr" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Import Schedule (cron syntax)</label>
-                    <comment>Need help? http://crontab.guru/</comment>
-                </field>
                 <field id="max_rows" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import entity limit per request</label>
                 </field>
