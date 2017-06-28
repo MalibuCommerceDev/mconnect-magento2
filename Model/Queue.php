@@ -149,6 +149,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
             return $this;
         }
         $this->registry->register('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE', $this->getId());
+
         try {
             $this->_initConnection();
             if (($code == 'customer') && ($action == 'export')) {
@@ -161,11 +162,12 @@ class Queue extends \Magento\Framework\Model\AbstractModel
                 $this->setEntityId($model->getEntityId());
             }
             $this->_endProcess(self::STATUS_SUCCESS, $model->getMessages());
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->_logger->critical($e);
             $this->_endProcess(self::STATUS_ERROR, $e->getMessage());
         }
         $this->registry->unregister('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE', $this->getId());
+
         return $this;
     }
 

@@ -1,45 +1,54 @@
 <?php
+
 namespace MalibuCommerce\MConnect\Model\Queue;
 
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Catalog\Model\Product\Attribute\Source\Status as ProductStatus;
 
 class Product extends \MalibuCommerce\MConnect\Model\Queue
 {
+    /**
+     * @var \Magento\Catalog\Api\ProductRepositoryInterface|ProductRepositoryInterface
+     */
+    protected $productRepository;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Navision\Product
+     * @var \Magento\Catalog\Model\ProductFactory|ProductFactory
      */
-    protected $mConnectNavisionProduct;
+    protected $productFactory;
 
     /**
-     * @var \Magento\Catalog\Model\Product
+     * @var \MalibuCommerce\MConnect\Model\Navision\Product|NavProduct
      */
-    protected $catalogProduct;
+    protected $navProduct;
 
     /**
-     * @var \Magento\Catalog\Model\ResourceModel\Product\Collection
+     * @var \MalibuCommerce\MConnect\Model\Config|Config
      */
-    protected $catalogResourceModelProductCollection;
+    protected $config;
 
     /**
-     * @var \Magento\CatalogInventory\Model\Stock\Item
+     * Product constructor.
+     *
+     * @param \Magento\Catalog\Api\ProductRepositoryInterface $productRepository
+     * @param \Magento\Catalog\Model\ProductFactory           $productFactory
+     * @param \MalibuCommerce\MConnect\Model\Navision\Product $navProduct
+     * @param \MalibuCommerce\MConnect\Model\Config           $config
      */
-    protected $catalogInventoryStockItem;
-
-    protected $mConnectConfig;
-
     public function __construct(
-        \MalibuCommerce\MConnect\Model\Navision\Product $mConnectNavisionProduct,
-        \Magento\Catalog\Model\Product $catalogProduct,
-        \Magento\Catalog\Model\ResourceModel\Product\Collection $catalogResourceModelProductCollection,
-        \Magento\CatalogInventory\Model\Stock\Item $catalogInventoryStockItem,
-        \MalibuCommerce\MConnect\Model\Config $mConnectConfig
+        \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
+        \Magento\Catalog\Model\ProductFactory $productFactory,
+        \MalibuCommerce\MConnect\Model\Navision\Product $navProduct,
+        \MalibuCommerce\MConnect\Model\Config $config
     ) {
-        $this->mConnectNavisionProduct = $mConnectNavisionProduct;
-        $this->catalogProduct = $catalogProduct;
-        $this->catalogResourceModelProductCollection = $catalogResourceModelProductCollection;
-        $this->catalogInventoryStockItem = $catalogInventoryStockItem;
-        $this->mConnectConfig = $mConnectConfig;
+        $this->productRepository = $productRepository;
+        $this->productFactory = $productFactory;
+        $this->navProduct = $navProduct;
+        $this->config = $config;
     }
+
     public function importAction()
     {
         $count       = 0;
@@ -47,7 +56,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         $lastSync    = false;
         $lastUpdated = $this->getLastSync('product');
         do {
-            $result = $this->mConnectNavisionProduct->export($page++, $lastUpdated);
+            $result = $this->navProduct->export($page++, $lastUpdated);
             foreach ($result->item as $data) {
                 $count++;
                 $import = $this->_importProduct($data);
@@ -68,13 +77,13 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
     {
         $details = json_decode($this->getDetails());
         if (!$details || !isset($details->nav_id) || !$details->nav_id) {
-            throw new \Magento\Framework\Exception\LocalizedException('No nav_id specified');
+            throw new LocalizedException('No nav_id specified');
         }
-        $result = $this->mConnectNavisionProduct->exportSingle($details->nav_id);
+        $result = $this->navProduct->exportSingle($details->nav_id);
         $this->_captureEntityId = true;
         $result = $this->_importProduct($result->item);
         if ($result === false) {
-            throw new \Magento\Framework\Exception\LocalizedException(sprintf('Unabled to import %s', $details->nav_id));
+            throw new LocalizedException(sprintf('Unabled to import %s', $details->nav_id));
         }
     }
 
@@ -84,23 +93,31 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         if (empty($sku)) {
             return false;
         }
-        $product = $this->catalogProduct;
-        $existing = $this->catalogResourceModelProductCollection->addFieldToFilter('sku', $sku)->getFirstItem();
-        if ($existing && $existing->getId()) {
-            $product->load($existing->getId());
-            $stockItem = $this->catalogInventoryStockItem->loadByProduct($product);
+
+        $productExists = false;
+        try {
+            $product = $this->productRepository->get($sku, true, null, true);
+            $oldData = $product->getData();
+            $productExists = true;
+        } catch (NoSuchEntityException $e) {
+            $product = $this->productFactory->create();
+        } catch (\Exception $e) {
+            return false;
+        }
+
+
+        if ($productExists) {
+            /** @var ProductExtensionInterface $ea */
+            $stockItem = $product->getExtensionAttributes()->getStockItem();
+
             if ($stockItem && $stockItem->getId() && $stockItem->getManageStock()) {
                 $stockItem
                     ->setQty($data->item_qty_on_hand)
-                    ->setIsInStock((int)(bool) $data->item_qty_on_hand)
-                ;
-            } else {
-                $stockItem = false;
+                    ->setIsInStock((int)(bool) $data->item_qty_on_hand);
             }
         } else {
-            $stockItem = false;
-            $product = $this->catalogProduct
-                ->setAttributeSetId($this->getDefaultAttributeSetId())
+            $product->setAttributeSetId($this->getDefaultAttributeSetId())
+                ->setStoreId(\Magento\Store\Model\Store::DISTRO_STORE_ID)
                 ->setTypeId($this->getDefaultTypeId())
                 ->setSku($sku)
                 ->setVisibility($this->getDefaultVisibility())
@@ -109,24 +126,63 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
                     'use_config_manage_stock' => 1,
                     'qty'                     => $data->item_qty_on_hand,
                     'is_in_stock'             => (int)(bool) $data->item_qty_on_hand
-                ))
-            ;
+                ));
         }
+
+        if (!empty($data->item_meta_title)) {
+            $product->setMetaTitle((string) $data->item_meta_title);
+        }
+
+        if (!empty($data->item_meta_desc)) {
+            $product->setMetaDescription((string) $data->item_meta_desc);
+        }
+
+        if (!empty($data->item_net_weight)) {
+            $product->setWeight(number_format((float) $data->item_net_weight, 4, '.', ''));
+        }
+
+        if (!empty($data->item_desc)) {
+            $product->setDescription((string) $data->item_desc);
+        }
+
+        $status = $data->item_blocked == 'true'
+            ? ProductStatus::STATUS_DISABLED
+            : ProductStatus::STATUS_ENABLED;
+
         $product
-            ->setName($data->item_name)
-            ->setDescription($data->item_desc)
-            ->setWeight($data->item_net_weight)
-            ->setPrice($data->item_unit_price)
-            ->setStatus($data->item_blocked == 'true' ? \Magento\Catalog\Model\Product\Attribute\Source\Status::STATUS_DISABLED : \Magento\Catalog\Model\Product\Attribute\Source\Status::STATUS_ENABLED)
-        ;
+            ->setOptions([])
+            ->setName((string) $data->item_name)
+            ->setPrice(number_format((float) $data->item_unit_price, 4, '.', ''))
+            ->setStatus((string) $status);
+
         try {
-            $product->save();
-            if ($stockItem) {
-                $stockItem->save();
+            if ($product->hasDataChanges()) {
+                $this->productRepository->save($product);
+                if ($productExists) {
+                    $this->_messages .= $sku . ': updated';
+                } else {
+                    $this->_messages .= $sku . ': created';
+                }
+            } else {
+                $this->_messages .= $sku . ': skipped';
             }
+
             $this->setEntityId($product->getId());
-            $this->_messages .= $sku . ': saved';
-        } catch (Exception $e) {
+        } catch (AlreadyExistsException $e) {
+            $urlKey = $product->formatUrlKey($product->getName() . '-' . $product->getSku());
+            $product->setUrlKey($urlKey);
+
+            try {
+                $this->productRepository->save($product);
+                if ($productExists) {
+                    $this->_messages .= $sku . ': updated';
+                } else {
+                    $this->_messages .= $sku . ': created';
+                }
+            }  catch (\Exception $e) {
+                $this->_messages .= $sku . ': ' . $e->getMessage();
+            }
+        } catch (\Exception $e) {
             $this->_messages .= $sku . ': ' . $e->getMessage();
         }
     }
@@ -134,7 +190,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
     public function getDefaultAttributeSetId()
     {
         if (!$this->hasDefaultAttributeSetId()) {
-            $this->setDefaultAttributeSetId($this->mConnectConfig->get('product/import_attribute_set'));
+            $this->setDefaultAttributeSetId($this->config->get('product/import_attribute_set'));
         }
         return parent::getDefaultAttributeSetId();
     }
@@ -142,7 +198,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
     public function getDefaultTypeId()
     {
         if (!$this->hasDefaultTypeId()) {
-            $this->setDefaultTypeId($this->mConnectConfig->get('product/import_type'));
+            $this->setDefaultTypeId($this->config->get('product/import_type'));
         }
         return parent::getDefaultTypeId();
     }
@@ -150,7 +206,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
     public function getDefaultVisibility()
     {
         if (!$this->hasDefaultVisibility()) {
-            $this->setDefaultVisibility($this->mConnectConfig->get('product/import_visibility'));
+            $this->setDefaultVisibility($this->config->get('product/import_visibility'));
         }
         return parent::getDefaultVisibility();
     }
@@ -158,7 +214,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
     public function getDefaultTaxClass()
     {
         if (!$this->hasDefaultTaxClass()) {
-            $this->setDefaultTaxClass($this->mConnectConfig->get('product/import_tax_class'));
+            $this->setDefaultTaxClass($this->config->get('product/import_tax_class'));
         }
         return parent::getDefaultTaxClass();
     }
