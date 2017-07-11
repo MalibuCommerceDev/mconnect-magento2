@@ -26,6 +26,6 @@ class Lastsync
      */
     protected function _getElementHtml(\Magento\Framework\Data\Form\Element\AbstractElement $element)
     {
-        return $this->mConnectQueue->getLastSync($this->_code);
+        return $this->mConnectQueue->getLastSyncTime($this->_code);
     }
 }

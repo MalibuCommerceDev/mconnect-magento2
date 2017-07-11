@@ -30,6 +30,11 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
     protected $config;
 
     /**
+     * @var \MalibuCommerce\MConnect\Model\Queue\FlagFactory
+     */
+    protected $queueFlagFactory;
+
+    /**
      * Product constructor.
      *
      * @param \Magento\Catalog\Api\ProductRepositoryInterface $productRepository
@@ -41,12 +46,14 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
         \Magento\Catalog\Model\ProductFactory $productFactory,
         \MalibuCommerce\MConnect\Model\Navision\Product $navProduct,
-        \MalibuCommerce\MConnect\Model\Config $config
+        \MalibuCommerce\MConnect\Model\Config $config,
+        \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory
     ) {
         $this->productRepository = $productRepository;
         $this->productFactory = $productFactory;
         $this->navProduct = $navProduct;
         $this->config = $config;
+        $this->queueFlagFactory = $queueFlagFactory;
     }
 
     public function importAction()
@@ -54,7 +61,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         $count       = 0;
         $page        = 0;
         $lastSync    = false;
-        $lastUpdated = $this->getLastSync('product');
+        $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_PRODUCT_SYNC_TIME);
         do {
             $result = $this->navProduct->export($page++, $lastUpdated);
             foreach ($result->item as $data) {
@@ -63,14 +70,14 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
                 if ($import === false) {
                     continue;
                 }
-                $this->_messages .= $import . PHP_EOL;
+                $this->messages .= PHP_EOL;
             }
             if (!$lastSync) {
                 $lastSync = $result->status->current_date_time;
             }
         } while (isset($result->status->end_of_records) && (string) $result->status->end_of_records === 'false');
-        $this->setLastSync('product', $lastSync);
-        $this->_messages .= PHP_EOL . 'Processed ' . $count . ' products(s).';
+        $this->setLastSyncTime(Flag::FLAG_CODE_LAST_PRODUCT_SYNC_TIME, $lastSync);
+        $this->messages .= PHP_EOL . 'Processed ' . $count . ' products(s).';
     }
 
     public function importSingleAction()
@@ -80,7 +87,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             throw new LocalizedException('No nav_id specified');
         }
         $result = $this->navProduct->exportSingle($details->nav_id);
-        $this->_captureEntityId = true;
+        $this->captureEntityId = true;
         $result = $this->_importProduct($result->item);
         if ($result === false) {
             throw new LocalizedException(sprintf('Unabled to import %s', $details->nav_id));
@@ -97,11 +104,11 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         $productExists = false;
         try {
             $product = $this->productRepository->get($sku, true, null, true);
-            $oldData = $product->getData();
             $productExists = true;
         } catch (NoSuchEntityException $e) {
             $product = $this->productFactory->create();
         } catch (\Exception $e) {
+            $this->messages .= $sku . ': ' . $e->getMessage();
             return false;
         }
 
@@ -159,12 +166,12 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             if ($product->hasDataChanges()) {
                 $this->productRepository->save($product);
                 if ($productExists) {
-                    $this->_messages .= $sku . ': updated';
+                    $this->messages .= $sku . ': updated';
                 } else {
-                    $this->_messages .= $sku . ': created';
+                    $this->messages .= $sku . ': created';
                 }
             } else {
-                $this->_messages .= $sku . ': skipped';
+                $this->messages .= $sku . ': skipped';
             }
 
             $this->setEntityId($product->getId());
@@ -175,15 +182,15 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             try {
                 $this->productRepository->save($product);
                 if ($productExists) {
-                    $this->_messages .= $sku . ': updated';
+                    $this->messages .= $sku . ': updated';
                 } else {
-                    $this->_messages .= $sku . ': created';
+                    $this->messages .= $sku . ': created';
                 }
             }  catch (\Exception $e) {
-                $this->_messages .= $sku . ': ' . $e->getMessage();
+                $this->messages .= $sku . ': ' . $e->getMessage();
             }
         } catch (\Exception $e) {
-            $this->_messages .= $sku . ': ' . $e->getMessage();
+            $this->messages .= $sku . ': ' . $e->getMessage();
         }
     }
 

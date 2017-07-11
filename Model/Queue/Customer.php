@@ -1,76 +1,96 @@
 <?php
 namespace MalibuCommerce\MConnect\Model\Queue;
 
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Exception\LocalizedException;
 
 class Customer extends \MalibuCommerce\MConnect\Model\Queue
 {
+    /**
+     * @var \Magento\Customer\Api\CustomerRepositoryInterface
+     */
+    protected $customerRepository;
 
     /**
-     * @var \Magento\Customer\Model\Customer
+     * @var \Magento\Customer\Model\CustomerFactory
      */
-    protected $customerCustomer;
+    protected $customerFactory;
+
+    /**
+     * @var \Magento\Customer\Model\AddressFactory
+     */
+    protected $addressFactory;
+
+    /**
+     * @var \Magento\Directory\Model\RegionFactory
+     */
+    protected $regionFactory;
+
 
     /**
      * @var \MalibuCommerce\MConnect\Model\Navision\Customer
      */
-    protected $mConnectNavisionCustomer;
+    protected $navCustomer;
+
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Config
+     */
+    protected $config;
 
     /**
      * @var \MalibuCommerce\MConnect\Helper\Data
      */
-    protected $mConnectHelper;
+    protected $helper;
 
     /**
-     * @var \Magento\Customer\Model\ResourceModel\Customer\Collection
+     * @var \MalibuCommerce\MConnect\Model\Queue\FlagFactory
      */
-    protected $customerResourceModelCustomerCollection;
+    protected $queueFlagFactory;
+
+    /** @var \Magento\Customer\Model\CustomerFactory  */
+    protected $customer;
 
     /**
-     * @var \Magento\Customer\Model\ResourceModel\Address\Collection
+     * @var \Magento\Customer\Model\AddressFactory
      */
-    protected $customerResourceModelAddressCollection;
+    protected $address;
 
-    /**
-     * @var \Magento\Customer\Model\Address
-     */
-    protected $customerAddress;
-
-    /**
-     * @var \Magento\Directory\Model\Country
-     */
-    protected $directoryCountry;
-
-    protected $mConnectConfig;
+    /** @var \Magento\Customer\Model\ResourceModel\Address\CollectionFactory  */
+    protected $addressCollectionFactory;
 
     public function __construct(
-        \Magento\Customer\Model\Customer $customerCustomer,
-        \MalibuCommerce\MConnect\Model\Navision\Customer $mConnectNavisionCustomer,
-        \MalibuCommerce\MConnect\Helper\Data $mConnectHelper,
-        \Magento\Customer\Model\ResourceModel\Customer\Collection $customerResourceModelCustomerCollection,
-        \Magento\Customer\Model\ResourceModel\Address\Collection $customerResourceModelAddressCollection,
-        \Magento\Customer\Model\Address $customerAddress,
-        \Magento\Directory\Model\Country $directoryCountry,
-        \MalibuCommerce\MConnect\Model\Config $mConnectConfig
+        \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
+        \Magento\Directory\Model\RegionFactory $regionFactory,
+        \MalibuCommerce\MConnect\Model\Navision\Customer $navCustomer,
+        \MalibuCommerce\MConnect\Model\Config $config,
+        \MalibuCommerce\MConnect\Helper\Data $helper,
+        \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
+        \Magento\Customer\Model\CustomerFactory $customerFactory,
+        \Magento\Customer\Model\AddressFactory $addressFactory,
+        \Magento\Customer\Model\ResourceModel\Address\CollectionFactory $addressCollectionFactory
     ) {
-        $this->customerCustomer = $customerCustomer;
-        $this->mConnectNavisionCustomer = $mConnectNavisionCustomer;
-        $this->mConnectHelper = $mConnectHelper;
-        $this->customerResourceModelCustomerCollection = $customerResourceModelCustomerCollection;
-        $this->customerResourceModelAddressCollection = $customerResourceModelAddressCollection;
-        $this->customerAddress = $customerAddress;
-        $this->directoryCountry = $directoryCountry;
-        $this->mConnectConfig = $mConnectConfig;
+        $this->customerRepository = $customerRepository;
+        $this->regionFactory = $regionFactory;
+        $this->navCustomer = $navCustomer;
+        $this->config = $config;
+        $this->helper = $helper;
+        $this->queueFlagFactory = $queueFlagFactory;
+        $this->customerFactory = $customerFactory;
+        $this->addressFactory = $addressFactory;
+        $this->addressCollectionFactory = $addressCollectionFactory;
     }
 
     public function exportAction($entityId = null)
     {
-        $customer = $this->customerCustomer->load($entityId);
-        if (!$customer || !$customer->getId()) {
-            throw new \Exception(sprintf('Customer ID "%s" does not exist.', $entityId));
+        try {
+            $customer = $this->customerRepository->getById($entityId);
+        } catch (NoSuchEntityException $e) {
+            throw new LocalizedException(__('Customer ID "%1" does not exist', $entityId));
         }
-        $response = $this->mConnectNavisionCustomer->import($customer);
+
+        $response = $this->navCustomer->import($customer);
         if ((string) $response->Status === 'OK') {
-            $this->_messages .= 'Document No: ' . (string) $response->DocumentNo;
+            $this->messages .= 'Document No: ' . (string) $response->DocumentNo;
         }
     }
 
@@ -79,127 +99,196 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
         $count       = 0;
         $page        = 0;
         $lastSync    = false;
-        $lastUpdated = $this->getLastSync('customer');
+        $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_CUSTOMER_SYNC_TIME);
         do {
-            $result = $this->mConnectNavisionCustomer->export($page++, $lastUpdated);
+            $result = $this->navCustomer->export($page++, $lastUpdated);
             foreach ($result->customer as $data) {
                 $count++;
-                $this->_importCustomer($data);
+                $import = $this->importCustomer($data);
+                if ($import === false) {
+                    continue;
+                }
+                $this->messages .= PHP_EOL;
             }
             if (!$lastSync) {
                 $lastSync = $result->status->current_date_time;
             }
         } while (isset($result->status->end_of_records) && (string) $result->status->end_of_records === 'false');
-        $this->setLastSync('customer', $lastSync);
-        $this->_messages .= PHP_EOL . 'Processed ' . $count . ' customer(s).';
+        $this->setLastSyncTime(Flag::FLAG_CODE_LAST_CUSTOMER_SYNC_TIME, $lastSync);
+        $this->messages .= PHP_EOL . 'Processed ' . $count . ' customer(s).';
     }
 
-    protected function _importCustomer($data)
+    protected function importCustomer($data)
     {
-        $email = (string) $data->cust_email;
+        $email = (string)$data->cust_email;
         if (empty($email)) {
-            $this->_messages .= 'Skipping NAV ID "' . $data->cust_nav_id . '", email empty' . PHP_EOL;
-            return;
+            $this->messages .= 'Skipping NAV ID "' . $data->cust_nav_id . '", email empty' . PHP_EOL;
+
+            return false;
         }
-        $customer = $this->_prepareCustomerModel($data);
-        $newCustomer = (bool) $customer->getId();
-        $customer->addData($this->_prepareImportData($data));
+
+        /**
+         * Persist customer entity
+         */
+        $websiteId = $this->config->get('customer/default_website');
+        $customerExists = false;
         try {
-            $customer->save();
-            $this->_messages .= $email . ': saved' . PHP_EOL;
-            if ($newCustomer) {
-                if ($this->mConnectHelper->sendNewCustomerEmail($customer)) {
-                    $this->_messages .= $email . ': new customer email sent' . PHP_EOL;
-                }
+            $customer = $this->customerFactory->create()->setWebsiteId($websiteId)->loadByEmail($email);
+            if ($customer->getId()) {
+                $customerExists = true;
             }
-        } catch (Exception $e) {
-            $this->_messages .= $email . ': ' . $e->getMessage() . PHP_EOL;
+        } catch (\Exception $e) {
+            $this->messages .= $email . ': ' . $e->getMessage();
+            return false;
         }
-        if ($data->address) {
-            foreach ($data->address as $address) {
-                $this->_importAddress($customer, $address);
-            }
-        }
-    }
 
-    protected function _prepareCustomerModel($data)
-    {
-        $email = (string) $data->cust_email;
-        $row = $this->customerResourceModelCustomerCollection->addFieldToFilter('email', $email)
-            ->getFirstItem();
-        $customer = $this->customerCustomer;
-        if ($row && $row->getId()) {
-            $customer->load($row->getId());
-        } else {
-            $customer
-                ->setEmail($email)
+        if (!$customerExists) {
+            $taxable = (string) $data->cust_taxable;
+            $customer->setEmail($email)
                 ->setGroupId(
-                    !$data->cust_taxable || $data->cust_taxable == 'false'
-                    ? $this->mConnectConfig->get('customer/default_group_nontaxable')
-                    : $this->mConnectConfig->get('customer/default_group_taxable')
+                    empty($taxable) || $taxable == 'false'
+                        ? $this->config->get('customer/default_group_nontaxable')
+                        : $this->config->get('customer/default_group_taxable')
                 )
-                ->setWebsiteId($this->mConnectConfig->get('customer/default_website'))
-            ;
+                ->setWebsiteId($websiteId);
         }
-        return $customer;
+
+        $firstname = (string) $data->cust_first_name;
+        $lastname = (string) $data->cust_last_name;
+        if (empty($lastname)) {
+            $parts = explode(' ', $firstname);
+            if (count($parts) > 1) {
+                $firstname = $parts[0];
+                $lastname = $parts[1];
+            } else {
+                $lastname = 'Co.';
+            }
+        }
+
+        $customer->setFirstname($firstname)
+            ->setLastname($lastname)
+            ->setSkipMconnect(true)
+            ->setNavId((string) $data->cust_nav_id);
+
+        try {
+            if ($customer->hasDataChanges()) {
+                $customer->save();
+                if ($customerExists) {
+                    $this->messages .= $email . ': updated';
+                } else {
+                    $this->messages .= $email . ': created';
+
+                    if ($this->helper->sendNewCustomerEmail($customer)) {
+                        $this->messages .= $email . ': new customer email sent';
+                    }
+                }
+            } else {
+                $this->messages .= $email . ': skipped';
+            }
+        } catch (\Exception $e) {
+            $this->messages .= $email . ': ' . $e->getMessage();
+        }
+
+        /**
+         * Add addresses
+         */
+        $addresses = [];
+        if (!empty($data->address)) {
+            $country = $state = null;
+            foreach ($data->address as $addressData) {
+                $this->importAddress($customer, $addressData);
+            }
+        }
     }
 
-    protected function _prepareImportData($customer)
+    protected function importAddress($customer, $addressData)
     {
-        $data = array();
-        $data['skip_mconnect'] = true;
-        $data['firstname'] = (string) $customer->cust_name;
-        $data['lastname'] = (string) $customer->cust_name2;
-        return $data;
-    }
-
-    protected function _importAddress($customer, $data)
-    {
+        static $email = null, $country = null, $state = null;
         $address = false;
-        if ($data->addr_nav_id) {
-            $address = $this->customerResourceModelAddressCollection->addAttributeToFilter('parent_id', $customer->getId())
-                ->addAttributeToFilter('nav_id', $data->addr_nav_id)
-                ->getFirstItem();
+
+        if (!empty($addressData->addr_nav_id)) {
+            $collection = $this->addressCollectionFactory->create();
+            $collection->addFieldToFilter('parent_id', $customer->getId())
+                ->addFieldToFilter('nav_id', (string) $addressData->addr_nav_id);
+
+            $addresses = $collection->getItems();
+            if ($addresses) {
+                $address = reset($addresses);
+            }
         }
+
+        $addressExists = true;
         if (!$address || !$address->getId()) {
-            $address = $this->customerAddress;
+            $address = $this->addressFactory->create();
+            $addressExists = false;
         }
-        $region = $this->_getRegion((string) $data->addr_country, (string) $data->addr_state);
+
+        if (empty($email) || $email != $customer->getEmail()) {
+            $country = (string) $addressData->addr_country;
+            $state = (string) $addressData->addr_state;
+            $email = $customer->getEmail();
+        }
+        $country = !empty((string) $addressData->addr_country) ? (string) $addressData->addr_country : $country;
+        $state = !empty((string) $addressData->addr_state) ? (string) $addressData->addr_state : $state;
+        $region = $this->getRegion($country, $state);
+
+        $firstname = (string) $addressData->addr_name;
+        $lastname = (string) $addressData->addr_name2;
+        if (empty($lastname)) {
+            $parts = explode(' ', $firstname);
+            if (count($parts) > 1) {
+                $firstname = $parts[0];
+                $lastname = $parts[1];
+            } else {
+                $lastname = 'Co.';
+            }
+        }
+        $telephone = (string) $addressData->addr_phone;
+        $telephone = empty($telephone) ? 'N/A' : $telephone;
+
         $address
             ->setParentId($customer->getId())
-            ->setFirstname($data->addr_name)
-            ->setLastname($data->addr_name2)
-            ->setStreet($data->addr_street)
-            ->setCity($data->addr_city)
-            ->setRegion($region)
-            ->setCountryId($data->addr_country)
-            ->setPostcode($data->addr_post_code)
-            ->setTelephone($data->addr_phone)
-            ->setNavId($data->addr_nav_id)
+            ->setFirstname($firstname)
+            ->setLastname($lastname)
+            ->setStreet([(string) $addressData->addr_street])
+            ->setCity((string) $addressData->addr_city)
+            ->setCountryId($country)
+            ->setRegionId($region)
+            ->setPostcode((string) $addressData->addr_post_code)
+            ->setTelephone($telephone)
+            ->setFax((string) $addressData->addr_fax)
+            ->setNavId((string) $addressData->addr_nav_id)
             ->setSkipMconnect(true)
-        ;
-        if ($data->addr_nav_id == 'DEFAULT') {
+            ->setShouldIgnoreValidation(true);
+
+        if ((string) $addressData->addr_nav_id == 'DEFAULT') {
             $address->setIsDefaultBilling(true);
             $address->setIsDefaultShipping(true);
         }
+
         try {
-            $address->save();
-            $this->_messages .= 'Address ' . $address->addr_nav_id . ': saved' . PHP_EOL;
-        } catch (Exception $e) {
-            $this->_messages .= 'Address ' . $address->addr_nav_id . ': ' . $e->getMessage() . PHP_EOL;
+            if ($address->hasDataChanges()) {
+                $address->save();
+                if ($addressExists) {
+                    $this->messages .= '; Address ' . $addressData->addr_nav_id . ': updated' . PHP_EOL;
+                } else {
+                    $this->messages .= '; Address ' . $addressData->addr_nav_id . ': created' . PHP_EOL;
+                }
+            } else {
+                $this->messages .= '; Address ' . $addressData->addr_nav_id . ': skipped' . PHP_EOL;
+            }
+        } catch (\Exception $e) {
+            $this->messages .= '; Address ' . $addressData->addr_nav_id . ': ' . $e->getMessage() . PHP_EOL;
         }
     }
 
-    protected function _getRegion($country, $state)
+    protected function getRegion($country, $state)
     {
-        $country = $this->directoryCountry->load($country);
-        if (!$country || !$country->getCountryId()) {
+        $region = $this->regionFactory->create()->loadByCode($state, $country);
+        if (!$region || !$region->getId()) {
             return $state;
         }
-        $region = $country->getRegionCollection()->addFieldToFilter('code', $state)->getFirstItem();
-        if (!$region || !$region->getRegionId()) {
-            return $state;
-        }
+
         return $region->getRegionId();
     }
 }

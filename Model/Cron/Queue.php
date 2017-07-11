@@ -10,40 +10,43 @@ class Queue
     /**
      * @var \MalibuCommerce\MConnect\Model\Config
      */
-    protected $mConnectConfig;
+    protected $config;
 
     /**
      * @var \MalibuCommerce\MConnect\Model\Resource\Queue\Collection
      */
-    protected $mConnectResourceQueueCollection;
+    protected $queueCollection;
 
     public function __construct(
-        \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
-        \MalibuCommerce\MConnect\Model\Resource\Queue\Collection $mConnectResourceQueueCollection
+        \MalibuCommerce\MConnect\Model\Config $config,
+        \MalibuCommerce\MConnect\Model\Resource\Queue\Collection $queueCollection
     ) {
-        $this->mConnectConfig = $mConnectConfig;
-        $this->mConnectResourceQueueCollection = $mConnectResourceQueueCollection;
+        $this->config = $config;
+        $this->queueCollection = $queueCollection;
     }
     public function process()
     {
-        $config = $this->mConnectConfig;
+        $config = $this->config;
         if (!$config->getFlag('general/enabled')) {
             return 'Module is disabled.';
         }
-        $queues = $this->mConnectResourceQueueCollection->addFieldToFilter('status', QueueModel::STATUS_PENDING);
+        $queues = $this->queueCollection->addFieldToFilter('status', QueueModel::STATUS_PENDING);
         $count = $queues->getSize();
         if (!$count) {
             return 'No items in queue need processing.';
         }
+
+        /** @var \MalibuCommerce\MConnect\Model\Queue $queue */
         foreach ($queues as $queue) {
             $queue->process();
         }
+
         return sprintf('Processed %d item(s) in queue.', $count);
     }
 
     public function clean()
     {
-        $config = $this->mConnectConfig;
+        $config = $this->config;
         if (!$config->getFlag('general/enabled')) {
             return 'Module is disabled.';
         }
@@ -51,7 +54,7 @@ class Queue
         if (!$value) {
             return 'Queue cleaning not enabled.';
         }
-        $queues = $this->mConnectResourceQueueCollection->olderThanDays($value);
+        $queues = $this->queueCollection->olderThanDays($value);
         $count = $queues->getSize();
         if (!$count) {
             return 'No items in queue to remove.';
@@ -64,7 +67,7 @@ class Queue
 
     public function error()
     {
-        $config = $this->mConnectConfig;
+        $config = $this->config;
         if (!$config->getFlag('general/enabled')) {
             return 'Module is disabled.';
         }
@@ -72,7 +75,7 @@ class Queue
         if (!$value) {
             return 'Error marking not enabled.';
         }
-        $queues = $this->mConnectResourceQueueCollection->olderThanMinutes($value)
+        $queues = $this->queueCollection->olderThanMinutes($value)
             ->addFieldToFilter('status', QueueModel::STATUS_RUNNING)
         ;
         $count = $queues->getSize();

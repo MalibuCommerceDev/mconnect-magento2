@@ -2,139 +2,153 @@
 
 namespace MalibuCommerce\MConnect\Setup;
 
-use Magento\Eav\Setup\EavSetup;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
-use Magento\Framework\Setup\ModuleDataSetupInterface;
-use Magento\Framework\DB\Ddl\Table;
-use Magento\Customer\Setup;
 
 class UpgradeSchema implements UpgradeSchemaInterface
 {
-
-    private $eavSetup;
-
-    public function __construct(EavSetup $eavSetup,
-                                \Magento\Eav\Model\Config $eavConfig,
-                                ModuleDataSetupInterface $moduleDataSetupInterface,
-                                \Magento\Eav\Model\Entity\Attribute\Set $attributeSet,
-                                \Magento\Customer\Setup\CustomerSetupFactory $customerSetup)
-    {
-        $this->eavSetup = $eavSetup;
-        $this->eavConfig = $eavConfig;
-        $this->moduleDataSetupInterface = $moduleDataSetupInterface;
-        $this->attributeSet = $attributeSet;
-        $this->customerSetup = $customerSetup;
-    }
-
-    /**
-     * Installs DB schema for a module
-     *
-     * @param SchemaSetupInterface $setup
-     * @param ModuleContextInterface $context
-     * @return void
-     */
     public function upgrade(SchemaSetupInterface $setup, ModuleContextInterface $context)
     {
+        $setup->startSetup();
+
+        if (version_compare($context->getVersion(), '1.0.1', '<')) {
+            $this->addNavTables($setup);
+            $this->addNavColumns($setup);
+        }
+
+        $setup->endSetup();
+    }
+
+    protected function addNavTables(SchemaSetupInterface $setup)
+    {
         $installer = $setup;
+        $connection = $installer->getConnection();
 
-        $installer->startSetup();
-
-        if (!$context->getVersion()) {
-                
-            $table = $setup->getConnection()
-                ->newTable($setup->getTable('malibucommerce_mconnect_queue'))
-                ->addColumn('id',
-                    \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
-                    null,
-                    array(
+        /**
+         * Create table 'malibucommerce_mconnect_queue'
+         */
+        $table = $connection
+            ->newTable($installer->getTable('malibucommerce_mconnect_queue'))
+            ->addColumn('id',
+                \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+                null,
+                array(
                     'identity' => true,
                     'unsigned' => true,
                     'nullable' => false,
                     'primary'  => true,
                 ), 'Queue ID')
-                ->addColumn('code', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
-                    'nullable' => false,
-                ), 'Code')
-                ->addColumn('action', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
-                    'nullable' => false,
-                ), 'Action')
-                ->addColumn('entity_id', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, array(
-                    'nullable' => true,
-                ), 'Entity ID')
-                ->addColumn('details', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, null, array(
-                    'nullable' => true,
-                ), 'Details')
-                ->addColumn('status', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
-                    'nullable' => false,
-                ), 'Status')
-                ->addColumn('created_at', \Magento\Framework\DB\Ddl\Table::TYPE_DATETIME, null, array(
-                    'nullable' => false,
-                ), 'Created At')
-                ->addColumn('started_at', \Magento\Framework\DB\Ddl\Table::TYPE_DATETIME, null, array(
-                ), 'Started At')
-                ->addColumn('finished_at', \Magento\Framework\DB\Ddl\Table::TYPE_DATETIME, null, array(
-                ), 'Finished At')
-                ->addColumn('message', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, null, array(
-                    'nullable' => true,
-                ), 'Message');
+            ->addColumn('code', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
+                'nullable' => false,
+            ), 'Code')
+            ->addColumn('action', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
+                'nullable' => false,
+            ), 'Action')
+            ->addColumn('entity_id', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, array(
+                'nullable' => true,
+            ), 'Entity ID')
+            ->addColumn('connection_id', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, array(
+                'nullable' => true,
+            ), 'Connection ID')
+            ->addColumn('details', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, null, array(
+                'nullable' => true,
+            ), 'Details')
+            ->addColumn('status', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
+                'nullable' => false,
+            ), 'Status')
+            ->addColumn('created_at', \Magento\Framework\DB\Ddl\Table::TYPE_DATETIME, null, array(
+                'nullable' => false,
+            ), 'Created At')
+            ->addColumn('started_at', \Magento\Framework\DB\Ddl\Table::TYPE_DATETIME, null, array(
 
-            $setup->getConnection()->createTable($table);
+            ), 'Started At')
+            ->addColumn('finished_at', \Magento\Framework\DB\Ddl\Table::TYPE_DATETIME, null, array(
 
-            $customerSetup = $this->customerSetup->create(['setup' => $this->moduleDataSetupInterface]);
+            ), 'Finished At')
+            ->addColumn('message', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, null, array(
+                'nullable' => true,
+            ), 'Message');
+        $connection->createTable($table);
 
-            $customerEntity = $customerSetup->getEavConfig()->getEntityType('customer_address');
-            $attributeSetId = $customerEntity->getDefaultAttributeSetId();
+        /**
+         * Create table 'malibucommerce_mconnect_connection'
+         */
+        $table = $connection
+            ->newTable($installer->getTable('malibucommerce_mconnect_connection'))
+            ->addColumn('id', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, array(
+                'identity' => true,
+                'unsigned' => true,
+                'nullable' => false,
+                'primary'  => true,
+            ), 'Connection ID')
+            ->addColumn('name', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
+                'nullable' => false,
+            ), 'Name')
+            ->addColumn('url', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
+                'nullable' => false,
+            ), 'URL')
+            ->addColumn('username', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
+                'nullable' => false,
+            ), 'Username')
+            ->addColumn('password', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
+                'nullable' => false,
+            ), 'Password')
+            ->addColumn('rules', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, null, array(
+                'nullable' => false,
+            ), 'Rules')
+            ->addColumn('sort_order', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, null, array(
+                'nullable' => false,
+            ), 'Sort Order');
+        $connection->createTable($table);
 
-            $attributeSet = $this->attributeSet;
-            $attributeGroupId = $attributeSet->getDefaultGroupId($attributeSetId);
-
-            $customerSetup->addAttribute('customer_address', 'nav_id', [
-                'type' => 'static',
-                'label' => 'NAV ID',
-                'input' => 'text',
-                'required' => false,
-                'visible' => true,
-                'visible_on_front' => false,
-                'user_defined' => false,
-                'sort_order' => 5,
-                'position' => 5,
-                'system' => 0,
-                'default' => 'DEFAULT'
-            ]);
-
-            $attribute = $customerSetup->getEavConfig()->getAttribute('customer_address', 'nav_id')
-                ->addData([
-                    'attribute_set_id' => $attributeSetId,
-                    'attribute_group_id' => $attributeGroupId,
-                    'used_in_forms' => ['adminhtml_customer_address', 'customer_address_edit', 'customer_register_address'],
-                ]);
-            $attribute->save();
-
-            $table = $setup->getConnection()
-                ->newTable($setup->getTable('malibucommerce_mconnect_last_sync'))
-                ->addColumn('id', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, array(
-                    'identity' => true,
-                    'unsigned' => true,
-                    'nullable' => false,
-                    'primary'  => true,
-                ), 'Last Sync ID')
-                ->addColumn('name', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
-                    'nullable' => false,
-                ), 'Name')
-                ->addColumn('time', \Magento\Framework\DB\Ddl\Table::TYPE_DATETIME, null, array(
-                    'nullable' => false,
-                ), 'Last Sync Time')
-                ->addIndex($setup->getIdxName('malibucommerce_mconnect_last_sync', array('name'), \Magento\Framework\DB\Adapter\AdapterInterface::INDEX_TYPE_UNIQUE),
-                    array('name'), array('type' => \Magento\Framework\DB\Adapter\AdapterInterface::INDEX_TYPE_UNIQUE))
-            ;
-
-            $setup->getConnection()->createTable($table);
-
-        }
-
-        $installer->endSetup();
+        $table = $connection
+            ->newTable($installer->getTable('malibucommerce_mconnect_price_rule'))
+            ->addColumn('id', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, array(
+                'identity' => true,
+                'unsigned' => true,
+                'nullable' => false,
+                'primary'  => true,
+            ), 'Rule ID')
+            ->addColumn('sku', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
+                'nullable' => true,
+            ), 'Sku')
+            ->addColumn('navision_customer_id', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
+                'nullable' => true,
+            ), 'Navision Customer ID')
+            ->addColumn('nav_id', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, array(
+                'nullable' => true,
+            ), 'Navision Unique ID')
+            ->addColumn('qty_min', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, array(
+                'nullable' => true,
+            ), 'Minimum Quantity')
+            ->addColumn('price', \Magento\Framework\DB\Ddl\Table::TYPE_DECIMAL, '12,4', array(
+                'nullable' => false,
+            ), 'Price')
+            ->addColumn('date_start', \Magento\Framework\DB\Ddl\Table::TYPE_DATETIME, null, array(
+                'nullable' => true,
+            ), 'Start Date')
+            ->addColumn('date_end', \Magento\Framework\DB\Ddl\Table::TYPE_DATETIME, null, array(
+                'nullable' => true,
+            ), 'End Date');
+        $connection->createTable($table);
     }
 
+    protected function addNavColumns(SchemaSetupInterface $setup)
+    {
+        $installer = $setup;
+        $connection = $installer->getConnection();
+
+        $entityTables = ['sales_order', 'sales_order_grid', 'customer_entity', 'customer_address_entity'];
+        foreach ($entityTables as $table) {
+            $connection->addColumn(
+                $installer->getTable($table),
+                'nav_id',
+                array(
+                    'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                    'comment' => 'NAV ID'
+                )
+            );
+        }
+    }
 }

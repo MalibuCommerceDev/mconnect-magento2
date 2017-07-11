@@ -1,38 +1,13 @@
 <?php
-/**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
- */
-
 namespace MalibuCommerce\MConnect\Observer;
 
-use Magento\Customer\Api\GroupManagementInterface;
-use Magento\Customer\Helper\Address as HelperAddress;
-use Magento\Customer\Model\Address\AbstractAddress;
-use Magento\Customer\Model\Session as CustomerSession;
-use Magento\Framework\App\Area;
-use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\App\State as AppState;
-use Magento\Framework\DataObject;
-use Magento\Framework\Escaper;
-use Magento\Framework\Message\ManagerInterface;
-use Magento\Framework\Registry;
-use Magento\Store\Model\ScopeInterface;
-use Magento\Framework\Event\ObserverInterface;
-use Magento\Customer\Model\Address;
-use Magento\Customer\Model\Vat;
-
-/**
- * Customer Observer Model
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
- */
-class AfterCustomerAddressSaveObserver implements ObserverInterface
+class AfterCustomerAddressSaveObserver implements \Magento\Framework\Event\ObserverInterface
 {
     public function __construct(
-        \MalibuCommerce\MConnect\Model\Queue $mConnectQueue,
+        \MalibuCommerce\MConnect\Model\QueueFactory $queue,
         \Psr\Log\LoggerInterface $logger
     ) {
-        $this->mConnectQueue = $mConnectQueue;
+        $this->queue = $queue;
         $this->logger = $logger;
     }
 
@@ -54,8 +29,8 @@ class AfterCustomerAddressSaveObserver implements ObserverInterface
     protected function _queue($code, $action, $id = null, $details = array())
     {
         try {
-            return $this->mConnectQueue->add($code, $action, $id, $details);
-        } catch (Exception $e) {
+            return $this->queue->create()->add($code, $action, $id, $details);
+        } catch (\Exception $e) {
             $this->logger->critical($e);
         }
         return false;

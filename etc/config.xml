@@ -13,6 +13,7 @@
             <customer>
                 <cron_expr>0 * * * *</cron_expr>
                 <max_rows>50</max_rows>
+                <default_website>1</default_website>
                 <default_group_taxable>1</default_group_taxable>
                 <default_group_nontaxable>3</default_group_nontaxable>
                 <new_email_enabled>0</new_email_enabled>

@@ -13,22 +13,22 @@ class Customer extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
     /**
      * @var \MalibuCommerce\MConnect\Model\Config
      */
-    protected $mConnectConfig;
+    protected $config;
 
     public function __construct(
         \Magento\Directory\Model\Region $directoryRegion,
-        \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
+        \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection
     ) {
         $this->directoryRegion = $directoryRegion;
-        $this->mConnectConfig = $mConnectConfig;
+        $this->config = $config;
 
         parent::__construct(
             $mConnectNavisionConnection
         );
     }
 
-    public function import($customer)
+    public function import(\Magento\Customer\Api\Data\CustomerInterface $customer)
     {
         $cust = new \simpleXMLElement('<Customer />');
         //$cust->nav_customer_id = "";
@@ -39,26 +39,27 @@ class Customer extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         $cust->email_address   = $customer->getEmail();
         $cust->store_id        = $customer->getStoreId();
 
-        $billing  = $customer->getDefaultBillingAddress();
-        $shipping = $customer->getDefaultShippingAddress();
+        $defaultBillingAddressId  = $customer->getDefaultBilling();
+        $defaultShipingAddressId = $customer->getDefaultShipping();
 
         foreach ($customer->getAddresses() as $address) {
-            $address->setIsDefaultBilling($billing && $billing->getId() === $address->getId());
-            $address->setIsDefaultShipping($shipping && $shipping->getId() === $address->getId());
+            $address->setIsDefaultBilling($defaultBillingAddressId == $address->getId());
+            $address->setIsDefaultShipping($defaultShipingAddressId == $address->getId());
             $this->_addAddress($address, $cust);
         }
+        
         return $this->_import('customer_import', $cust);
     }
 
-    protected function _addAddress($address, &$cust)
+    protected function _addAddress(\Magento\Customer\Api\Data\AddressInterface $address, &$cust)
     {
         $child  = $cust->addChild('customer_address');
         $street = $address->getStreet();
 
         //$child->nav_address_id      = '';
         $child->mag_address_id      = $address->getId();
-        $child->is_default_billing  = $address->getIsDefaultBilling();
-        $child->is_default_shipping = $address->getIsDefaultShipping();
+        $child->is_default_billing  = $address->isDefaultBilling();
+        $child->is_default_shipping = $address->isDefaultShipping();
         $child->first_name          = $address->getFirstname();
         $child->last_name           = $address->getLastname();
         $child->address_1           = $street[0];
@@ -73,7 +74,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 
     public function export($page = 0, $lastUpdated = false)
     {
-        $config = $this->mConnectConfig;
+        $config = $this->config;
         $max    = $config->get('customer/max_rows');
         $parameters = array(
             'skip'     => $page * $max,

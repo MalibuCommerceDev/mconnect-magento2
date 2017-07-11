@@ -1,56 +1,58 @@
 <?php
-namespace MalibuCommerce\MConnect\Model;
 
+namespace MalibuCommerce\MConnect\Model;
 
 class Cron
 {
-
     /**
      * @var \MalibuCommerce\MConnect\Model\Config
      */
-    protected $mConnectConfig;
+    protected $config;
 
     /**
      * @var \MalibuCommerce\MConnect\Model\Queue
      */
-    protected $mConnectQueue;
+    protected $queue;
 
     public function __construct(
-        \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
-        \MalibuCommerce\MConnect\Model\Queue $mConnectQueue
+        \MalibuCommerce\MConnect\Model\Config $config,
+        \MalibuCommerce\MConnect\Model\QueueFactory $queue
     ) {
-        $this->mConnectConfig = $mConnectConfig;
-        $this->mConnectQueue = $mConnectQueue;
+        $this->config = $config;
+        $this->queue = $queue;
     }
+
     public function queueCustomerImport()
     {
-        $config = $this->mConnectConfig;
+        $config = $this->config;
         if (!$config->getFlag('general/enabled')) {
             return 'M-Connect is disabled).';
         }
-        $queue = $this->mConnectQueue->add(
+        $queue = $this->queue->create()->add(
             'customer',
             'import'
         );
         if ($queue->getId()) {
             return 'Item added to queue.';
         }
+
         return 'Failed to add item to queue.';
     }
 
     public function queueProductImport()
     {
-        $config = $this->mConnectConfig;
+        $config = $this->config;
         if (!$config->getFlag('general/enabled')) {
             return 'M-Connect is disabled).';
         }
-        $queue = $this->mConnectQueue->add(
+        $queue = $this->queue->create()->add(
             'product',
             'import'
         );
         if ($queue->getId()) {
             return 'Item added to queue.';
         }
+
         return 'Failed to add item to queue.';
     }
 }
