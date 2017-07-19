@@ -24,29 +24,32 @@ class Cron
 
     public function queueCustomerImport()
     {
-        $config = $this->config;
-        if (!$config->getFlag('general/enabled')) {
-            return 'M-Connect is disabled).';
-        }
-        $queue = $this->queue->create()->add(
-            'customer',
-            'import'
-        );
-        if ($queue->getId()) {
-            return 'Item added to queue.';
-        }
-
-        return 'Failed to add item to queue.';
+        return $this->queueImportItem('customer');
     }
 
     public function queueProductImport()
+    {
+        return $this->queueImportItem('product');
+    }
+
+    public function queueShipmentImport()
+    {
+        return $this->queueImportItem('shipment');
+    }
+
+    public function queueInvoiceImport()
+    {
+        return $this->queueImportItem('invoice');
+    }
+
+    protected function queueImportItem($code)
     {
         $config = $this->config;
         if (!$config->getFlag('general/enabled')) {
             return 'M-Connect is disabled).';
         }
         $queue = $this->queue->create()->add(
-            'product',
+            $code,
             'import'
         );
         if ($queue->getId()) {

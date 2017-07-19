@@ -4,7 +4,6 @@ namespace MalibuCommerce\MConnect\Model\Navision;
 
 class Customer extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 {
-
     /**
      * @var \Magento\Directory\Model\Region
      */
@@ -30,7 +29,8 @@ class Customer extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 
     public function import(\Magento\Customer\Api\Data\CustomerInterface $customer)
     {
-        $cust = new \simpleXMLElement('<Customer />');
+        $root = new \simpleXMLElement('<customer_import />');
+        $cust = $root->addChild('Customer');
         //$cust->nav_customer_id = "";
         $cust->mag_customer_id = $customer->getId();
         $cust->first_name      = $customer->getFirstname();
@@ -48,7 +48,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
             $this->_addAddress($address, $cust);
         }
         
-        return $this->_import('customer_import', $cust);
+        return $this->_import('customer_import', $root);
     }
 
     protected function _addAddress(\Magento\Customer\Api\Data\AddressInterface $address, &$cust)

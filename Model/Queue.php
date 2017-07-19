@@ -27,11 +27,6 @@ class Queue extends \Magento\Framework\Model\AbstractModel
     protected $registry;
 
     /**
-     * @var \Magento\Customer\Model\Customer
-     */
-    protected $customerCustomer;
-
-    /**
      * @var \MalibuCommerce\MConnect\Model\Config
      */
     protected $config;
@@ -46,22 +41,42 @@ class Queue extends \Magento\Framework\Model\AbstractModel
      */
     protected $queueFlagFactory;
 
+    /** @var \MalibuCommerce\MConnect\Model\Queue\Customer  */
+    protected $mConnectQueueCustomer;
+
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Queue\Product
+     */
+    protected $mConnectQueueProduct;
+
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Queue\Order
+     */
+    protected $mConnectQueueOrder;
+
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Queue\Invoice
+     */
+    protected $mConnectQueueInvoice;
+
     public function __construct(
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
-        \Magento\Customer\Model\Customer $customerCustomer,
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\Queue\Customer $queueCustomer,
         \MalibuCommerce\MConnect\Model\Queue\Product $queueProduct,
+        \MalibuCommerce\MConnect\Model\Queue\Order $queueOrder,
+        \MalibuCommerce\MConnect\Model\Queue\Invoice $queueInvoice,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
         array $data = []
     ) {
         $this->registry = $registry;
-        $this->customerCustomer = $customerCustomer;
         $this->config = $config;
         $this->mConnectQueueCustomer = $queueCustomer;
         $this->mConnectQueueProduct = $queueProduct;
+        $this->mConnectQueueOrder = $queueOrder;
+        $this->mConnectQueueInvoice = $queueInvoice;
         $this->scopeConfig = $scopeConfig;
         $this->queueFlagFactory = $queueFlagFactory;
 
@@ -129,7 +144,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
 
         try {
             $this->initConnection();
-            if (($code == 'customer') && ($action == 'export')) {
+            if (($code == 'customer' || $code == 'order') && ($action == 'export')) {
                 $model->{$method}($this->getEntityId());
             } else {
                 $model->{$method}();
@@ -226,5 +241,16 @@ class Queue extends \Magento\Framework\Model\AbstractModel
     public function getMessages()
     {
         return $this->messages;
+    }
+
+    public function hasRecords($result)
+    {
+        if (isset($result->status->end_of_records) && (string) $result->status->end_of_records === 'true') {
+            return false;
+        }
+        if ((int) $result->status->record_count <= 0) {
+            return false;
+        }
+        return true;
     }
 }

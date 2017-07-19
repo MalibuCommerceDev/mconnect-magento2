@@ -83,15 +83,49 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
     public function exportAction($entityId = null)
     {
         try {
-            $customer = $this->customerRepository->getById($entityId);
+            $customerEntity = $this->customerRepository->getById($entityId);
         } catch (NoSuchEntityException $e) {
             throw new LocalizedException(__('Customer ID "%1" does not exist', $entityId));
         }
 
-        $response = $this->navCustomer->import($customer);
-        if ((string) $response->Status === 'OK') {
-            $this->messages .= 'Document No: ' . (string) $response->DocumentNo;
+        $response = $this->navCustomer->import($customerEntity);
+        $status = (string) $response->result->status;
+        if ($status === 'Processed') {
+            $navId = (string) $response->result->Customer->nav_record_id;
+//            if ($customer->getNavId() != $navId) {
+//                $customer->setNavId($navId)->save();
+//            }
+            $this->_messages[] = sprintf('Customer exported, NAV ID: %s', $navId);
+            return;
         }
+        Mage::throwException(sprintf('Unexpected status: %s.  Check log for details.', $status));
+
+        if ($status === 'Processed') {
+            $navId = (string) $response->result->Customer->nav_record_id;
+
+//            if ($customer->getNavId() != $navId) {
+//                $customer->setNavId($navId)->save();
+//            }
+            $this->messages .= sprintf('Customer exported, NAV ID: %s', $navId);
+            return true;
+        }
+
+        if ($status == 'Error') {
+            $errors = array();
+            foreach ($response->result->Customer as $customer) {
+                foreach ($customer->error as $error) {
+                    $errors[] = (string) $error->message;
+                }
+            }
+            if (empty($errors)) {
+                $errors[] = 'Unknown API error.';
+            }
+            $this->messages .= implode("\n", $errors);
+
+            throw new \Exception(implode("\n", $errors));
+        }
+
+        throw new LocalizedException(__('Unexpected status: "%1". Check log for details.', $status));
     }
 
     public function importAction()
@@ -105,9 +139,6 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
             foreach ($result->customer as $data) {
                 $count++;
                 $import = $this->importCustomer($data);
-                if ($import === false) {
-                    continue;
-                }
                 $this->messages .= PHP_EOL;
             }
             if (!$lastSync) {

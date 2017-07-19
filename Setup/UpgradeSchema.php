@@ -146,6 +146,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'nav_id',
                 array(
                     'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                    'length'  => 255,
                     'comment' => 'NAV ID'
                 )
             );
