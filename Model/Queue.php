@@ -59,6 +59,11 @@ class Queue extends \Magento\Framework\Model\AbstractModel
      */
     protected $mConnectQueueInvoice;
 
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Queue\Shipment
+     */
+    protected $mConnectQueueShipment;
+
     public function __construct(
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
@@ -67,6 +72,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         \MalibuCommerce\MConnect\Model\Queue\Product $queueProduct,
         \MalibuCommerce\MConnect\Model\Queue\Order $queueOrder,
         \MalibuCommerce\MConnect\Model\Queue\Invoice $queueInvoice,
+        \MalibuCommerce\MConnect\Model\Queue\Shipment $queueShipment,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
         array $data = []
@@ -77,6 +83,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         $this->mConnectQueueProduct = $queueProduct;
         $this->mConnectQueueOrder = $queueOrder;
         $this->mConnectQueueInvoice = $queueInvoice;
+        $this->mConnectQueueShipment = $queueShipment;
         $this->scopeConfig = $scopeConfig;
         $this->queueFlagFactory = $queueFlagFactory;
 

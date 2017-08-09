@@ -35,6 +35,10 @@
                 <capture_type>online</capture_type>
                 <send_email_enabled>0</send_email_enabled>
             </invoice>
+            <shipment>
+                <max_rows>50</max_rows>
+                <send_email_enabled>0</send_email_enabled>
+            </shipment>
         </malibucommerce_mconnect>
     </default>
 </config>

@@ -89,7 +89,7 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
         $order = $this->getOrder($incrementId);
 
         try {
-            if (!$order->getId()) {
+            if (!$order || !$order->getId()) {
                 throw new LocalizedException(__('The order #%1 no longer exists.', $incrementId));
             }
 
@@ -111,6 +111,7 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
                 );
             }
 
+            //@todo capture_type
             $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE);
             $invoice->register();
 
