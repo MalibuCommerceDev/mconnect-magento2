@@ -39,6 +39,9 @@
                 <max_rows>50</max_rows>
                 <send_email_enabled>0</send_email_enabled>
             </shipment>
+            <price_rule>
+                <max_rows>50</max_rows>
+            </price_rule>
         </malibucommerce_mconnect>
     </default>
 </config>

@@ -112,13 +112,20 @@
             </group>
 
             <group id="shipment" type="text" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                <label>Invoice</label>
+                <label>Shipment</label>
                 <field id="max_rows" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import entity limit per request</label>
                 </field>
                 <field id="send_email_enabled" sortOrder="20" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Send shipment email to customers</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+
+            <group id="price_rule" type="text" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <label>Price Rule</label>
+                <field id="max_rows" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import entity limit per request</label>
                 </field>
             </group>
         </section>

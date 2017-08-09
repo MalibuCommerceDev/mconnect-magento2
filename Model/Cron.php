@@ -42,6 +42,11 @@ class Cron
         return $this->queueImportItem('invoice');
     }
 
+    public function queuePriceRuleImport()
+    {
+        return $this->queueImportItem('price_rule');
+    }
+
     protected function queueImportItem($code)
     {
         $config = $this->config;

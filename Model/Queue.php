@@ -64,6 +64,11 @@ class Queue extends \Magento\Framework\Model\AbstractModel
      */
     protected $mConnectQueueShipment;
 
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Queue\Pricerule
+     */
+    protected $mConnectQueuePricerule;
+
     public function __construct(
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
@@ -73,6 +78,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         \MalibuCommerce\MConnect\Model\Queue\Order $queueOrder,
         \MalibuCommerce\MConnect\Model\Queue\Invoice $queueInvoice,
         \MalibuCommerce\MConnect\Model\Queue\Shipment $queueShipment,
+        \MalibuCommerce\MConnect\Model\Queue\Pricerule $queuePricerule,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
         array $data = []
@@ -84,6 +90,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         $this->mConnectQueueOrder = $queueOrder;
         $this->mConnectQueueInvoice = $queueInvoice;
         $this->mConnectQueueShipment = $queueShipment;
+        $this->mConnectQueuePricerule = $queuePricerule;
         $this->scopeConfig = $scopeConfig;
         $this->queueFlagFactory = $queueFlagFactory;
 
@@ -138,7 +145,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
             ->save();
 
         $code = $this->getCode();
-        $modelName = 'mConnectQueue' . ucfirst($code);
+        $modelName = 'mConnectQueue' . ucwords(str_replace('_', '', $code));
         $model = $this->$modelName;
         $action = $this->getAction();
         $prefix = lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $action))));

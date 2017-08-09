@@ -9,4 +9,7 @@
     <event name="sales_order_save_after">
         <observer name="malibucommerce_mconnect_order_save" instance="MalibuCommerce\MConnect\Observer\SalesOrderAfterPlaceObserver" />
     </event>
+    <event name="catalog_product_get_final_price">
+        <observer name="malibucommerce_mconnect_price_rule" instance="MalibuCommerce\MConnect\Observer\ProcessFrontFinalPriceObserver" />
+    </event>
 </config>
