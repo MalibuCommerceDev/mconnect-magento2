@@ -30,6 +30,11 @@
                 <field id="password" sortOrder="40" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Password</label>
                 </field>
+                <field id="test_connection" translate="label comment" type="button" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Connection\Test</frontend_model>
+                    <label />
+                    <comment>Save credentials before testing!</comment>
+                </field>
             </group>
             <group id="queue" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Synchronization Queue</label>
