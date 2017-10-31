@@ -88,8 +88,7 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue
         $model->addData($data);
         try {
             $model->save();
-            $this->_messages[] = $model->getId() . ': saved';
-            $this->messages .= 'Prrice Rule created: ID ' . $model->getId();
+            $this->messages .= 'Price Rule created: ID ' . $model->getId();
         } catch (\Exception $e) {
             $this->messages .= $e->getMessage();
         }

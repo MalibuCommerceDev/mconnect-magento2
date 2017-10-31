@@ -1,0 +1,68 @@
+<?php /* @var $block \MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Connection\Test */ ?>
+
+<script>
+    require([
+        'jquery',
+        'prototype'
+    ], function(jQuery){
+
+        var connectionResult = jQuery('#connection-result');
+
+        jQuery('#test_connection_button').click(function () {
+            var params = {};
+            new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
+                parameters:     params,
+                loaderArea:     false,
+                asynchronous:   true,
+                onCreate: function() {
+                    connectionResult.find('.success').hide();
+                    connectionResult.find('.failure').hide();
+                    connectionResult.find('.processing').show();
+                    jQuery('#test-connection-result-msg').text('');
+                    jQuery('#test_connection_button').prop('disabled', true);
+                },
+                onSuccess: function(response) {
+                    connectionResult.find('.processing').hide();
+
+                    var resultText = '';
+                    var json = response.responseJSON;
+
+                    if (response.status > 200) {
+                        resultText = response.statusText;
+                        connectionResult.find('.failure').show();
+                    } else {
+                        if (typeof json.success !== 'undefined' && json.success === true) {
+                            resultText = 'Success!';
+                            if (typeof json.time !== 'undefined') {
+                                resultText = resultText + ' Connection Time: ' + json.time + 's';
+                            }
+                            connectionResult.find('.success').show();
+                        } else {
+                            resultText = 'Failed: check URL and credentials';
+                            connectionResult.find('.failure').show();
+                        }
+                    }
+
+                    jQuery('#test-connection-result-msg').text(resultText);
+                    jQuery('#test_connection_button').prop('disabled', false);
+                },
+                onFailure: function() {
+                    connectionResult.find('.success').hide();
+                    connectionResult.find('.processing').hide();
+                    connectionResult.find('.failure').show();
+                    jQuery('#test-connection-result-msg').text('Internal Error');
+                    jQuery('#test_connection_button').prop('disabled', false);
+                }
+            });
+        });
+
+    });
+</script>
+
+<?php echo $block->getButtonHtml() ?>
+<span class="connection-indicator" id="connection-result">
+    <img class="processing" hidden="hidden" alt="Processing" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
+    <img class="success" hidden="hidden" alt="Success" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>
+    <img class="failure" hidden="hidden" alt="Failure" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_remove.gif') ?>"/>
+    <span id="test-connection-result-msg"></span>
+</span>
