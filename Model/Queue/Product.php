@@ -67,9 +67,6 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             foreach ($result->item as $data) {
                 $count++;
                 $import = $this->_importProduct($data);
-                if ($import === false) {
-                    continue;
-                }
                 $this->messages .= PHP_EOL;
             }
             if (!$lastSync) {

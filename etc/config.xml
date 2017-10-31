@@ -6,12 +6,10 @@
                 <enabled>1</enabled>
             </general>
             <queue>
-                <cron_expr>* * * * *</cron_expr>
                 <delete_after>90</delete_after>
                 <error_after>30</error_after>
             </queue>
             <customer>
-                <cron_expr>0 * * * *</cron_expr>
                 <max_rows>50</max_rows>
                 <default_website>1</default_website>
                 <default_group_taxable>1</default_group_taxable>
@@ -21,18 +19,24 @@
                 <new_email_template>malibucommerce_mconnect_customer_new</new_email_template>
             </customer>
             <product>
-                <cron_expr>0 * * * *</cron_expr>
                 <max_rows>50</max_rows>
                 <import_attribute_set>4</import_attribute_set>
                 <import_type>simple</import_type>
                 <import_visibility>4</import_visibility>
                 <import_tax_class>2</import_tax_class>
             </product>
-            <nav_connection>
-                <url>http://8.39.234.61:7047/MCDEV_90_45834/WS/CRONUS%20USA,%20Inc./Codeunit/MalibuV2</url>
-                <username>mconnect</username>
-                <password>dM62946!</password>
-            </nav_connection>
+            <invoice>
+                <max_rows>50</max_rows>
+                <capture_type>online</capture_type>
+                <send_email_enabled>0</send_email_enabled>
+            </invoice>
+            <shipment>
+                <max_rows>50</max_rows>
+                <send_email_enabled>0</send_email_enabled>
+            </shipment>
+            <price_rule>
+                <max_rows>50</max_rows>
+            </price_rule>
         </malibucommerce_mconnect>
     </default>
 </config>

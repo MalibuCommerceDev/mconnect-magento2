@@ -65,14 +65,14 @@ class Client extends SoapClient
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
         curl_setopt($ch, CURLOPT_USERPWD, $username . ':' . $password);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
         try {
             $response = curl_exec($ch);
         } catch (Exception $e) {
             curl_close($ch);
             $mConnectHelper->sendErrorEmail(array(
                 'title'    => 'An unknown error occured when connecting to Navision.',
-                'body'     => 'Action: ' . 'POST',
+                'body'     => 'Action: ' . $action,
                 'response' => $e->getMessage(),
             ));
             throw $e;

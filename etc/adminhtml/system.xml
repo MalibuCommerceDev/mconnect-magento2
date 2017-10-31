@@ -19,6 +19,18 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
+            <group id="nav_connection" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <label>NAV Connection</label>
+                <field id="url" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>NAV SOAP API URL</label>
+                </field>
+                <field id="username" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Username</label>
+                </field>
+                <field id="password" sortOrder="40" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Password</label>
+                </field>
+            </group>
             <group id="queue" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Synchronization Queue</label>
                 <field id="delete_after" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
@@ -83,16 +95,37 @@
                     <backend_model>Magento\Tax\Model\Config\TaxClass</backend_model>
                 </field>
             </group>
-            <group id="nav_connection" type="text" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                <label>NAV Connection</label>
-                <field id="url" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>NAV SOAP API URL</label>
+
+            <group id="invoice" type="text" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <label>Invoice</label>
+                <field id="max_rows" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import entity limit per request</label>
                 </field>
-                <field id="username" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Username</label>
+                <field id="capture_type" sortOrder="20" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Default invoice capture type</label>
+                    <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\System\Config\Sales\Invoice\Capture\Type</source_model>
                 </field>
-                <field id="password" sortOrder="40" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Password</label>
+                <field id="send_email_enabled" sortOrder="30" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Send invoice email to customers</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+
+            <group id="shipment" type="text" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <label>Shipment</label>
+                <field id="max_rows" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import entity limit per request</label>
+                </field>
+                <field id="send_email_enabled" sortOrder="20" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Send shipment email to customers</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+
+            <group id="price_rule" type="text" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <label>Price Rule</label>
+                <field id="max_rows" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import entity limit per request</label>
                 </field>
             </group>
         </section>
