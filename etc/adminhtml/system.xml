@@ -21,19 +21,33 @@
             </group>
             <group id="nav_connection" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>NAV Connection</label>
-                <field id="url" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="log" sortOrder="10" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Log Requests</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[May consume a large amount of disk space.]]></comment>
+                </field>
+                <field id="allow_insecure_connection" sortOrder="20" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Allow Insecure Connection</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Allows MConnect SOAP API client to connect to NAV server w/o SSL/TLS certificate verification]]></comment>
+                </field>
+                <field id="connection_timeout" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Connection Timeout</label>
+                    <comment><![CDATA[Connection Timeout to NAV server in seconds. If set to 0, default value will be used: 10 seconds]]></comment>
+                </field>
+                <field id="url" sortOrder="40" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>NAV SOAP API URL</label>
                 </field>
-                <field id="username" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="username" sortOrder="50" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Username</label>
                 </field>
-                <field id="password" sortOrder="40" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="password" sortOrder="60" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Password</label>
                 </field>
-                <field id="test_connection" translate="label comment" type="button" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="test_connection" translate="label comment" type="button" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
                     <frontend_model>MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Connection\Test</frontend_model>
                     <label />
-                    <comment>Save credentials before testing!</comment>
+                    <comment><![CDATA[Save credentials before testing!]]></comment>
                 </field>
             </group>
             <group id="queue" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">

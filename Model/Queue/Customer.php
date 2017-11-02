@@ -84,28 +84,22 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
     {
         try {
             $customerEntity = $this->customerRepository->getById($entityId);
+            $customerDataModel = $this->customerFactory->create()->load($entityId);
         } catch (NoSuchEntityException $e) {
             throw new LocalizedException(__('Customer ID "%1" does not exist', $entityId));
+        } catch (\Exception $e) {
+            throw new LocalizedException(__('Customer ID "' . $entityId . '" loading error: %s', $e->getMessage()));
         }
 
         $response = $this->navCustomer->import($customerEntity);
         $status = (string) $response->result->status;
         if ($status === 'Processed') {
             $navId = (string) $response->result->Customer->nav_record_id;
-//            if ($customer->getNavId() != $navId) {
-//                $customer->setNavId($navId)->save();
-//            }
-            $this->_messages[] = sprintf('Customer exported, NAV ID: %s', $navId);
-            return;
-        }
-        Mage::throwException(sprintf('Unexpected status: %s.  Check log for details.', $status));
-
-        if ($status === 'Processed') {
-            $navId = (string) $response->result->Customer->nav_record_id;
-
-//            if ($customer->getNavId() != $navId) {
-//                $customer->setNavId($navId)->save();
-//            }
+            if ($customerDataModel->getNavId() != $navId) {
+                $customerDataModel->setNavId($navId)
+                    ->setSkipMconnect(true)
+                    ->save();
+            }
             $this->messages .= sprintf('Customer exported, NAV ID: %s', $navId);
             return true;
         }
@@ -122,7 +116,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
             }
             $this->messages .= implode("\n", $errors);
 
-            throw new \Exception(implode("\n", $errors));
+            throw new LocalizedException(implode("\n", $errors));
         }
 
         throw new LocalizedException(__('Unexpected status: "%1". Check log for details.', $status));

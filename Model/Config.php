@@ -5,6 +5,7 @@ namespace MalibuCommerce\MConnect\Model;
 class Config
 {
     const XML_PATH_CONFIG_SECTION = 'malibucommerce_mconnect';
+    const DEFAULT_NAV_CONNECTION_TIMEOUT = 10;
 
     /**
      * @var \Magento\Framework\App\Config\ScopeConfigInterface
@@ -66,5 +67,20 @@ class Config
     {
         return $this->scopeConfig->getValue(self::XML_PATH_CONFIG_SECTION . '/' . 'nav_connection/password',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store);
+    }
+
+    public function getIsInsecureConnectionAllowed($store = null)
+    {
+        return $this->get('navision/allow_insecure_connection', $store);
+    }
+
+    public function getConnectionTimeout($store = null)
+    {
+        $timeout = (int)$this->get('navision/connection_timeout', $store);
+        if ($timeout <= 0) {
+            return self::DEFAULT_NAV_CONNECTION_TIMEOUT;
+        }
+
+        return $timeout;
     }
 }

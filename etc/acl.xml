@@ -3,10 +3,13 @@
     <acl>
         <resources>
             <resource id="Magento_Backend::admin">
+                <resource id="MalibuCommerce_MConnect::mconnect" title="Mconnect" translate="title" sortOrder="100">
+                    <resource id="MalibuCommerce_MConnect::queue" title="Manage Queue" translate="title" sortOrder="10" />
+                </resource>
                 <resource id="Magento_Backend::stores">
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">
-                            <resource id="MalibuCommerce_MConnect::config" title="MConnect Section" translate="title" sortOrder="50" />
+                            <resource id="MalibuCommerce_MConnect::config" title="MConnect Section" translate="title" sortOrder="100" />
                         </resource>
                     </resource>
                 </resource>

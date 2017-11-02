@@ -1,4 +1,5 @@
 <?php
+
 namespace MalibuCommerce\MConnect\Model\Navision\Connection;
 
 use SoapClient;
@@ -10,7 +11,7 @@ class Soap
 
     protected $_client;
     protected $_isStreamRegistered = false;
-    protected $_restoreStream = false;
+    protected $_restoreStream      = false;
     protected $_scheme;
 
     /**
@@ -34,8 +35,7 @@ class Soap
         \MalibuCommerce\MConnect\Model\Navision\Connection\Stream $stream,
         \Psr\Log\LoggerInterface $logger,
         \Magento\Framework\App\Filesystem\DirectoryList $directoryList
-    )
-    {
+    ) {
         $this->mConnectConfig = $mConnectConfig;
         $this->mConnectHelper = $mConnectHelper;
         $this->_streamRegister();
@@ -43,8 +43,8 @@ class Soap
             $stream->stream_open($this->mConnectConfig->getNavConnectionUrl(), null, null, $mConnectConfig),
             array(
                 'cache_wsdl'         => 0,
-                'connection_timeout' => 10,
-                'trace' => 1,
+                'connection_timeout' => $mConnectConfig->getConnectionTimeout(),
+                'trace'              => 1,
             )
         );
     }
@@ -68,6 +68,7 @@ class Soap
             throw $e;
         }
         $this->_streamUnregister();
+
         return $result;
     }
 
@@ -81,7 +82,8 @@ class Soap
         if (in_array($scheme, stream_get_wrappers())) {
             $this->_restoreStream = true;
             if (!stream_wrapper_unregister($scheme)) {
-                throw new \LogicException(sprintf('Failed to unregister "%s" stream when connecting to Navision.', $scheme));
+                throw new \LogicException(sprintf('Failed to unregister "%s" stream when connecting to Navision.',
+                    $scheme));
             }
         }
         if (!stream_wrapper_register($scheme, self::STREAM)) {
@@ -111,6 +113,7 @@ class Soap
             }
             $this->_scheme = $components['scheme'];
         }
+
         return $this->_scheme;
     }
 }

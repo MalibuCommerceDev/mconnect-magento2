@@ -1,6 +1,7 @@
 <?php
 namespace MalibuCommerce\MConnect\Helper;
 
+use \Magento\Framework\App\Filesystem\DirectoryList;
 
 class Data
 {
@@ -98,5 +99,62 @@ class Data
         );
         $translate->setTranslateInline(true);
         return true;
+    }
+
+    public function getLogFile($id, $absolute = true, $nameOnly = false)
+    {
+        $directoryList = new DirectoryList(BP);
+
+        $dir = 'mconnect';
+        if ($id) {
+            $file = 'queue_' . $id . '.log';
+        } else {
+            $file = 'navision_soap.log';
+        }
+        $logDirObj = $directoryList;
+        $logDir = $logDirObj->getPath('log');
+        $logDir .= DIRECTORY_SEPARATOR . $dir;
+        if (!is_dir($logDir)) {
+            mkdir($logDir);
+            chmod($logDir, 0750);
+        }
+
+        $file = ($absolute ? $logDir : $dir) . DIRECTORY_SEPARATOR . $file;
+        return !file_exists($file) && !$nameOnly ? false : $file;
+    }
+
+    public function getFileSize($file)
+    {
+        if (!file_exists($file)) {
+            return false;
+        }
+        $bytes = filesize($file);
+        $units = array('B', 'KB', 'MB', 'GB', 'TB');
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        $bytes /= (1 << (10 * $pow));
+        return round($bytes, 2) . ' ' . $units[$pow];
+    }
+
+    public function getLogFileContents($queueId)
+    {
+        if ($file = $this->getLogFile($queueId, true, true)) {
+            $contents = file_get_contents($file);
+            $result = [];
+            $matches = [];
+            if (preg_match('~({.+})~', $contents, $matches)) {
+                $debug = json_decode($matches[1]);
+                foreach ($debug as $title => $data) {
+                    if (preg_match('~({.+})~', $data, $matches2)) {
+                        $data = json_decode($matches2[1]);
+                    }
+                    $result[$title] = $data;
+                }
+            }
+
+            return $result ? print_r($result, true) : $contents;
+        }
+        return false;
     }
 }
