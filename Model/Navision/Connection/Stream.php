@@ -97,6 +97,12 @@ class Stream
         $config = $this->mConnectConfig;
         $this->_ch = curl_init($this->_path);
         curl_setopt($this->_ch, CURLOPT_RETURNTRANSFER, true);
+
+        if ($config->getIsInsecureConnectionAllowed()) {
+            curl_setopt($this->_ch, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($this->_ch, CURLOPT_SSL_VERIFYPEER, 0);
+        }
+
         curl_setopt($this->_ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         curl_setopt($this->_ch, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
         curl_setopt($this->_ch, CURLOPT_USERPWD, $config->getNavConnectionUsername() . ':' . $config->getNavConnectionPassword());

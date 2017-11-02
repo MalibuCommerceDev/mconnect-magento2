@@ -1,8 +1,19 @@
 <?php
+
 namespace MalibuCommerce\MConnect\Observer;
 
 class AfterCustomerSaveObserver implements \Magento\Framework\Event\ObserverInterface
 {
+    /**
+     * @var \MalibuCommerce\MConnect\Model\QueueFactory
+     */
+    protected $queue;
+
+    /**
+     * @var \Psr\Log\LoggerInterface
+     */
+    protected $logger;
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\QueueFactory $queue,
         \Psr\Log\LoggerInterface $logger
@@ -15,6 +26,7 @@ class AfterCustomerSaveObserver implements \Magento\Framework\Event\ObserverInte
      * Address after save event handler
      *
      * @param \Magento\Framework\Event\Observer $observer
+     *
      * @return void
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
@@ -33,6 +45,7 @@ class AfterCustomerSaveObserver implements \Magento\Framework\Event\ObserverInte
         } catch (\Exception $e) {
             $this->logger->critical($e);
         }
+
         return false;
     }
 }

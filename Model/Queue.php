@@ -108,6 +108,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         if (!$this->getConfig()->getFlag('general/enabled')) {
             return $this;
         }
+        $this->unsetData();
         $id      = $id ? $id : null;
         $details = is_array($details) ? (count($details) ? json_encode($details) : null) : $details;
         $count   = $this->getCollection()->findMatchingPending($code, $action, $id, $details)->getSize();

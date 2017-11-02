@@ -6,41 +6,6 @@ use SoapClient;
 
 class Client extends SoapClient
 {
-    /**
-     * @var \MalibuCommerce\MConnect\Model\Config
-     */
-    protected $mConnectConfig;
-
-    /**
-     * @var \MalibuCommerce\MConnect\Helper\Data
-     */
-    protected $mConnectHelper;
-
-    /**
-     * @var \Psr\Log\LoggerInterface
-     */
-    protected $logger;
-
-    /*public function __construct(
-        $wsdl,
-        $options = array(),
-        $mConnectConfig,
-        $mConnectHelper,
-        $logger,
-        $directoryList
-    ) {
-        $this->mConnectConfig = $mConnectConfig;
-        $this->mConnectHelper = $mConnectHelper;
-        $this->logger = $logger;
-        $this->directoryList = $directoryList;
-
-        parent::__construct(
-            $wsdl,
-            $options
-        );
-    }*/
-
-
     public function __doRequest($request, $location, $action, $version, $one_way = 0)
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
@@ -61,14 +26,21 @@ class Client extends SoapClient
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_HEADER, true);
+
+        if ($mConnectConfig->getIsInsecureConnectionAllowed()) {
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        }
+
         curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
         curl_setopt($ch, CURLOPT_USERPWD, $username . ':' . $password);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $mConnectConfig->getConnectionTimeout());
+
         try {
             $response = curl_exec($ch);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             curl_close($ch);
             $mConnectHelper->sendErrorEmail(array(
                 'title'    => 'An unknown error occured when connecting to Navision.',
@@ -78,13 +50,14 @@ class Client extends SoapClient
             throw $e;
         }
         $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-        $code       = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $header     = substr($response, 0, $headerSize);
-        $body       = trim(substr($response, $headerSize));
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $header = substr($response, 0, $headerSize);
+        $body = trim(substr($response, $headerSize));
         curl_close($ch);
         if ($mConnectConfig->get('navision/log')) {
             $this->logRequest($request, $location, $action, $code, $header, $body);
         }
+
         return $body;
     }
 
@@ -92,50 +65,31 @@ class Client extends SoapClient
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
 
-        $logger = $objectManager->create('\Psr\Log\LoggerInterface');
+        $registry = $objectManager->get('\Magento\Framework\Registry');
+        $queueId = $registry->registry('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE');
+        $helper = $objectManager->get('\MalibuCommerce\MConnect\Helper\Data');
+        $logFile = $helper->getLogFile($queueId, true, true);
+        $writer = new \Zend\Log\Writer\Stream($logFile);
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
 
-        $logger->log(\Monolog\Logger::DEBUG, array('request'=>$this->_decodeBase64('/<ns1:requestXML>(.*)<\/ns1:requestXML>/', $request),'location'=>$location,'action'=>$action,'code'=>$code,'header'=>$this->_parseHeader($header),'body'=>$this->_decodeBase64('/<ns1:requestXML>(.*)<\/ns1:requestXML>/', $body)));
-    }
-
-    public static function getLogFile($id, $absolute = true)
-    {
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-
-        $directoryList = $objectManager->create('\Magento\Framework\App\Filesystem\DirectoryList');
-
-        $dir = 'malibucommerce_mconnect';
-        if ($id) {
-            $file = 'queue_' . $id . '.log';
-        } else {
-            $file = 'navision_soap.log';
-        }
-        $logDirObj = $directoryList;
-        $logDir = $logDirObj->getPath('log') . DS . $dir;
-        if (!is_dir($logDir)) {
-            mkdir($logDir);
-            chmod($logDir, 0750);
-        }
-        if ($absolute) {
-            return $logDir . DS . $file;
-        }
-        return $dir . DS . $file;
-    }
-
-    protected function _parseHeader($rawData)
-    {
-        if ($rawData === null) {
-            return $rawData;
-        }
-        $data = [];
-        foreach (explode("\n", trim($rawData)) as $line) {
-            $bits = explode(': ', $line);
-            if (count($bits) > 1) {
-                $key = $bits[0];
-                unset($bits[0]);
-                $data[$key] = trim(implode(': ', $bits));
-            }
-        }
-        return $data;
+        $request = [
+            'Time' => date('r'),
+            'Location' => $location,
+            'Action' => $action,
+            'Body' => is_array($request) ? print_r($request, true) : $request,
+            'Request XML'  => $this->_decodeBase64('/<ns1:requestXML>(.*)<\/ns1:requestXML>/', $request),
+        ];
+        $response = [
+            'Code'     => $code,
+            'Headers'   => $header,
+            'Body'     => $body,
+            'Response XML' => $this->_decodeBase64('/<responseXML>(.*)<\/responseXML>/', $body)
+        ];
+        $logger->debug('Debug Data', array(
+            'Request' => $request,
+            'Response' => $response
+        ));
     }
 
     protected function _decodeBase64($pattern, $value)
