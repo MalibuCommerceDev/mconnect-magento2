@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
     <menu>
-        <add id="MalibuCommerce_MConnect::mconnect" title="M-Connect" module="MalibuCommerce_MConnect" sortOrder="51" resource="MalibuCommerce_MConnect::mconnect"/>
-        <add id="MalibuCommerce_MConnect::queue" title="Synchronization Queue" module="MalibuCommerce_MConnect" sortOrder="10" action="mconnect/queue/index" resource="MalibuCommerce_MConnect::queue" parent="MalibuCommerce_MConnect::mconnect"/>
+        <add id="MalibuCommerce_MConnect::mconnect" title="M-Connect" translate="title" module="MalibuCommerce_MConnect" sortOrder="10" parent="Magento_Backend::system" resource="MalibuCommerce_MConnect::mconnect"/>
+        <add id="MalibuCommerce_MConnect::queue" title="Synchronization Queue" translate="title" module="MalibuCommerce_MConnect" sortOrder="10" parent="MalibuCommerce_MConnect::mconnect" action="mconnect/queue/index" resource="MalibuCommerce_MConnect::queue" />
     </menu>
 </config>
