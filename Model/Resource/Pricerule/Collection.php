@@ -43,11 +43,12 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
         $this->_init('MalibuCommerce\MConnect\Model\Pricerule', 'MalibuCommerce\MConnect\Model\Resource\Pricerule');
     }
 
-    public function applyAllFilters($sku, $qty, $navisionCustomerId = null, $dateStart = null, $dateEnd = null)
+    public function applyAllFilters($sku, $qty, $navisionCustomerId = null, $customerPriceGroup = null, $dateStart = null, $dateEnd = null)
     {
         $this->applySkuFilter($sku)
             ->applyQtyFilter($qty)
             ->applyNavisionCustomerIdFilter($navisionCustomerId)
+            ->applyCustomerPriceGroup($customerPriceGroup)
             ->applyDateStartFilter($dateStart)
             ->applyDateEndFilter($dateEnd);
         $this->getSelect()->order('main_table.price ASC');
@@ -75,13 +76,19 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     public function applyNavisionCustomerIdFilter($value)
     {
         if ($value === null) {
-            $value = $this->getCustomer() ? $this->getCustomer()->getNavId() : null;
-            if (!$value) {
-                $value = false;
-            }
+            $value = $this->getCustomer() ? $this->getCustomer()->getNavId() : false;
         }
 
         return $this->applyNullableFilter('navision_customer_id', $value);
+    }
+
+    public function applyCustomerPriceGroup($value)
+    {
+        if ($value === null) {
+            $value = $this->getCustomer() ? $this->getCustomer()->getNavPriceGroup() : false;
+        }
+
+        return $this->applyNullableFilter('customer_price_group', $value);
     }
 
     public function applyDateStartFilter($value)

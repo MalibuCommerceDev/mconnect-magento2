@@ -12,24 +12,25 @@ class UpgradeSchema implements UpgradeSchemaInterface
     {
         $setup->startSetup();
 
-        if (version_compare($context->getVersion(), '1.0.1', '<')) {
-            $this->addNavTables($setup);
-            $this->addNavColumns($setup);
+        if (version_compare($context->getVersion(), '1.0.0', '<=')) {
+            $this->install($setup);
+        }
+
+        if (version_compare($context->getVersion(), '1.1.1', '<=')) {
+            $this->upgrade1_1_1($setup);
         }
 
         $setup->endSetup();
     }
 
-    protected function addNavTables(SchemaSetupInterface $setup)
+    protected function install(SchemaSetupInterface $setup)
     {
-        $installer = $setup;
-        $connection = $installer->getConnection();
-
+        $connection = $setup->getConnection();
         /**
          * Create table 'malibucommerce_mconnect_queue'
          */
         $table = $connection
-            ->newTable($installer->getTable('malibucommerce_mconnect_queue'))
+            ->newTable($setup->getTable('malibucommerce_mconnect_queue'))
             ->addColumn('id',
                 \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
                 null,
@@ -75,7 +76,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
          * Create table 'malibucommerce_mconnect_connection'
          */
         $table = $connection
-            ->newTable($installer->getTable('malibucommerce_mconnect_connection'))
+            ->newTable($setup->getTable('malibucommerce_mconnect_connection'))
             ->addColumn('id', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, array(
                 'identity' => true,
                 'unsigned' => true,
@@ -103,7 +104,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
         $connection->createTable($table);
 
         $table = $connection
-            ->newTable($installer->getTable('malibucommerce_mconnect_price_rule'))
+            ->newTable($setup->getTable('malibucommerce_mconnect_price_rule'))
             ->addColumn('id', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, array(
                 'identity' => true,
                 'unsigned' => true,
@@ -132,17 +133,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'nullable' => true,
             ), 'End Date');
         $connection->createTable($table);
-    }
-
-    protected function addNavColumns(SchemaSetupInterface $setup)
-    {
-        $installer = $setup;
-        $connection = $installer->getConnection();
-
         $entityTables = ['sales_order', 'sales_order_grid', 'customer_entity', 'customer_address_entity'];
         foreach ($entityTables as $table) {
             $connection->addColumn(
-                $installer->getTable($table),
+                $setup->getTable($table),
                 'nav_id',
                 array(
                     'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
@@ -151,5 +145,18 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 )
             );
         }
+    }
+
+    protected function upgrade1_1_1(SchemaSetupInterface $setup)
+    {
+        $setup->getConnection()->addColumn(
+            $setup->getTable('malibucommerce_mconnect_price_rule'),
+            'customer_price_group',
+            array(
+                'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                'length'  => 255,
+                'comment' => 'Customer Price Group'
+            )
+        );
     }
 }
