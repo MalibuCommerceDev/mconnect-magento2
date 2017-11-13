@@ -71,12 +71,12 @@ class Config
 
     public function getIsInsecureConnectionAllowed($store = null)
     {
-        return $this->get('navision/allow_insecure_connection', $store);
+        return $this->get('nav_connection/allow_insecure_connection', $store);
     }
 
     public function getConnectionTimeout($store = null)
     {
-        $timeout = (int)$this->get('navision/connection_timeout', $store);
+        $timeout = (int)$this->get('nav_connection/connection_timeout', $store);
         if ($timeout <= 0) {
             return self::DEFAULT_NAV_CONNECTION_TIMEOUT;
         }
