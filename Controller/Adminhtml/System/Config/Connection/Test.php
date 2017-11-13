@@ -48,8 +48,7 @@ class Test extends Action
             $url = $this->mConnectConfig->getNavConnectionUrl();
             $username = $this->mConnectConfig->getNavConnectionUsername();
             $password = $this->mConnectConfig->getNavConnectionPassword();
-
-            curl_setopt_array($ch, array(
+            $options = array(
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_URL => $url,
                 CURLOPT_USERAGENT => 'PHP-SOAP-CURL',
@@ -59,7 +58,12 @@ class Test extends Action
                 CURLOPT_TIMEOUT => 60,
                 CURLOPT_HEADER => true,
                 CURLOPT_NOBODY => true,
-            ));
+            );
+            if ($this->mConnectConfig->getIsInsecureConnectionAllowed()) {
+                $options[CURLOPT_SSL_VERIFYHOST] = 0;
+                $options[CURLOPT_SSL_VERIFYPEER] = 0;
+            }
+            curl_setopt_array($ch, $options);
             curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $success = $httpCode === 200;
