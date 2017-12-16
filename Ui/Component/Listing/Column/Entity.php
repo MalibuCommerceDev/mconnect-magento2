@@ -63,7 +63,7 @@ class Entity extends \Magento\Ui\Component\Listing\Columns\Column
                     } else if ($item['code'] === 'order') {
                         if ($item['action'] === 'export') {
                             $link = $this->urlBuilder->getUrl('sales/order/view', array('order_id' => $item['entity_id']));
-                            $title = $this->salesOrder->load($item['entity_id'])->getIncrementId();
+                            $title = '#' . $this->salesOrder->load($item['entity_id'])->getIncrementId();
                         }
                     }
                     if ($link !== false) {
