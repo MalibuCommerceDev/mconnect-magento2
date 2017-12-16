@@ -29,6 +29,11 @@ class Soap
      */
     protected $mConnectHelper;
 
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Navision\Connection\Stream
+     */
+    protected $stream;
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
         \MalibuCommerce\MConnect\Helper\Data $mConnectHelper,
@@ -38,6 +43,7 @@ class Soap
     ) {
         $this->mConnectConfig = $mConnectConfig;
         $this->mConnectHelper = $mConnectHelper;
+        $this->stream = $stream;
     }
 
     public function __call($method, $arguments)
@@ -89,7 +95,7 @@ class Soap
 
         if ($this->_client === null) {
             $this->_client = new \MalibuCommerce\MConnect\Model\Navision\Connection\Soap\Client(
-                $stream->stream_open($this->mConnectConfig->getNavConnectionUrl(), null, null, $mConnectConfig),
+                $this->stream->stream_open($this->mConnectConfig->getNavConnectionUrl(), null, null, $mConnectConfig),
                 array(
                     'cache_wsdl'         => 0,
                     'connection_timeout' => $mConnectConfig->getConnectionTimeout(),
