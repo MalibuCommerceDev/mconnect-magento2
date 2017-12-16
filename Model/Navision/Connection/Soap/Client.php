@@ -94,7 +94,7 @@ class Client extends SoapClient
 
     protected function _decodeBase64($pattern, $value)
     {
-        if (preg_match($pattern, $value, $matches) === 1 && isset($matches[1]) && !is_array($matches[1]) && preg_match('%^[a-zA-Z0-9/+]*={0,2}$%', $matches[1])) {
+        if (is_string($value) && preg_match($pattern, $value, $matches) && isset($matches[1]) && preg_match('%^[a-zA-Z0-9/+]*={0,2}$%', $matches[1])) {
             return base64_decode($matches[1]);
         }
         return false;
