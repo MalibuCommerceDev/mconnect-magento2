@@ -14,13 +14,20 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
      */
     protected $config;
 
+    /**
+     * @var \Magento\Customer\Model\Address
+     */
+    protected $customerAddress;
+
     public function __construct(
         \Magento\Directory\Model\Region $directoryRegion,
         \MalibuCommerce\MConnect\Model\Config $config,
+        \Magento\Customer\Model\Address $customerAddress,
         \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection
     ) {
         $this->config = $config;
         $this->directoryRegion = $directoryRegion;
+        $this->customerAddress = $customerAddress;
 
         parent::__construct(
             $mConnectNavisionConnection
@@ -61,7 +68,11 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
     {
         $child = $root->addChild('order_address');
 
+        $customerAddress = $this->customerAddress->load($address->getParentId());
+        $navId = $customerAddress->getNavId();
+
         $child->mag_address_id = $address->getEntityId();
+        $child->nav_address_id = empty($navId) ? 'default' : $navId;
         $child->address_type = $address->getAddressType();
         $child->first_name = $address->getFirstname();
         $child->last_name = $address->getLastname();
