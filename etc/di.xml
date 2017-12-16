@@ -29,4 +29,11 @@
             </argument>
         </arguments>
     </type>
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="malibucommerce_mconnect_queue" xsi:type="object">MalibuCommerce\MConnect\Console\Command\QueueCommand</item>
+            </argument>
+        </arguments>
+    </type>
 </config>
