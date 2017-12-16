@@ -95,10 +95,10 @@ class Soap
 
         if ($this->_client === null) {
             $this->_client = new \MalibuCommerce\MConnect\Model\Navision\Connection\Soap\Client(
-                $this->stream->stream_open($this->mConnectConfig->getNavConnectionUrl(), null, null, $mConnectConfig),
+                $this->stream->stream_open($this->mConnectConfig->getNavConnectionUrl(), null, null, $this->mConnectConfig),
                 array(
                     'cache_wsdl'         => 0,
-                    'connection_timeout' => $mConnectConfig->getConnectionTimeout(),
+                    'connection_timeout' => $this->mConnectConfig->getConnectionTimeout(),
                     'trace'              => 1,
                 )
             );
