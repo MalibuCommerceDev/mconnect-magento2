@@ -7,6 +7,5 @@
         "psr-4": {
              "MalibuCommerce\\MConnect\\": ""
         }
-    },
-    "bin": ["bin/mconnect_cron"]
+    }
 }
