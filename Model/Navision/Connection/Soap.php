@@ -38,20 +38,12 @@ class Soap
     ) {
         $this->mConnectConfig = $mConnectConfig;
         $this->mConnectHelper = $mConnectHelper;
-        $this->_streamRegister();
-        $this->_client = new \MalibuCommerce\MConnect\Model\Navision\Connection\Soap\Client(
-            $stream->stream_open($this->mConnectConfig->getNavConnectionUrl(), null, null, $mConnectConfig),
-            array(
-                'cache_wsdl'         => 0,
-                'connection_timeout' => $mConnectConfig->getConnectionTimeout(),
-                'trace'              => 1,
-            )
-        );
     }
 
     public function __call($method, $arguments)
     {
         $this->_streamRegister();
+        $this->_clientRegister();
 
         try {
             $result = call_user_func_array(array($this->_client, $method), $arguments);
@@ -90,6 +82,22 @@ class Soap
             throw new \LogicException(sprintf('Failed to register "%s" stream when connecting to Navision.', $scheme));
         }
         $this->_isStreamRegistered = true;
+    }
+
+    protected function _clientRegister()
+    {
+
+        if ($this->_client === null) {
+            $this->_client = new \MalibuCommerce\MConnect\Model\Navision\Connection\Soap\Client(
+                $stream->stream_open($this->mConnectConfig->getNavConnectionUrl(), null, null, $mConnectConfig),
+                array(
+                    'cache_wsdl'         => 0,
+                    'connection_timeout' => $mConnectConfig->getConnectionTimeout(),
+                    'trace'              => 1,
+                )
+            );
+        }
+        return $this;
     }
 
     protected function _streamUnregister()
