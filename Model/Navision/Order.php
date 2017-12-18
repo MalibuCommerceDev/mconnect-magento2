@@ -19,15 +19,22 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
      */
     protected $customerAddress;
 
+    /**
+     * @var \Magento\Customer\Model\CustomerFactory
+     */
+    protected $customerFactory;
+
     public function __construct(
         \Magento\Directory\Model\Region $directoryRegion,
         \MalibuCommerce\MConnect\Model\Config $config,
         \Magento\Customer\Model\Address $customerAddress,
+        \Magento\Customer\Model\CustomerFactory $customerFactory,
         \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection
     ) {
         $this->config = $config;
         $this->directoryRegion = $directoryRegion;
         $this->customerAddress = $customerAddress;
+        $this->customerFactory = $customerFactory;
 
         parent::__construct(
             $mConnectNavisionConnection
@@ -40,6 +47,8 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 
         $orderObject = $root->addChild('Order');
 
+        $customerDataModel = $this->customerFactory->create()->load($orderEntity->getCustomerId());
+        $orderObject->nav_customer_id = $customerDataModel && $customerDataModel->getId() ? $customerDataModel->getNavId() : '';
         $orderObject->mag_order_id = $orderEntity->getIncrementId();
         $orderObject->mag_customer_id = $orderEntity->getCustomerId();
         $orderObject->email_address = $orderEntity->getCustomerEmail();
@@ -67,10 +76,7 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
     protected function addAddress(\Magento\Sales\Api\Data\OrderAddressInterface $address, &$root)
     {
         $child = $root->addChild('order_address');
-
-        $customerAddress = $this->customerAddress->load($address->getParentId());
-        $navId = $customerAddress->getNavId();
-
+        $navId = $address->getNavId();
         $child->mag_address_id = $address->getEntityId();
         $child->nav_address_id = empty($navId) ? 'default' : $navId;
         $child->address_type = $address->getAddressType();

@@ -20,6 +20,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->upgrade1_1_1($setup);
         }
 
+        if (version_compare($context->getVersion(), '1.1.5', '<=')) {
+            $this->upgrade1_1_5($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -158,5 +162,21 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'comment' => 'Customer Price Group'
             )
         );
+    }
+
+    protected function upgrade1_1_5(SchemaSetupInterface $setup)
+    {
+        $entityTables = ['sales_order_address', 'quote_address'];
+        foreach ($entityTables as $table) {
+            $setup->getConnection()->addColumn(
+                $setup->getTable($table),
+                'nav_id',
+                array(
+                    'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                    'length'  => 255,
+                    'comment' => 'NAV ID'
+                )
+            );
+        }
     }
 }

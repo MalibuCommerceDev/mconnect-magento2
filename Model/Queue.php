@@ -172,6 +172,9 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         } catch (\Exception $e) {
             $this->_logger->critical($e);
             $this->endProcess(self::STATUS_ERROR, $e->getMessage());
+        } catch (\Error $e) {
+            $this->_logger->critical($e);
+            $this->endProcess(self::STATUS_ERROR, $e->getMessage());
         }
         $this->registry->unregister('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE', $this->getId());
 

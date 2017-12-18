@@ -67,7 +67,7 @@ class Entity extends \Magento\Ui\Component\Listing\Columns\Column
                         }
                     }
                     if ($link !== false) {
-                        $item['entity_id'] = sprintf('<a href="%s" target="_blank" title="%s">%s<a/>', $link, $title ? $title : $item['entity_id'], $item['entity_id']);
+                        $item['entity_id'] = sprintf('<a href="%s" target="_blank" title="%s">%s<a/>', $link, $title ? $title : $item['entity_id'], $title ? $title : $item['entity_id']);
                     }
                 }
             }

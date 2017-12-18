@@ -27,24 +27,23 @@ class Customer extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         );
     }
 
-    public function import(\Magento\Customer\Api\Data\CustomerInterface $customer)
+    public function import(\Magento\Customer\Api\Data\CustomerInterface $customer, \Magento\Customer\Model\Customer $customerDataModel)
     {
         $root = new \simpleXMLElement('<customer_import />');
         $cust = $root->addChild('Customer');
-        //$cust->nav_customer_id = "";
+        $cust->nav_customer_id = $customerDataModel->getNavId();
         $cust->mag_customer_id = $customer->getId();
         $cust->first_name      = $customer->getFirstname();
         $cust->last_name       = $customer->getLastname();
-        //$cust->company_name = "";
         $cust->email_address   = $customer->getEmail();
         $cust->store_id        = $customer->getStoreId();
 
         $defaultBillingAddressId  = $customer->getDefaultBilling();
-        $defaultShipingAddressId = $customer->getDefaultShipping();
+        $defaultShippingAddressId = $customer->getDefaultShipping();
 
         foreach ($customer->getAddresses() as $address) {
             $address->setIsDefaultBilling($defaultBillingAddressId == $address->getId());
-            $address->setIsDefaultShipping($defaultShipingAddressId == $address->getId());
+            $address->setIsDefaultShipping($defaultShippingAddressId == $address->getId());
             $this->_addAddress($address, $cust);
         }
         
@@ -56,7 +55,9 @@ class Customer extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         $child  = $cust->addChild('customer_address');
         $street = $address->getStreet();
 
-        //$child->nav_address_id      = '';
+        $navId                      = $address->getCustomAttribute('nav_id');
+        $navId                      = $navId ? $navId->getValue() : null;
+        $child->nav_address_id      = empty($navId) ? 'default' : $navId;
         $child->mag_address_id      = $address->getId();
         $child->is_default_billing  = $address->isDefaultBilling();
         $child->is_default_shipping = $address->isDefaultShipping();

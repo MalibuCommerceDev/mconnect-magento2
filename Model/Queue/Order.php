@@ -43,18 +43,22 @@ class Order extends \MalibuCommerce\MConnect\Model\Queue
     {
         try {
             $orderEntity = $this->orderRepository->get($entityId);
+            $orderDataModel = $this->orderFactory->create()->load($entityId);
         } catch (NoSuchEntityException $e) {
             throw new LocalizedException(__('Order ID "%1" does not exist', $entityId));
+        } catch (\Exception $e) {
+            throw new LocalizedException(__('Order ID "' . $entityId . '" loading error: %s', $e->getMessage()));
         }
 
         $response = $this->navOrder->import($orderEntity);
         $status = (string) $response->result->status;
         if ($status === 'Processed') {
             $navId = (string) $response->result->Order->nav_record_id;
-
-//            if ($orderEntity->getNavId() != $navId) {
-//                $orderEntity->setNavId($navId)->save();
-//            }
+            if ($orderDataModel->getNavId() != $navId) {
+                $orderDataModel->setNavId($navId)
+                    ->setSkipMconnect(true)
+                    ->save();
+            }
             $this->messages .= sprintf('Order exported, NAV ID: %s', $navId);
             return true;
         }

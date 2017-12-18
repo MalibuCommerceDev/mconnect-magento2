@@ -78,7 +78,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
             foreach ($result->shipment as $data) {
                 $count++;
                 try {
-                    $import = $this->importSipment($data);
+                    $import = $this->importShipment($data);
                 } catch (\Exception $e) {
                     $this->messages .= $e->getMessage();
                 }
@@ -92,7 +92,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
         $this->messages .= PHP_EOL . 'Processed ' . $count . ' shipments(s).';
     }
 
-    protected function importSipment(\SimpleXMLElement $entity)
+    protected function importShipment(\SimpleXMLElement $entity)
     {
         $incrementId = (string)$entity->mag_order_id;
         /** @var \Magento\Sales\Model\Order $order */
@@ -189,7 +189,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
                 return $order;
             }
         } catch (\Exception $e) {
-            $this->messages .= $email . ': ' . $e->getMessage();
+            $this->messages .= 'Error while loading Order #' . $incrementId . ': ' . $e->getMessage();
         }
 
         return false;

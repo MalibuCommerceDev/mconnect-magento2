@@ -9,6 +9,9 @@ class Soap
 {
     const STREAM = '\MalibuCommerce\MConnect\Model\Navision\Connection\Stream';
 
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Navision\Connection\Soap\Client
+     */
     protected $_client;
     protected $_isStreamRegistered = false;
     protected $_restoreStream      = false;
@@ -58,11 +61,11 @@ class Soap
                 $this->_client->logRequest($arguments, null, $method, null, null, $e->getMessage());
             }
             $this->mConnectHelper->sendErrorEmail(array(
-                'title'    => 'An unknown error occured when connecting to Navision.',
+                'title'    => 'An unknown error occurred when connecting to Navision.',
                 'body'     => 'Action: ' . $method,
                 'response' => $e->getMessage(),
             ));
-            echo 'SoapFault in Soap::__call : ';
+
             throw $e;
         }
         $this->_streamUnregister();
@@ -80,8 +83,7 @@ class Soap
         if (in_array($scheme, stream_get_wrappers())) {
             $this->_restoreStream = true;
             if (!stream_wrapper_unregister($scheme)) {
-                throw new \LogicException(sprintf('Failed to unregister "%s" stream when connecting to Navision.',
-                    $scheme));
+                throw new \LogicException(sprintf('Failed to unregister "%s" stream when connecting to Navision.', $scheme));
             }
         }
         if (!stream_wrapper_register($scheme, self::STREAM)) {

@@ -91,7 +91,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
             throw new LocalizedException(__('Customer ID "' . $entityId . '" loading error: %s', $e->getMessage()));
         }
 
-        $response = $this->navCustomer->import($customerEntity);
+        $response = $this->navCustomer->import($customerEntity, $customerDataModel);
         $status = (string) $response->result->status;
         if ($status === 'Processed') {
             $navId = (string) $response->result->Customer->nav_record_id;

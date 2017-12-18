@@ -3,6 +3,16 @@ namespace MalibuCommerce\MConnect\Observer;
 
 class SalesOrderAfterPlaceObserver implements \Magento\Framework\Event\ObserverInterface
 {
+    /**
+     * @var \MalibuCommerce\MConnect\Model\QueueFactory
+     */
+    protected $queue;
+
+    /**
+     * @var \Psr\Log\LoggerInterface
+     */
+    protected $logger;
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\QueueFactory $queue,
         \Psr\Log\LoggerInterface $logger
