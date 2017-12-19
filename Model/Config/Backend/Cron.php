@@ -69,12 +69,6 @@ class Cron extends \Magento\Framework\App\Config\Value
      */
     public function afterSave()
     {
-        if (!$this->isValueChanged()) {
-            parent::afterSave();
-
-            return $this;
-        }
-
         try {
             $currentPath = $this->getPath();
             if (empty(self::CRON_PATH_CONFIG[$currentPath])) {
