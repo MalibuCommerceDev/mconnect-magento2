@@ -111,8 +111,7 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
                 );
             }
 
-            //@todo capture_type
-            $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE);
+            $invoice->setRequestedCaptureCase($this->config->get('invoice/capture_type'));
             $invoice->register();
 
             $invoice->getOrder()->setIsInProcess(true);
@@ -141,8 +140,6 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
         } catch (\Exception $e) {
             throw $e;
         }
-
-        return true;
     }
 
     protected function getOrder($incrementId)
@@ -154,7 +151,7 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
                 return $order;
             }
         } catch (\Exception $e) {
-            $this->messages .= $email . ': ' . $e->getMessage();
+            $this->messages .= 'Cannot load order #' . $incrementId . ': ' . $e->getMessage();
         }
 
         return false;

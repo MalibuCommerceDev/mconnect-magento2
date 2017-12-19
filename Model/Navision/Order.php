@@ -118,8 +118,19 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
             $method = $shippingAssignment->getShipping()->getMethod();
         }
 
+        if (!isset($method)) {
+            $root->shipping_carrier = 'none';
+            $root->shipping_method = 'none';
+            $root->shipping_amount = '0.0000';
+
+            return $this;
+        }
+
         $bits = explode('_', $method);
         $root->shipping_carrier = $bits[0];
         $root->shipping_method = implode('_', array_slice($bits, 1));
+        $root->shipping_amount = $orderEntity->getBaseShippingAmount();
+
+        return $this;
     }
 }
