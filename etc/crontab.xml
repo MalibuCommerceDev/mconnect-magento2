@@ -1,29 +1,17 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
     <group id="default">
-        <job name="malibucommerce_mconnect_queue_process" instance="MalibuCommerce\MConnect\Model\Cron\Queue" method="process">
-            <schedule>* * * * *</schedule>
-        </job>
+        <job name="malibucommerce_mconnect_queue_process" instance="MalibuCommerce\MConnect\Model\Cron\Queue" method="process" />
         <job name="malibucommerce_mconnect_queue_clean" instance="MalibuCommerce\MConnect\Model\Cron\Queue" method="clean">
             <schedule>0 */12 * * *</schedule>
         </job>
         <job name="malibucommerce_mconnect_queue_error" instance="MalibuCommerce\MConnect\Model\Cron\Queue" method="error">
             <schedule>*/5 * * * *</schedule>
         </job>
-        <job name="malibucommerce_mconnect_navision_customer_import" instance="MalibuCommerce\MConnect\Model\Cron" method="queueCustomerImport">
-            <schedule>0 * * * *</schedule>
-        </job>
-        <job name="malibucommerce_mconnect_navision_product_import" instance="MalibuCommerce\MConnect\Model\Cron" method="queueProductImport">
-            <schedule>10 * * * *</schedule>
-        </job>
-        <job name="malibucommerce_mconnect_navision_invoice_import" instance="MalibuCommerce\MConnect\Model\Cron" method="queueInvoiceImport">
-            <schedule>20 * * * *</schedule>
-        </job>
-        <job name="malibucommerce_mconnect_navision_shipment_import" instance="MalibuCommerce\MConnect\Model\Cron" method="queueShipmentImport">
-            <schedule>30 * * * *</schedule>
-        </job>
-        <job name="malibucommerce_mconnect_navision_pricerule_import" instance="MalibuCommerce\MConnect\Model\Cron" method="queuePriceRuleImport">
-            <schedule>40 * * * *</schedule>
-        </job>
+        <job name="malibucommerce_mconnect_navision_customer_import" instance="MalibuCommerce\MConnect\Model\Cron" method="queueCustomerImport" />
+        <job name="malibucommerce_mconnect_navision_product_import" instance="MalibuCommerce\MConnect\Model\Cron" method="queueProductImport" />
+        <job name="malibucommerce_mconnect_navision_invoice_import" instance="MalibuCommerce\MConnect\Model\Cron" method="queueInvoiceImport" />
+        <job name="malibucommerce_mconnect_navision_shipment_import" instance="MalibuCommerce\MConnect\Model\Cron" method="queueShipmentImport" />
+        <job name="malibucommerce_mconnect_navision_pricerule_import" instance="MalibuCommerce\MConnect\Model\Cron" method="queuePriceRuleImport" />
     </group>
 </config>

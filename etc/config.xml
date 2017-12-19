@@ -6,6 +6,7 @@
                 <enabled>1</enabled>
             </general>
             <queue>
+                <cron_expr>* * * * *</cron_expr>
                 <delete_after>90</delete_after>
                 <error_after>30</error_after>
             </queue>
@@ -15,6 +16,7 @@
                 <connection_timeout>60</connection_timeout>
             </navision>
             <customer>
+                <cron_expr>0 * * * *</cron_expr>
                 <max_rows>50</max_rows>
                 <default_website>1</default_website>
                 <default_group_taxable>1</default_group_taxable>
@@ -24,6 +26,7 @@
                 <new_email_template>malibucommerce_mconnect_customer_new</new_email_template>
             </customer>
             <product>
+                <cron_expr>0 * * * *</cron_expr>
                 <max_rows>50</max_rows>
                 <import_attribute_set>4</import_attribute_set>
                 <import_type>simple</import_type>
@@ -31,15 +34,18 @@
                 <import_tax_class>2</import_tax_class>
             </product>
             <invoice>
+                <cron_expr>*/10 * * * *</cron_expr>
                 <max_rows>50</max_rows>
                 <capture_type>online</capture_type>
-                <send_email_enabled>0</send_email_enabled>
+                <send_email_enabled>1</send_email_enabled>
             </invoice>
             <shipment>
+                <cron_expr>*/10 * * * *</cron_expr>
                 <max_rows>50</max_rows>
-                <send_email_enabled>0</send_email_enabled>
+                <send_email_enabled>1</send_email_enabled>
             </shipment>
             <price_rule>
+                <cron_expr>0 * * * *</cron_expr>
                 <max_rows>50</max_rows>
             </price_rule>
         </malibucommerce_mconnect>

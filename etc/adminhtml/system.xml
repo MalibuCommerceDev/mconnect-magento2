@@ -5,6 +5,7 @@
             <label>M-Connect</label>
             <tab>service</tab>
             <resource>MalibuCommerce_MConnect::config</resource>
+
             <group id="info" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Information</label>
                 <field id="version" sortOrder="10" type="label" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
@@ -12,23 +13,25 @@
                     <frontend_model>\MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Version\Module</frontend_model>
                 </field>
             </group>
+
             <group id="general" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>General</label>
                 <field id="enabled" sortOrder="10" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Enabled</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
+
             <group id="nav_connection" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>NAV Connection</label>
                 <field id="log" sortOrder="10" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Log Requests</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[May consume a large amount of disk space.]]></comment>
                 </field>
                 <field id="allow_insecure_connection" sortOrder="20" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Allow Insecure Connection</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Allows MConnect SOAP API client to connect to NAV server w/o SSL/TLS certificate verification]]></comment>
                 </field>
                 <field id="connection_timeout" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
@@ -45,13 +48,19 @@
                     <label>Password</label>
                 </field>
                 <field id="test_connection" translate="label comment" type="button" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <frontend_model>MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Connection\Test</frontend_model>
+                    <frontend_model>\MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Connection\Test</frontend_model>
                     <label />
                     <comment><![CDATA[Save credentials before testing!]]></comment>
                 </field>
             </group>
+
             <group id="queue" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Synchronization Queue</label>
+                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Schedule (cron syntax)</label>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
+                    <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
+                </field>
                 <field id="delete_after" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Remove from queue after (days)</label>
                     <comment>Number of days to keep historical queue data.  Leave empty to disable.</comment>
@@ -61,8 +70,14 @@
                     <comment>Number of minutes after which a running process will be marked as errored.</comment>
                 </field>
             </group>
+
             <group id="customer" type="text" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Customer</label>
+                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Schedule (cron syntax)</label>
+                    <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
+                </field>
                 <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import entity limit per request</label>
                 </field>
@@ -76,74 +91,95 @@
                 </field>
                 <field id="default_website" sortOrder="50" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Default website for new customers</label>
-                    <source_model>Magento\Config\Model\Config\Source\Website</source_model>
+                    <source_model>\Magento\Config\Model\Config\Source\Website</source_model>
                 </field>
                 <field id="new_email_enabled" sortOrder="60" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Send password reset email to new customers</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="new_email_identity" sortOrder="70" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Password reset email sender</label>
-                    <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
+                    <source_model>\Magento\Config\Model\Config\Source\Email\Identity</source_model>
                 </field>
                 <field id="new_email_template" sortOrder="80" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Password reset email template</label>
                     <!--<source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>-->
                 </field>
             </group>
+
             <group id="product" type="text" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Product</label>
-                <field id="max_rows" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Schedule (cron syntax)</label>
+                    <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
+                </field>
+                <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import entity limit per request</label>
                 </field>
-                <field id="import_attribute_set" sortOrder="40" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="import_attribute_set" sortOrder="30" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Default attribute set for new products</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\System\Config\Product\Attribute\Set</source_model>
                 </field>
-                <field id="import_type" sortOrder="50" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="import_type" sortOrder="40" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Default type for new products</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\System\Config\Product\Type</source_model>
                 </field>
-                <field id="import_visibility" sortOrder="60" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="import_visibility" sortOrder="50" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Default visibility for new products</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\System\Config\Product\Visibility</source_model>
                 </field>
-                <field id="import_tax_class" sortOrder="70" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="import_tax_class" sortOrder="60" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Default tax class for new products</label>
-                    <source_model>Magento\Tax\Model\TaxClass\Source\Product</source_model>
-                    <backend_model>Magento\Tax\Model\Config\TaxClass</backend_model>
+                    <source_model>\Magento\Tax\Model\TaxClass\Source\Product</source_model>
+                    <backend_model>\Magento\Tax\Model\Config\TaxClass</backend_model>
                 </field>
             </group>
 
             <group id="invoice" type="text" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Invoice</label>
-                <field id="max_rows" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Schedule (cron syntax)</label>
+                    <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
+                </field>
+                <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import entity limit per request</label>
                 </field>
-                <field id="capture_type" sortOrder="20" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="capture_type" sortOrder="30" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Default invoice capture type</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\System\Config\Sales\Invoice\Capture\Type</source_model>
                 </field>
-                <field id="send_email_enabled" sortOrder="30" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="send_email_enabled" sortOrder="40" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Send invoice email to customers</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
 
             <group id="shipment" type="text" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Shipment</label>
-                <field id="max_rows" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Schedule (cron syntax)</label>
+                    <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
+                </field>
+                <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import entity limit per request</label>
                 </field>
-                <field id="send_email_enabled" sortOrder="20" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="send_email_enabled" sortOrder="30" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Send shipment email to customers</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
 
             <group id="price_rule" type="text" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Price Rule</label>
-                <field id="max_rows" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Schedule (cron syntax)</label>
+                    <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
+                </field>
+                <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import entity limit per request</label>
                 </field>
             </group>
