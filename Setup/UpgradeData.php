@@ -101,6 +101,24 @@ class UpgradeData implements UpgradeDataInterface
             }
         }
 
+        if (version_compare($context->getVersion(), '1.1.6', '<=')) {
+            $this->upgrade1_1_6($setup);
+        }
+
         $setup->endSetup();
+    }
+
+    protected function upgrade1_1_6(ModuleDataSetupInterface $setup)
+    {
+        $customerSetup = $this->customerSetupFactory->create(['setup' => $setup]);
+        $customerSetup->addAttribute(\Magento\Customer\Model\Customer::ENTITY, 'mconnect_status', array(
+            'label' => 'MConnect Status',
+            'type' => 'static',
+            'input' => 'text',
+            'global' => \Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface::SCOPE_GLOBAL,
+            'visible' => true,
+            'required' => false,
+            'user_defined' => true,
+        ));
     }
 }
