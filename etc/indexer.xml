@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Indexer/etc/indexer.xsd">
+    <indexer id="customer_grid">
+        <fieldset name="customer">
+            <field name="nav_id" dataType="varchar"/>
+            <field name="mconnect_status" dataType="varchar"/>
+        </fieldset>
+    </indexer>
+</config>
