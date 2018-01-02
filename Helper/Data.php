@@ -137,7 +137,7 @@ class Data
         return round($bytes, 2) . ' ' . $units[$pow];
     }
 
-    public function getLogFileContents($queueId)
+    public function getLogFileContents($queueId, $asString = true)
     {
         if ($file = $this->getLogFile($queueId, true, true)) {
             $contents = file_get_contents($file);
@@ -153,7 +153,11 @@ class Data
                 }
             }
 
-            return $result ? print_r($result, true) : $contents;
+            if ($result) {
+              return $asString ? print_r($result, true) : $result;
+            } else {
+                return $contents;
+            }
         }
         return false;
     }

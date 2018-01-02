@@ -30,6 +30,11 @@ class Log extends \Magento\Framework\View\Element\Template
         return $this->helper->getLogFileContents($this->getRequest()->getParam('id'));
     }
 
+    public function getLogDetails()
+    {
+        return $this->helper->getLogFileContents($this->getRequest()->getParam('id'), false);
+    }
+
     /**
      * Retrieve back button url
      *
