@@ -24,10 +24,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->upgrade1_1_5($setup);
         }
 
-        if (version_compare($context->getVersion(), '1.1.6', '<=')) {
-            $this->upgrade1_1_6($setup);
-        }
-
         $setup->endSetup();
     }
 
@@ -183,20 +179,4 @@ class UpgradeSchema implements UpgradeSchemaInterface
             );
         }
     }
-
-    protected function upgrade1_1_6(SchemaSetupInterface $setup)
-    {
-        $entityTables = ['sales_order', 'sales_order_grid', 'customer_entity'];
-        foreach ($entityTables as $table) {
-            $setup->getConnection()->addColumn(
-                $setup->getTable($table),
-                'mconnect_status',
-                array(
-                    'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
-                    'comment' => 'MConnect Status'
-                )
-            );
-        }
-    }
-
 }
