@@ -18,8 +18,14 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     protected $customer;
 
     /**
+     * @var \Magento\Customer\Model\CustomerRegistry
+     */
+    protected $customerRegistry;
+
+    /**
      * @param \Magento\Framework\Data\Collection\EntityFactoryInterface    $entityFactory
      * @param \Psr\Log\LoggerInterface                                     $logger
+     * @param \Magento\Customer\Model\CustomerRegistry                     $CustomerRegistry
      * @param \Magento\Framework\Data\Collection\Db\FetchStrategyInterface $fetchStrategy
      * @param \Magento\Framework\Event\ManagerInterface                    $eventManager
      * @param \Magento\Framework\DB\Adapter\AdapterInterface               $connection
@@ -28,14 +34,16 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     public function __construct(
         \Magento\Framework\Data\Collection\EntityFactoryInterface $entityFactory,
         \Psr\Log\LoggerInterface $logger,
+        \Magento\Customer\Model\CustomerRegistry $customerRegistry,
         \Magento\Framework\Data\Collection\Db\FetchStrategyInterface $fetchStrategy,
         \Magento\Framework\Event\ManagerInterface $eventManager,
         Session $customerSession,
         \Magento\Framework\DB\Adapter\AdapterInterface $connection = null,
         \Magento\Framework\Model\ResourceModel\Db\AbstractDb $resource = null
     ) {
-        parent::__construct($entityFactory, $logger, $fetchStrategy, $eventManager, $connection, $resource);
+        $this->customerRegistry = $customerRegistry;
         $this->customerSession = $customerSession;
+        parent::__construct($entityFactory, $logger, $fetchStrategy, $eventManager, $connection, $resource);
     }
 
     public function _construct()
@@ -43,7 +51,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
         $this->_init('MalibuCommerce\MConnect\Model\Pricerule', 'MalibuCommerce\MConnect\Model\Resource\Pricerule');
     }
 
-    public function applyAllFilters($sku, $qty, $navisionCustomerId = null, $customerPriceGroup = null, $dateStart = null, $dateEnd = null)
+    public function applyAllFilters($sku, $qty, $navisionCustomerId = false, $customerPriceGroup = null, $dateStart = null, $dateEnd = null)
     {
         $this->applySkuFilter($sku)
             ->applyQtyFilter($qty)
@@ -73,10 +81,10 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
         return $this;
     }
 
-    public function applyNavisionCustomerIdFilter($value)
+    public function applyNavisionCustomerIdFilter($value = false)
     {
-        if ($value === null) {
-            $value = $this->getCustomer() ? $this->getCustomer()->getNavId() : false;
+        if (!$value && $this->getCustomer()) {
+            $value = $this->getCustomer()->getNavId();
         }
 
         return $this->applyNullableFilter('navision_customer_id', $value);
@@ -138,18 +146,20 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     }
 
     /**
-     * @return \Magento\Customer\Api\Data\CustomerInterface|null
+     * Return logged in customer model
+     *
+     * @return \Magento\Customer\Model\Customer|null
      */
     protected function getCustomer()
     {
         if (!$this->customer) {
             if ($this->customerSession->isLoggedIn()) {
-                $this->customer = $this->customerRepository->getById($this->customerSession->getCustomerId());
+                $customerId = $this->customerSession->getCustomerId();
+                $this->customer = $this->customerRegistry->retrieve($customerId);
             } else {
                 return null;
             }
         }
-
         return $this->customer;
     }
 }

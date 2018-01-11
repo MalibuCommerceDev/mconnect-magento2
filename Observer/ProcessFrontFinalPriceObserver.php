@@ -22,7 +22,7 @@ class ProcessFrontFinalPriceObserver implements \Magento\Framework\Event\Observe
     }
 
     /**
-     * Address after save event handler
+     * Apply MConnect product price rule to Product's final price
      *
      * @param \Magento\Framework\Event\Observer $observer
      * @return void
@@ -34,10 +34,13 @@ class ProcessFrontFinalPriceObserver implements \Magento\Framework\Event\Observe
             $product = $observer->getProduct();
             $rule = $this->rule->loadByApplicable($product, $observer->getQty());
             if ($rule && $rule->getId() && (!$product->hasFinalPrice() || $rule->getPrice() < $product->getFinalPrice())) {
-                $product->setFinalPrice($rule->getPrice());
+                $finalPrice = min($product->getData('final_price'), $rule->getPrice());
+                $product->setPrice($finalPrice);
+                $product->setFinalPrice($finalPrice);
             }
         } catch (\Exception $e) {
             $this->logger->critical($e);
         }
+        return $this;
     }
 }
