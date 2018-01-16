@@ -22,7 +22,7 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
     public function export($page = 0, $lastUpdated = false)
     {
         $config = $this->config;
-        $max = $config->get('pric_erule/max_rows');
+        $max = $config->get('price_rule/max_rows');
         $parameters = array(
             'skip'     => $page * $max,
             'max_rows' => $max,

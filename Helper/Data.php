@@ -141,20 +141,23 @@ class Data
     {
         if ($file = $this->getLogFile($queueId, true, true)) {
             $contents = file_get_contents($file);
-            $result = [];
-            $matches = [];
-            if (preg_match('~({.+})~', $contents, $matches)) {
-                $debug = json_decode($matches[1]);
-                foreach ($debug as $title => $data) {
-                    if (preg_match('~({.+})~', $data, $matches2)) {
-                        $data = json_decode($matches2[1]);
+            $results = [];
+            if (preg_match_all('~({.+})~', $contents, $matches)) {
+                foreach ($matches[1] as $match) {
+                    $debug = json_decode($match);
+                    $result = [];
+                    foreach ($debug as $title => $data) {
+                        if (preg_match('~({.+})~', $data, $matches2)) {
+                            $data = json_decode($matches2[1]);
+                        }
+                        $result[$title] = $data;
                     }
-                    $result[$title] = $data;
+                    $results[] = $result;
                 }
             }
 
-            if ($result) {
-              return $asString ? print_r($result, true) : $result;
+            if (count($results)) {
+              return $asString ? print_r($results, true) : $results;
             } else {
                 return $contents;
             }
