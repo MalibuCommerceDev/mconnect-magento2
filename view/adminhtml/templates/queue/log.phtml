@@ -10,21 +10,13 @@ $logDetails = $block->getLogDetails();
 <?php echo $block->escapeHtml($block->getLogContents()); ?>
 </pre> */ ?>
 
-<?php if(isset($logDetails['Request'])): ?>
-    <hr />
-    <h1><?php echo __('Request'); ?></h1>
-    <?php foreach ($logDetails['Request'] as $label => $content): ?>
-        <h3><?php echo $label; ?></h3>
-        <pre style="white-space: pre-wrap; word-break: break-word; background: #eee;"><code><?php echo htmlspecialchars($content, ENT_XML1); ?></code></pre>
-    <?php endforeach; ?>
-<?php endif; ?>
-
-<?php if(isset($logDetails['Response'])): ?>
-    <hr />
-    <h1><?php echo __('Response'); ?></h1>
-    <?php foreach ($logDetails['Response'] as $label => $content): ?>
-        <h3><?php echo $label; ?></h3>
-        <pre style="white-space: pre-wrap; word-break: break-word; background: #eee;"><code><?php echo htmlspecialchars($content, ENT_XML1); ?></code></pre>
-    <?php endforeach; ?>
-<?php endif; ?>
-
+<?php foreach($logDetails as $logDetail): ?>
+    <?php foreach($logDetail as $title => $contents): ?>
+        <hr />
+        <h1><?php $title ?></h1>
+        <?php foreach ($contents as $label => $content): ?>
+            <h3><?php echo $label; ?></h3>
+            <pre style="white-space: pre-wrap; word-break: break-word; background: #eee;"><code><?php echo htmlspecialchars($content, ENT_XML1); ?></code></pre>
+        <?php endforeach; ?>
+    <?php endforeach ?>
+<?php endforeach ?>
