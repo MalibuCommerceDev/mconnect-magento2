@@ -193,7 +193,9 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
         $customer->setFirstname($firstname)
             ->setLastname($lastname)
             ->setSkipMconnect(true)
-            ->setNavId((string) $data->cust_nav_id);
+            ->setNavId((string) $data->cust_nav_id)
+            ->setNavPaymentTerms((string) $data->cust_payment_terms)
+            ->setNavPriceGroup((string) $data->cust_price_group);
 
         try {
             if ($customer->hasDataChanges()) {
