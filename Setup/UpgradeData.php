@@ -101,6 +101,56 @@ class UpgradeData implements UpgradeDataInterface
             }
         }
 
+        if (version_compare($context->getVersion(), '1.1.6', '<')) {
+            $this->upgrade1_1_6($setup);
+        }
+
         $setup->endSetup();
+    }
+
+    protected function upgrade1_1_6(ModuleDataSetupInterface $setup)
+    {
+        $customerSetup = $this->customerSetupFactory->create(['setup' => $setup]);
+        /** @var EavSetup $eavSetup */
+        $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+
+        $attributes = array(
+            'nav_payment_terms' => array(
+                'label'        => 'Navision Payment Terms',
+                'type'         => 'text',
+                'input'        => 'textarea',
+                'global'       => \Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface::SCOPE_GLOBAL,
+                'visible'      => true,
+                'required'     => false,
+                'user_defined' => true,
+            ),
+            'nav_price_group' => array(
+                'label'        => 'Navision Price Group',
+                'type'         => 'varchar',
+                'input'        => 'text',
+                'global'       => \Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface::SCOPE_GLOBAL,
+                'visible'      => true,
+                'required'     => false,
+                'user_defined' => true,
+            )
+        );
+
+        $entityTypeId = $eavSetup->getEntityTypeId(\Magento\Customer\Model\Customer::ENTITY);
+        $attributeSetId = $eavSetup->getDefaultAttributeSetId($entityTypeId);
+        $attributeGroupId = $eavSetup->getDefaultAttributeGroupId($entityTypeId, $attributeSetId);
+
+        foreach ($attributes as $attribute => $attributeConfig) {
+            $customerSetup->addAttribute(\Magento\Customer\Model\Customer::ENTITY, $attribute, $attributeConfig);
+
+            $attribute = $eavSetup->getAttribute($entityTypeId, $attribute);
+            if ($attribute) {
+                $eavSetup->addAttributeToGroup(
+                    $entityTypeId,
+                    $attributeSetId,
+                    $attributeGroupId,
+                    $attribute['attribute_id']
+                );
+            }
+        }
     }
 }
