@@ -195,11 +195,6 @@ class Data
                 break;
             case \MalibuCommerce\MConnect\Model\Queue::STATUS_SUCCESS:
                 $background = '#00c500';
-                if ($queueItem->getAction() == 'export') {
-                    $title = __('Entity exported, NAV ID: %s', $queueItem->getNavId());
-                } else {
-                    $title = __('Entity imported');
-                }
                 break;
             case \MalibuCommerce\MConnect\Model\Queue::STATUS_ERROR:
                 $background = '#ff0000';
