@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
 /**
- * MalibuCommerce MConnect frontend events observers
+ * MalibuCommerce MConnect crontab events observers
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
