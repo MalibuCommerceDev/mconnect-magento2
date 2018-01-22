@@ -164,4 +164,53 @@ class Data
         }
         return false;
     }
+
+    /**
+     * Generate Queue Item Status as html
+     *
+     * @param \MalibuCommerce\MConnect\Model\Queue $queueItem
+     *
+     * @return string
+     */
+    public function getQueueItemStatusHtml(\MalibuCommerce\MConnect\Model\Queue $queueItem)
+    {
+        $result = '';
+        $status = $queueItem->getStatus();
+        $style = 'text-transform: uppercase;'
+                 . ' font-weight: bold;'
+                 . ' color: white;'
+                 . ' font-size: 10px;'
+                 . ' width: 100%;'
+                 . ' display: block;'
+                 . ' text-align: center;'
+                 . ' border-radius: 10px;';
+        $title = htmlentities($queueItem->getMessage());
+        $background = false;
+        switch ($status) {
+            case \MalibuCommerce\MConnect\Model\Queue::STATUS_PENDING:
+                $background = '#9a9a9a';
+                break;
+            case \MalibuCommerce\MConnect\Model\Queue::STATUS_RUNNING:
+                $background = '#28dade';
+                break;
+            case \MalibuCommerce\MConnect\Model\Queue::STATUS_SUCCESS:
+                $background = '#00c500';
+                if ($queueItem->getAction() == 'export') {
+                    $title = __('Entity exported, NAV ID: %s', $queueItem->getNavId());
+                } else {
+                    $title = __('Entity imported');
+                }
+                break;
+            case \MalibuCommerce\MConnect\Model\Queue::STATUS_ERROR:
+                $background = '#ff0000';
+                break;
+            default:
+                $result = $status;
+        }
+        if ($background) {
+            $result = '<span title="' . $title . '" style="' . $style . ' background: ' . $background . ';">' . $status . '</span>';
+        }
+
+        return $result;
+    }
 }
