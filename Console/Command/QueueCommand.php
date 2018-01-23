@@ -19,7 +19,7 @@ class QueueCommand extends Command
     private $queue;
 
     public function __construct(
-        queue $queue
+        Queue $queue
     ) {
         parent::__construct();
         $this->queue = $queue;

@@ -41,56 +41,16 @@ class Queue extends \Magento\Framework\Model\AbstractModel
      */
     protected $queueFlagFactory;
 
-    /** @var \MalibuCommerce\MConnect\Model\Queue\Customer  */
-    protected $mConnectQueueCustomer;
-
-    /**
-     * @var \MalibuCommerce\MConnect\Model\Queue\Product
-     */
-    protected $mConnectQueueProduct;
-
-    /**
-     * @var \MalibuCommerce\MConnect\Model\Queue\Order
-     */
-    protected $mConnectQueueOrder;
-
-    /**
-     * @var \MalibuCommerce\MConnect\Model\Queue\Invoice
-     */
-    protected $mConnectQueueInvoice;
-
-    /**
-     * @var \MalibuCommerce\MConnect\Model\Queue\Shipment
-     */
-    protected $mConnectQueueShipment;
-
-    /**
-     * @var \MalibuCommerce\MConnect\Model\Queue\Pricerule
-     */
-    protected $mConnectQueuePricerule;
-
     public function __construct(
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
         \MalibuCommerce\MConnect\Model\Config $config,
-        \MalibuCommerce\MConnect\Model\Queue\Customer $queueCustomer,
-        \MalibuCommerce\MConnect\Model\Queue\Product $queueProduct,
-        \MalibuCommerce\MConnect\Model\Queue\Order $queueOrder,
-        \MalibuCommerce\MConnect\Model\Queue\Invoice $queueInvoice,
-        \MalibuCommerce\MConnect\Model\Queue\Shipment $queueShipment,
-        \MalibuCommerce\MConnect\Model\Queue\Pricerule $queuePricerule,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
         array $data = []
     ) {
         $this->registry = $registry;
         $this->config = $config;
-        $this->mConnectQueueCustomer = $queueCustomer;
-        $this->mConnectQueueProduct = $queueProduct;
-        $this->mConnectQueueOrder = $queueOrder;
-        $this->mConnectQueueInvoice = $queueInvoice;
-        $this->mConnectQueueShipment = $queueShipment;
-        $this->mConnectQueuePricerule = $queuePricerule;
         $this->scopeConfig = $scopeConfig;
         $this->queueFlagFactory = $queueFlagFactory;
 
@@ -146,8 +106,8 @@ class Queue extends \Magento\Framework\Model\AbstractModel
             ->save();
 
         $code = $this->getCode();
-        $modelName = 'mConnectQueue' . ucwords(str_replace('_', '', $code));
-        $model = $this->$modelName;
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $model = $objectManager->create('MalibuCommerce\MConnect\Model\Queue\\' . ucwords(str_replace('_', '', $code)));
         $action = $this->getAction();
         $prefix = lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $action))));
         $method = $prefix . 'Action';
