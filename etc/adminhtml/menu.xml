@@ -3,5 +3,6 @@
     <menu>
         <add id="MalibuCommerce_MConnect::mconnect" title="M-Connect" translate="title" module="MalibuCommerce_MConnect" sortOrder="10" parent="Magento_Backend::system" resource="MalibuCommerce_MConnect::mconnect"/>
         <add id="MalibuCommerce_MConnect::queue" title="Synchronization Queue" translate="title" module="MalibuCommerce_MConnect" sortOrder="10" parent="MalibuCommerce_MConnect::mconnect" action="mconnect/queue/index" resource="MalibuCommerce_MConnect::queue" />
+        <add id="MalibuCommerce_MConnect::price_rule" title="Mconnect Price Rules" module="MalibuCommerce_MConnect" sortOrder="30" action="mconnect/pricerule" parent="Magento_CatalogRule::promo" resource="MalibuCommerce_MConnect::price_rule" />
     </menu>
 </config>
