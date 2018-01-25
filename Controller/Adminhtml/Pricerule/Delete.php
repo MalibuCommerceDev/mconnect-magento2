@@ -2,7 +2,7 @@
 
 namespace MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule;
 
-class Delete extends \MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule\PriceuleAction
+class Delete extends \MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule\PriceruleAction
 {
     /**
      * Delete action

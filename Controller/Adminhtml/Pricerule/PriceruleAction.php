@@ -2,7 +2,7 @@
 
 namespace MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule;
 
-abstract class PriceuleAction extends \Magento\Backend\App\Action
+abstract class PriceruleAction extends \Magento\Backend\App\Action
 {
     /**
      * Authorization level of a basic admin session

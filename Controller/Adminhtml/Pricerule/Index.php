@@ -2,7 +2,7 @@
 
 namespace MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule;
 
-class Index extends \MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule\PriceuleAction
+class Index extends \MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule\PriceruleAction
 {
     /**
      * @return void

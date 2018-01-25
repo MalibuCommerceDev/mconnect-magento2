@@ -2,7 +2,7 @@
 
 namespace MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule;
 
-class Edit extends \MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule\PriceuleAction
+class Edit extends \MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule\PriceruleAction
 {
     /**
      * Edit Mconnect Price Rule

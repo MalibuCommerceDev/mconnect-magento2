@@ -6,7 +6,7 @@ use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Request\DataPersistorInterface;
 use Magento\Framework\Exception\LocalizedException;
 
-class Save extends \MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule\PriceuleAction
+class Save extends \MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule\PriceruleAction
 {
     /**
      * @var DataPersistorInterface

@@ -2,7 +2,7 @@
 
 namespace MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule;
 
-class NewAction extends \MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule\PriceuleAction
+class NewAction extends \MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule\PriceruleAction
 {
     /**
      * Create new Mconnect Price Rule

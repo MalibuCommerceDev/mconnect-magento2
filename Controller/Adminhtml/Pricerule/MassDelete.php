@@ -11,7 +11,7 @@ use MalibuCommerce\MConnect\Model\Resource\Adminhtml\Pricerule\Grid\CollectionFa
 /**
  * Class MassDelete
  */
-class MassDelete extends \MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule\PriceuleAction
+class MassDelete extends \MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule\PriceruleAction
 {
     /**
      * @var Filter
