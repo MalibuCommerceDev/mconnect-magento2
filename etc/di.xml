@@ -36,4 +36,33 @@
             </argument>
         </arguments>
     </type>
+
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="malibucommerce_mconnect_pricerule_listing_data_source" xsi:type="string">MalibuCommerce\MConnect\Model\Resource\Adminhtml\Pricerule\Collection</item>
+            </argument>
+        </arguments>
+    </type>
+    <virtualType name="MConnectPriceruleIndexGridDataProvider" type="Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">malibucommerce_mconnect_price_rule</argument>
+            <argument name="resourceModel" xsi:type="string">MalibuCommerce\MConnect\Model\Resource\Adminhtml\Pricerule</argument>
+        </arguments>
+    </virtualType>
+    <type name="MalibuCommerce\MConnect\Model\Resource\Adminhtml\Pricerule\Grid\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">malibucommerce_mconnect_price_rule</argument>
+            <argument name="eventPrefix" xsi:type="string">mconnect_pricerule_grid_collection</argument>
+            <argument name="eventObject" xsi:type="string">pricerule_grid_collection</argument>
+            <argument name="resourceModel" xsi:type="string">MalibuCommerce\MConnect\Model\Resource\Adminhtml\Pricerule</argument>
+        </arguments>
+    </type>
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="mconnect_pricerule_grid_data_source" xsi:type="string">MalibuCommerce\MConnect\Model\Resource\Adminhtml\Pricerule\Grid\Collection</item>
+            </argument>
+        </arguments>
+    </type>
 </config>
