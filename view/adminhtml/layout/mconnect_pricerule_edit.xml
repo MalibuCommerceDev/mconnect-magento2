@@ -1,19 +1,9 @@
 <?xml version="1.0"?>
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../../../lib/internal/Magento/Framework/View/Layout/etc/page_configuration.xsd">
-    <update handle="catalog_rule_promo_catalog_block"/>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="admin-1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="styles"/>
     <body>
-        <referenceBlock name="menu">
-            <action method="setActive">
-                <argument name="itemId" xsi:type="string">MalibuCommerce_MConnect::price_rule</argument>
-            </action>
-        </referenceBlock>
-        <referenceBlock name="page.title">
-            <action method="setTitleClass">
-                <argument name="class" xsi:type="string">complex</argument>
-            </action>
-        </referenceBlock>
         <referenceContainer name="content">
-            <block class="MalibuCommerce\MConnect\Block\Adminhtml\Pricerule\Edit" name="rule_edit" template="pricerule/edit.phtml" cacheable="false"/>
+            <uiComponent name="mconnect_pricerule_form"/>
         </referenceContainer>
     </body>
 </page>

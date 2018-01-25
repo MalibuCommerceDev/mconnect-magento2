@@ -13,12 +13,6 @@
                 <item name="class" xsi:type="string">primary</item>
                 <item name="url" xsi:type="string">*/*/new</item>
             </item>
-            <!--<item name="sync" xsi:type="array">-->
-                <!--<item name="name" xsi:type="string">sync</item>-->
-                <!--<item name="label" xsi:type="string" translate="true">Sync All Pending Now</item>-->
-                <!--<item name="class" xsi:type="string">action secondary</item>-->
-                <!--<item name="url" xsi:type="string">*/*/sync</item>-->
-            <!--</item>-->
         </item>
     </argument>
     <dataSource name="mconnect_pricerule_grid_data_source">
@@ -45,35 +39,23 @@
         <columnsControls name="columns_controls"/>
         <filterSearch name="fulltext"/>
         <filters name="listing_filters"/>
-        <!--<massaction name="listing_massaction">-->
-            <!--<action name="requeue">-->
-                <!--<argument name="data" xsi:type="array">-->
-                    <!--<item name="config" xsi:type="array">-->
-                        <!--<item name="type" xsi:type="string">requeue</item>-->
-                        <!--<item name="label" xsi:type="string" translate="true">Re-Queue</item>-->
-                        <!--<item name="url" xsi:type="url" path="mconnect/pricerule/massReQueue"/>-->
-                    <!--</item>-->
-                <!--</argument>-->
-            <!--</action>-->
-            <!--<action name="requeueandsync">-->
-                <!--<argument name="data" xsi:type="array">-->
-                    <!--<item name="config" xsi:type="array">-->
-                        <!--<item name="type" xsi:type="string">requeueandsync</item>-->
-                        <!--<item name="label" xsi:type="string" translate="true">Re-Queue And Sync Now</item>-->
-                        <!--<item name="url" xsi:type="url" path="mconnect/pricerule/massReQueueAndSyncNow"/>-->
-                    <!--</item>-->
-                <!--</argument>-->
-            <!--</action>-->
-            <!--<action name="syncnow">-->
-                <!--<argument name="data" xsi:type="array">-->
-                    <!--<item name="config" xsi:type="array">-->
-                        <!--<item name="type" xsi:type="string">syncnow</item>-->
-                        <!--<item name="label" xsi:type="string" translate="true">Sync Now</item>-->
-                        <!--<item name="url" xsi:type="url" path="mconnect/pricerule/massSyncNow"/>-->
-                    <!--</item>-->
-                <!--</argument>-->
-            <!--</action>-->
-        <!--</massaction>-->
+        <massaction name="listing_massaction">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="selectProvider" xsi:type="string">mconnect_pricerule_grid.mconnect_pricerule_grid.mconnect_pricerule_columns.ids</item>
+                    <item name="indexField" xsi:type="string">id</item>
+                </item>
+            </argument>
+            <action name="requeue">
+                <argument name="data" xsi:type="array">
+                    <item name="config" xsi:type="array">
+                        <item name="type" xsi:type="string">delete</item>
+                        <item name="label" xsi:type="string" translate="true">Delete</item>
+                        <item name="url" xsi:type="url" path="mconnect/pricerule/massDelete"/>
+                    </item>
+                </argument>
+            </action>
+        </massaction>
         <paging name="listing_paging"/>
     </listingToolbar>
     <columns name="mconnect_pricerule_columns">
@@ -110,7 +92,7 @@
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">SKU</item>
+                    <item name="label" xsi:type="string" translate="true">Product SKU</item>
                     <item name="dataType" xsi:type="string">text</item>
                     <item name="sortOrder" xsi:type="number">40</item>
                 </item>
@@ -153,6 +135,8 @@
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/date</item>
                     <item name="dataType" xsi:type="string">date</item>
                     <item name="label" xsi:type="string" translate="true">Start Date</item>
+                    <item name="timezone" xsi:type="boolean">false</item>
+                    <item name="dateFormat" xsi:type="string">MMM d, y</item>
                     <item name="sortOrder" xsi:type="number">80</item>
                 </item>
             </argument>
@@ -164,6 +148,8 @@
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/date</item>
                     <item name="dataType" xsi:type="string">date</item>
                     <item name="label" xsi:type="string" translate="true">End Date</item>
+                    <item name="timezone" xsi:type="boolean">false</item>
+                    <item name="dateFormat" xsi:type="string">MMM d, y</item>
                     <item name="sortOrder" xsi:type="number">90</item>
                 </item>
             </argument>
