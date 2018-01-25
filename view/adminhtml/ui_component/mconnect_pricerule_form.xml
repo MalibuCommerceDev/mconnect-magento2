@@ -54,6 +54,17 @@
                 </item>
             </argument>
         </field>
+        <field name="nav_id">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Navision ID</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">pricerule</item>
+                    <item name="dataScope" xsi:type="string">nav_id</item>
+                </item>
+            </argument>
+        </field>
         <field name="title">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">

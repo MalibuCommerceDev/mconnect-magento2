@@ -81,7 +81,7 @@
         <column name="nav_id">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">textRange</item>
+                    <item name="filter" xsi:type="string">text</item>
                     <item name="sorting" xsi:type="string">desc</item>
                     <item name="label" xsi:type="string" translate="true">Navision ID</item>
                     <item name="sortOrder" xsi:type="number">30</item>
@@ -101,7 +101,7 @@
         <column name="navision_customer_id">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">textRange</item>
+                    <item name="filter" xsi:type="string">text</item>
                     <item name="sorting" xsi:type="string">desc</item>
                     <item name="label" xsi:type="string" translate="true">Navision Customer ID</item>
                     <item name="sortOrder" xsi:type="number">50</item>

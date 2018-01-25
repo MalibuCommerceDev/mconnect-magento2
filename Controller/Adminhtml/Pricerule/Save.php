@@ -46,7 +46,7 @@ class Save extends \MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule\Price
             }
 
             /** @var \MalibuCommerce\MConnect\Model\Pricerule $model */
-            if (!$model->getId()) {
+            if ($data['id'] && !$model->getId()) {
                 $this->messageManager->addError(__('This Mconnect Price Rule no longer exists.'));
                 return $resultRedirect->setPath('*/*/');
             }
