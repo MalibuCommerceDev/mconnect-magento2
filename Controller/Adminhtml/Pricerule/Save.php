@@ -51,9 +51,6 @@ class Save extends \MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule\Price
                 return $resultRedirect->setPath('*/*/');
             }
 
-            if (isset($data['customer_price_group']) && $data['customer_price_group']) {
-                $data['customer_price_group'] = implode(',', $data['customer_price_group']);
-            }
             $model->setData($data);
 
             try {

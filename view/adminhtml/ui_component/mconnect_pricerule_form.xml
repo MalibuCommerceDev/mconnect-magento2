@@ -92,12 +92,9 @@
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="label" xsi:type="string">Customer Price Group</item>
-                    <item name="dataType" xsi:type="string">number</item>
-                    <item name="formElement" xsi:type="string">multiselect</item>
-                    <item name="validation" xsi:type="array">
-                        <item name="required-entry" xsi:type="boolean">true</item>
-                    </item>
-                    <item name="source" xsi:type="string">catalog_rule</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">pricerule</item>
                     <item name="dataScope" xsi:type="string">customer_price_group</item>
                 </item>
                 <item name="options" xsi:type="object">Magento\CatalogRule\Model\Rule\CustomerGroupsOptionsProvider</item>
