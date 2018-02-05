@@ -62,17 +62,22 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         $page        = 0;
         $lastSync    = false;
         $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_PRODUCT_SYNC_TIME);
+        $result = false;
         do {
-            $result = $this->navProduct->export($page++, $lastUpdated);
-            foreach ($result->item as $data) {
-                $count++;
-                $import = $this->_importProduct($data);
-                $this->messages .= PHP_EOL;
+            try {
+                $result = $this->navProduct->export($page++, $lastUpdated);
+                foreach ($result->item as $data) {
+                    $count++;
+                    $import = $this->_importProduct($data);
+                    $this->messages .= PHP_EOL;
+                }
+                if (!$lastSync) {
+                    $lastSync = $result->status->current_date_time;
+                }
+            } catch (\Exception $e) {
+                $this->messages .= $e->getMessage();
             }
-            if (!$lastSync) {
-                $lastSync = $result->status->current_date_time;
-            }
-        } while (isset($result->status->end_of_records) && (string) $result->status->end_of_records === 'false');
+        } while ($result && isset($result->status->end_of_records) && (string) $result->status->end_of_records === 'false');
         $this->setLastSyncTime(Flag::FLAG_CODE_LAST_PRODUCT_SYNC_TIME, $lastSync);
         $this->messages .= PHP_EOL . 'Processed ' . $count . ' products(s).';
     }
