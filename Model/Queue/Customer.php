@@ -265,7 +265,8 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
             $parts = explode(' ', $firstname);
             if (count($parts) > 1) {
                 $firstname = $parts[0];
-                $lastname = $parts[1];
+                unset($parts[0]);
+                $lastname = implode(' ', $parts);
             } else {
                 $lastname = 'Co.';
             }
