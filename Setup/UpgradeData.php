@@ -117,7 +117,7 @@ class UpgradeData implements UpgradeDataInterface
         $attributes = array(
             'nav_payment_terms' => array(
                 'label'        => 'Navision Payment Terms',
-                'type'         => 'text',
+                'type'         => 'static',
                 'input'        => 'textarea',
                 'global'       => \Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface::SCOPE_GLOBAL,
                 'visible'      => true,
@@ -127,7 +127,7 @@ class UpgradeData implements UpgradeDataInterface
             'nav_price_group' => array(
                 'label'        => 'Navision Price Group',
                 'type'         => 'varchar',
-                'input'        => 'text',
+                'input'        => 'static',
                 'global'       => \Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface::SCOPE_GLOBAL,
                 'visible'      => true,
                 'required'     => false,
@@ -148,7 +148,8 @@ class UpgradeData implements UpgradeDataInterface
                     $entityTypeId,
                     $attributeSetId,
                     $attributeGroupId,
-                    $attribute['attribute_id']
+                    $attribute['attribute_id'],
+                    1000
                 );
             }
         }
