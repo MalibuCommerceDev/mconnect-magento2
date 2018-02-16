@@ -136,7 +136,19 @@
                 </field>
             </group>
 
-            <group id="invoice" type="text" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+            <group id="inventory" type="text" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <label>Inventory</label>
+                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Schedule (cron syntax)</label>
+                    <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
+                </field>
+                <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import entity limit per request</label>
+                </field>
+            </group>
+
+            <group id="invoice" type="text" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Invoice</label>
                 <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
@@ -156,7 +168,7 @@
                 </field>
             </group>
 
-            <group id="shipment" type="text" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+            <group id="shipment" type="text" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Shipment</label>
                 <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
@@ -172,7 +184,7 @@
                 </field>
             </group>
 
-            <group id="price_rule" type="text" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+            <group id="price_rule" type="text" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Price Rule</label>
                 <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
