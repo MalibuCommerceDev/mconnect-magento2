@@ -32,7 +32,8 @@
     <type name="Magento\Framework\Console\CommandList">
         <arguments>
             <argument name="commands" xsi:type="array">
-                <item name="malibucommerce_mconnect_queue" xsi:type="object">MalibuCommerce\MConnect\Console\Command\QueueCommand</item>
+                <item name="malibucommerce_mconnect_processitem" xsi:type="object">MalibuCommerce\MConnect\Console\Command\ProcessItemCommand</item>
+                <item name="malibucommerce_mconnect_importall" xsi:type="object">MalibuCommerce\MConnect\Console\Command\ImportAllCommand</item>
             </argument>
         </arguments>
     </type>

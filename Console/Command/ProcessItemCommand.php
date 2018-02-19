@@ -9,14 +9,17 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class QueueCommand extends Command
+class ProcessItemCommand extends Command
 {
     const ARGUMENT_CODE = 'code';
     const ARGUMENT_ACTION = 'action';
     const ARGUMENT_ENTITY_ID = 'entity_id';
     const OPTION_SYNC = 'sync';
 
-    private $queue;
+    /**
+     * @var Queue
+     */
+    protected $queue;
 
     public function __construct(
         Queue $queue
@@ -28,8 +31,8 @@ class QueueCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('mconnect:queue')
-            ->setDescription('Process items in MConnect queue')
+            ->setName('mconnect:processitem')
+            ->setDescription('Add and process specific item in MConnect queue')
             ->setDefinition([
                 new InputArgument(
                     self::ARGUMENT_CODE,

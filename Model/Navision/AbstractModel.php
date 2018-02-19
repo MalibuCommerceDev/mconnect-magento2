@@ -58,12 +58,15 @@ class AbstractModel extends \Magento\Framework\DataObject
                 $child->$node = $value;
             }
         }
-        return base64_encode($xml->asXML());
+
+        $xml = $xml->asXML();
+        return base64_encode($xml);
     }
 
     protected function _prepareResponseXml($response)
     {
-        return new \simpleXMLElement(base64_decode($response->responseXML));
+        $xml = base64_decode($response->responseXML);
+        return new \simpleXMLElement($xml);
     }
 
     protected function _doRequest($type, $xml)
