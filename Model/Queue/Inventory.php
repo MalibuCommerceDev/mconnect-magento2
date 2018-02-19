@@ -102,14 +102,12 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
 
         try {
             $quantity = (int) $data->quantity;
-            //$product = $this->productRepository->get($sku, true, null, true);
             $stockItem = $this->_stockRegistry->getStockItemBySku($sku);
-            $stockItem->setData('is_in_stock', ($quantity > 0));
-            $stockItem->setData('qty', $quantity);
-            //$stockItem->setData('manage_stock', $data->manage_stock);
-            //$stockItem->setData('use_config_notify_stock_qty', 1);
+            if ((bool) $stockItem->getData('manage_stock')) {
+                $stockItem->setData('is_in_stock', ($quantity > 0));
+                $stockItem->setData('qty', $quantity);
+            }
             $stockItem->save();
-            //$product->save();
             $this->_messages[] = $sku . ' qty changed to ' . $qty;
         } catch (\Exception $e) {
             $this->messages .= $sku . ': ' . $e->getMessage();
