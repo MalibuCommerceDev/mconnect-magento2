@@ -37,14 +37,14 @@ class Cron
         return $this->queueImportItem('inventory');
     }
 
-    public function queueShipmentImport()
-    {
-        return $this->queueImportItem('shipment');
-    }
-
     public function queueInvoiceImport()
     {
         return $this->queueImportItem('invoice');
+    }
+
+    public function queueShipmentImport()
+    {
+        return $this->queueImportItem('shipment');
     }
 
     public function queuePriceRuleImport()
