@@ -107,9 +107,9 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
                 $stockItem->setData('is_in_stock', ($quantity > 0));
                 $stockItem->setData('qty', $quantity);
                 $stockItem->save();
-                $this->messages[] = $sku . ' qty changed to ' . $quantity;
+                $this->messages .= $sku . ' qty changed to ' . $quantity;
             } else {
-                $this->messages[] = $sku . ': skipped';
+                $this->messages .= $sku . ': skipped';
             }
         } catch (\Exception $e) {
             $this->messages .= $sku . ': ' . $e->getMessage();
