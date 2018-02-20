@@ -2,8 +2,6 @@
 
 namespace MalibuCommerce\MConnect\Model\Navision;
 
-use Braintree\Exception;
-
 class Inventory extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 {
 

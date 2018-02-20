@@ -28,12 +28,12 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
     protected $logger;
 
     /**
-     * @var Magento\CatalogInventory\Api\StockStateInterface
+     * @var \Magento\CatalogInventory\Api\StockStateInterface
      */
     protected $_stockStateInterface;
 
     /**
-     * @var Magento\CatalogInventory\Api\StockRegistryInterface
+     * @var \Magento\CatalogInventory\Api\StockRegistryInterface
      */
     protected $_stockRegistry;
 
@@ -71,13 +71,13 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
         $count = 0;
         $page = 0;
         $lastSync = false;
-        $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_PRODUCT_SYNC_TIME);
+        $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_INVENTORY_SYNC_TIME);
         $result = false;
         do {
             try {
                 $result = $this->navInventory->export($page++, $lastUpdated);
                 //$this->logger->info("result: " . print_r($result, 1));
-                foreach ($result->item as $data) {
+                foreach ($result->item_inventory as $data) {
                     $count++;
                     $import = $this->_importInventory($data);
                     $this->messages .= PHP_EOL;
@@ -89,7 +89,7 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
                 $this->messages .= $e->getMessage();
             }
         } while ($result && isset($result->status->end_of_records) && (string)$result->status->end_of_records === 'false');
-        $this->setLastSyncTime(Flag::FLAG_CODE_LAST_PRODUCT_SYNC_TIME, $lastSync);
+        $this->setLastSyncTime(Flag::FLAG_CODE_LAST_INVENTORY_SYNC_TIME, $lastSync);
         $this->messages .= PHP_EOL . 'Processed ' . $count . ' inventory(ies).';
     }
 
@@ -106,9 +106,11 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
             if ((bool) $stockItem->getData('manage_stock')) {
                 $stockItem->setData('is_in_stock', ($quantity > 0));
                 $stockItem->setData('qty', $quantity);
+                $stockItem->save();
+                $this->messages[] = $sku . ' qty changed to ' . $quantity;
+            } else {
+                $this->messages[] = $sku . ': skipped';
             }
-            $stockItem->save();
-            $this->_messages[] = $sku . ' qty changed to ' . $qty;
         } catch (\Exception $e) {
             $this->messages .= $sku . ': ' . $e->getMessage();
             return false;
