@@ -34,7 +34,7 @@
                 <import_tax_class>2</import_tax_class>
             </product>
             <inventory>
-                <cron_expr>0 * * * *</cron_expr>
+                <cron_expr>*/10 * * * *</cron_expr>
                 <max_rows>50</max_rows>
             </inventory>
             <invoice>
