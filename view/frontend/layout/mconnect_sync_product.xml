@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="content">
+            <block class="Magento\Framework\View\Element\Template" name="mconnect.product" as="mconnect_product" template="MalibuCommerce_MConnect::page/template.phtml" >
+            <!--<block class="MalibuCommerce\MConnect\Block\Product" name="mconnect.product" as="mconnect_product" template="MalibuCommerce_MConnect::page/template.phtml" >-->
+            <!--<block type="MalibuCommerce\MConnect\Block\Sync\Product" name="mconnect_product" template="MalibuCommerce_MConnect::page/template.phtml" cacheable="false">-->
+                <block type="MalibuCommerce\MConnect\Block\Sync\Product" name="mconnect_sync_product" template="MalibuCommerce_MConnect::sync.phtml" cacheable="false" />
+            </block>
+        </referenceContainer>
+        <!--<referenceContainer name="content">-->
+            <!--<block type="MalibuCommerce\MConnect\Block\Sync\Product" name="mconnect_sync_product" template="MalibuCommerce_MConnect::sync.phtml" cacheable="false" />-->
+        <!--</referenceContainer>-->
+    </body>
+</page>

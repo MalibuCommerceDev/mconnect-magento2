@@ -52,6 +52,15 @@
                     <label />
                     <comment><![CDATA[Save credentials before testing!]]></comment>
                 </field>
+                <field id="trigger_password" sortOrder="80" type="password" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Trigger Password</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <comment><![CDATA[Password used when clicking links in NAV to trigger syncs]]></comment>
+                </field>
+                <field id="reveal_trigger_password" translate="label comment" type="button" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>\MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Connection\TriggerPassword</frontend_model>
+                    <label />
+                </field>
             </group>
 
             <group id="queue" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
