@@ -26,19 +26,31 @@ class Productsync extends Action
      */
     protected $resultFactory;
 
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected $_storeManager;
+
+
+    /**
+     * @var \Magento\Framework\App\Action\Context
+     */
+    protected $context;
+
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\QueueFactory $queue,
         \Magento\Framework\Controller\ResultFactory $result,
-        \Magento\Framework\View\Result\PageFactory $resultPageFactory,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\App\Action\Context $context
     ) {
         $this->config = $config;
         $this->scopeConfig = $scopeConfig;
         $this->queue = $queue;
         $this->resultFactory = $result;
-        $this->resultPageFactory = $resultPageFactory;
+        $this->_storeManager = $storeManager;
+        $this->context = $context;
 
         parent::__construct($context);
     }
@@ -47,21 +59,14 @@ class Productsync extends Action
     {
         if (!$this->_auth()) {
             $resultRedirect = $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT);
-            //$resultRedirect->setUrl($this->_redirect->getRefererUrl());
             $resultRedirect->setPath('/');
             return $resultRedirect;
         }
 
-        // http://mconnect2.malibucommerce.com/mconnect/sync/product/id/SPK-100/auth/4b2667b4f66bceb633d09e014dafe6b0
         $productSku = $this->getRequest()->getParam('id');
-        //$auth = $this->getRequest()->getParam('auth');
-        //$this->_initSync();
+        $this->_initSync();
         $data = array();
         try {
-            //$queue = Mage::getModel('malibucommerce_mconnect/queue')
-            //->add('product', 'import_single', null, array(
-            //  'nav_id' => $this->getRequest()->getParam('id'))
-            //)->process();
             if (!$this->scopeConfig->getValue('malibucommerce_mconnect/general/enabled')) {
                 $data['error'] = 1;
                 $data['message'] = 'M-Connect is disabled).';
@@ -72,19 +77,15 @@ class Productsync extends Action
                     $productSku
                 );
                 $queue->process();
-//                echo "cl: ". get_class($this->queue);
-//                aa();
 
                 $message = $queue->getMessages();
-//                echo "<pre>". print_r($queue->getData(), 1) ."</pre>";
-//                aa();
                 $queueStatus = $queue->getStatus();
                 if ($queueStatus === \MalibuCommerce\MConnect\Model\Queue::STATUS_SUCCESS) {
                     $data['success'] = 1;
                     $data['message'] = $message;
-//                    $resultRedirect->getUrl()
-
-//                    $data['url'] = Mage::getModel('adminhtml/url')->getUrl('adminhtml/catalog_product/edit', array('id' => $queue->getEntityId()));
+                    $url = $this->context->getUrl();
+                    $productEditUrl = $url->getUrl('admin/catalog/product/edit', array('id' => $queue->getEntityId()));
+                    $data['url'] = $productEditUrl;
                 } else {
                     $data['error'] = 1;
                     $data['message'] = $message;
@@ -92,7 +93,6 @@ class Productsync extends Action
                 }
             }
         } catch (\Exception $e) {
-            //Mage::logException($e);
             $data['error']   = 1;
             $data['message'] = $e->getMessage();
             $data['detail']  = $this->getLogHtml($queue);
@@ -105,7 +105,6 @@ class Productsync extends Action
     {
         $auth = trim($this->getRequest()->getParam('auth'));
         $password = $this->config->getTriggerPassword();
-        //$triggerPassword = $this->config->get('malibucommerce_mconnect/nav_connection/trigger_password');
         $triggerPassword = md5($password);
         if (!$auth || $auth != $triggerPassword) {
             return false;
@@ -115,16 +114,16 @@ class Productsync extends Action
 
     protected function _initSync()
     {
-        Mage::app()->setCurrentStore(Mage_Core_Model_App::ADMIN_STORE_ID);
+        $this->_storeManager->setCurrentStore(\Magento\Store\Model\Store::ADMIN_CODE);
         return $this;
     }
 
-    public function getLogHtml($row)
-    {
-        $content = Mage::helper('malibucommerce_mconnect/log')->toHtml($row->getId());
-        if (!$content) {
-            return '';
-        }
-        return '<div class="malibucommerce-mconnect-parsed">' . $content . '</div>';
-    }
+//    public function getLogHtml($row)
+//    {
+//        $content = Mage::helper('malibucommerce_mconnect/log')->toHtml($row->getId());
+//        if (!$content) {
+//            return '';
+//        }
+//        return '<div class="malibucommerce-mconnect-parsed">' . $content . '</div>';
+//    }
 }

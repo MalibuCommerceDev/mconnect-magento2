@@ -4,13 +4,14 @@ namespace MalibuCommerce\MConnect\Block\Sync;
 
 class Product extends \Magento\Framework\View\Element\Template
 {
-
-    public function __construct(
-        \Magento\Framework\View\Element\Template\Context $context,
-        array $data = []
-    ) {
-
-        parent::__construct($context);
+    public function getAuth()
+    {
+        return $this->getRequest()->getParam('auth');
     }
 
+    public function getIdentifier()
+    {
+        $id = $this->getRequest()->getParam('id');
+        return $id;
+    }
 }

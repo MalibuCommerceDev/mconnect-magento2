@@ -1,15 +1,19 @@
 <?xml version="1.0"?>
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
-    <body>
-        <referenceContainer name="content">
-            <block class="Magento\Framework\View\Element\Template" name="mconnect.product" as="mconnect_product" template="MalibuCommerce_MConnect::page/template.phtml" >
-            <!--<block class="MalibuCommerce\MConnect\Block\Product" name="mconnect.product" as="mconnect_product" template="MalibuCommerce_MConnect::page/template.phtml" >-->
-            <!--<block type="MalibuCommerce\MConnect\Block\Sync\Product" name="mconnect_product" template="MalibuCommerce_MConnect::page/template.phtml" cacheable="false">-->
-                <block type="MalibuCommerce\MConnect\Block\Sync\Product" name="mconnect_sync_product" template="MalibuCommerce_MConnect::sync.phtml" cacheable="false" />
-            </block>
-        </referenceContainer>
-        <!--<referenceContainer name="content">-->
-            <!--<block type="MalibuCommerce\MConnect\Block\Sync\Product" name="mconnect_sync_product" template="MalibuCommerce_MConnect::sync.phtml" cacheable="false" />-->
-        <!--</referenceContainer>-->
-    </body>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <referenceContainer name="header.container" remove="true"/>
+    <referenceContainer name="page.top" remove="true"/>
+    <referenceContainer name="footer-container" remove="true"/>
+
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <css src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" src_type="url"/>
+        <css src="MalibuCommerce_MConnect::css/mconnect.css" />
+        <css src="MalibuCommerce_MConnect::css/log.css" />
+        <script src="MalibuCommerce_MConnect::js/mconnect.js"/>
+        <script src="MalibuCommerce_MConnect::js/vkbeautify.js"/>
+    </head>
+    <referenceContainer name="content">
+        <block class="MalibuCommerce\MConnect\Block\Sync\Product" name="sync" template="MalibuCommerce_MConnect::sync/product.phtml" />
+    </referenceContainer>
 </page>
