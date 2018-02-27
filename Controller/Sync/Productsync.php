@@ -31,6 +31,15 @@ class Productsync extends Action
      */
     protected $_storeManager;
 
+    /**
+     * @var \Magento\Catalog\Api\ProductRepositoryInterface|ProductRepositoryInterface
+     */
+    protected $productRepository;
+
+    /**
+     * @var \MalibuCommerce\MConnect\Helper\Data
+     */
+    protected $helper;
 
     /**
      * @var \Magento\Framework\App\Action\Context
@@ -42,7 +51,9 @@ class Productsync extends Action
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\QueueFactory $queue,
         \Magento\Framework\Controller\ResultFactory $result,
+        \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \MalibuCommerce\MConnect\Helper\Data $helper,
         \Magento\Framework\App\Action\Context $context
     ) {
         $this->config = $config;
@@ -50,6 +61,8 @@ class Productsync extends Action
         $this->queue = $queue;
         $this->resultFactory = $result;
         $this->_storeManager = $storeManager;
+        $this->productRepository = $productRepository;
+        $this->helper = $helper;
         $this->context = $context;
 
         parent::__construct($context);
@@ -81,21 +94,22 @@ class Productsync extends Action
                 $message = $queue->getMessages();
                 $queueStatus = $queue->getStatus();
                 if ($queueStatus === \MalibuCommerce\MConnect\Model\Queue::STATUS_SUCCESS) {
+                    $product = $this->productRepository->get($productSku, true, null, true);
                     $data['success'] = 1;
                     $data['message'] = $message;
                     $url = $this->context->getUrl();
-                    $productEditUrl = $url->getUrl('admin/catalog/product/edit', array('id' => $queue->getEntityId()));
+                    $productEditUrl = $url->getUrl('admin/catalog/product') .'edit/id/'. $product->getId();
                     $data['url'] = $productEditUrl;
                 } else {
                     $data['error'] = 1;
                     $data['message'] = $message;
-                    $data['detail'] = $this->getLogHtml($this->queue);
+                    $data['detail'] = $this->getLogHtml($queue->getId());
                 }
             }
         } catch (\Exception $e) {
             $data['error']   = 1;
             $data['message'] = $e->getMessage();
-            $data['detail']  = $this->getLogHtml($queue);
+            $data['detail']  = $this->getLogHtml($queue->getId());
         }
         $this->getResponse()->setHeader('Content-type', 'application/json');
         $this->getResponse()->setBody(json_encode($data));
@@ -118,12 +132,12 @@ class Productsync extends Action
         return $this;
     }
 
-//    public function getLogHtml($row)
-//    {
-//        $content = Mage::helper('malibucommerce_mconnect/log')->toHtml($row->getId());
-//        if (!$content) {
-//            return '';
-//        }
-//        return '<div class="malibucommerce-mconnect-parsed">' . $content . '</div>';
-//    }
+    public function getLogHtml($queueId)
+    {
+        $content = $this->helper->getLogFileContents($queueId, 1);
+        if (!$content) {
+            return '';
+        }
+        return '<div class="malibucommerce-mconnect-parsed">' . $content . '</div>';
+    }
 }

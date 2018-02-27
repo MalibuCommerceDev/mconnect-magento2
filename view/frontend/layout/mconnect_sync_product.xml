@@ -12,6 +12,8 @@
         <css src="MalibuCommerce_MConnect::css/log.css" />
         <script src="MalibuCommerce_MConnect::js/mconnect.js"/>
         <script src="MalibuCommerce_MConnect::js/vkbeautify.js"/>
+        <remove src="translate-inline.js"/>
+        <remove src="legacy-build.min.js"/>
     </head>
     <referenceContainer name="content">
         <block class="MalibuCommerce\MConnect\Block\Sync\Product" name="sync" template="MalibuCommerce_MConnect::sync/product.phtml" />

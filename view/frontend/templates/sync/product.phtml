@@ -7,7 +7,7 @@
         <div class="col-lg-10 col-lg-offset-1 col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-1">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title"><?php //echo $this->getTitle() ?></h3>
+                    <h3 class="panel-title"><?php echo $this->getTitle() ?></h3>
                 </div>
                 <div class="panel-body">
                     <input type="hidden" name="type" value="product-import" />
@@ -17,9 +17,6 @@
         </div>
     </div>
 
-    <?php //echo $this->getChildHtml('mconnect_sync_product') ?>
 </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-<script src="<?php //echo $this->getJsUrl('malibucommerce/mconnect/js/vkbeautify.js') ?>"></script>
-<script src="<?php //echo $this->getSkinUrl('malibucommerce/mconnect/js/mconnect.js') ?>"></script>
