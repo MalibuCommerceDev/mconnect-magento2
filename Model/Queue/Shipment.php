@@ -24,7 +24,9 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
      */
     protected $shipmentFactory;
 
-    /** @var \Magento\Sales\Model\Order\Shipment\ShipmentValidatorInterface  */
+    /**
+     * @var \Magento\Sales\Model\Order\Shipment\ShipmentValidatorInterface
+     */
     protected $shipmentValidator;
 
     /**
@@ -38,7 +40,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
     protected $shipmentSender;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Config|Config
+     * @var \MalibuCommerce\MConnect\Model\Config
      */
     protected $config;
 
@@ -46,6 +48,16 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
      * @var \MalibuCommerce\MConnect\Model\Queue\FlagFactory
      */
     protected $queueFlagFactory;
+
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Queue\Invoice
+     */
+    protected $malibuInvoice;
+
+    /**
+     * @var \Magento\Sales\Model\Order\Email\Sender\InvoiceSender
+     */
+    protected $invoiceSender;
 
     public function __construct(
         \MalibuCommerce\MConnect\Model\Navision\Shipment $navShipment,
@@ -55,7 +67,9 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
         \Magento\Framework\DB\TransactionFactory $transactionFactory,
         \Magento\Sales\Model\Order\Email\Sender\ShipmentSender $shipmentSender,
         \MalibuCommerce\MConnect\Model\Config $config,
-        \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory
+        \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
+        \MalibuCommerce\MConnect\Model\Queue\Invoice $malibuInvoice,
+        \Magento\Sales\Model\Order\Email\Sender\InvoiceSender $invoiceSender
     ) {
         $this->navShipment = $navShipment;
         $this->orderFactory = $orderFactory;
@@ -65,6 +79,8 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
         $this->shipmentSender = $shipmentSender;
         $this->config = $config;
         $this->queueFlagFactory = $queueFlagFactory;
+        $this->malibuInvoice = $malibuInvoice;
+        $this->invoiceSender = $invoiceSender;
     }
 
     public function importAction()
@@ -109,17 +125,17 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
                 );
             }
 
-            $navShipmnetItems = array();
+            $navShipmentItems = array();
             foreach ($entity->shipment_item as $item) {
-                $navShipmnetItems[(string)$item->nav_item_id] = (float)$item->quantity_shipped;
+                $navShipmentItems[(string)$item->nav_item_id] = (float)$item->quantity_shipped;
             }
 
             $shipmentItems = [];
             foreach ($order->getAllItems() as $item) {
                 if ($item->getQtyToShip() && !$item->getIsVirtual()
-                    && isset($navShipmnetItems[$item->getSku()]) && $navShipmnetItems[$item->getSku()] > 0
+                    && isset($navShipmentItems[$item->getSku()]) && $navShipmentItems[$item->getSku()] > 0
                 ) {
-                    $shipmentItems[$item->getId()] = $navShipmnetItems[$item->getSku()];
+                    $shipmentItems[$item->getId()] = $navShipmentItems[$item->getSku()];
                 }
             }
 
@@ -150,18 +166,36 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
             }
 
             $shipment->register();
+
+            if ($this->config->get('shipment/create_invoice_with_shipment')) {
+                $invoice = $this->malibuInvoice->createInvoice($order, $shipmentItems);
+            }
+
             $shipment->getOrder()->setIsInProcess(true);
             $shipment->getOrder()->setSkipMconnect(true);
 
             $saveTransaction = $this->transactionFactory->create();
-            $saveTransaction->addObject(
-                $shipment
-            )->addObject(
-                $shipment->getOrder()
-            );
+
+            if (isset($invoice)) {
+                $saveTransaction->addObject($invoice);
+            }
+            $saveTransaction->addObject($shipment);
+            $saveTransaction->addObject($shipment->getOrder());
             $saveTransaction->save();
 
+            if (isset($invoice)) {
+                $this->messages .= 'Order #' . $incrementId . ' invoiced, invoice #' . $invoice->getIncrementId();
+            }
             $this->messages .= 'Order #' . $incrementId . ' shipped, shipment #' . $shipment->getIncrementId();
+
+            // send invoice email
+            try {
+                if (isset($invoice) && $this->config->get('invoice/send_email_enabled')) {
+                    $this->invoiceSender->send($invoice);
+                }
+            } catch (\Exception $e) {
+                $this->messages .= $e->getMessage();
+            }
 
             // send shipment email
             try {
@@ -171,8 +205,6 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
             } catch (\Exception $e) {
                 $this->messages .= $e->getMessage();
             }
-
-            return true;
         } catch (\Exception $e) {
             throw $e;
         }
