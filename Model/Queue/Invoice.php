@@ -83,8 +83,57 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
         $this->messages .= PHP_EOL . 'Processed ' . $count . ' invoice(s).';
     }
 
+    /**
+     * Generate Magento Invoice for specified order
+     *
+     * @param \Magento\Sales\Model\Order $order
+     * @param array $qtys
+     *
+     * @return \Magento\Sales\Model\Order\Invoice
+     * @throws LocalizedException
+     */
+    public function createInvoice($order, $qtys = [])
+    {
+        $orderIncrementId = $order->getIncrementId();
+        if (!$order->canInvoice()) {
+            throw new LocalizedException(
+                __('The order #%1 does not allow an invoice to be created.', $orderIncrementId)
+            );
+        }
+
+        $invoice = $this->invoiceService->prepareInvoice($order, $qtys);
+
+        if (!$invoice) {
+            throw new LocalizedException(__('Can\'t save the invoice for order #%1 right now.', $orderIncrementId));
+        }
+
+        if (!$invoice->getTotalQty()) {
+            throw new LocalizedException(
+                __('Can\'t create an invoice without products for order #%1.', $orderIncrementId)
+            );
+        }
+
+        $invoice->setRequestedCaptureCase($this->config->get('invoice/capture_type'));
+        $invoice->register();
+
+        return $invoice;
+    }
+
+    /**
+     * Import invoice from NAV to Magento
+     *
+     * @param \SimpleXMLElement $entity
+     *
+     * @return bool
+     * @throws \Exception
+     */
     protected function importInvoice(\SimpleXMLElement $entity)
     {
+        if ($this->config->get('shipment/create_invoice_with_shipment')) {
+
+            return true;
+        }
+
         $incrementId = (string)$entity->mag_order_id;
         $order = $this->getOrder($incrementId);
 
@@ -93,26 +142,7 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
                 throw new LocalizedException(__('The order #%1 no longer exists.', $incrementId));
             }
 
-            if (!$order->canInvoice()) {
-                throw new LocalizedException(
-                    __('The order #%1 does not allow an invoice to be created.', $incrementId)
-                );
-            }
-
-            $invoice = $this->invoiceService->prepareInvoice($order);
-
-            if (!$invoice) {
-                throw new LocalizedException(__('Can\'t save the invoice for order #%1 right now.', $incrementId));
-            }
-
-            if (!$invoice->getTotalQty()) {
-                throw new LocalizedException(
-                    __('Can\'t create an invoice without products for order #%1.', $incrementId)
-                );
-            }
-
-            $invoice->setRequestedCaptureCase($this->config->get('invoice/capture_type'));
-            $invoice->register();
+            $invoice = $this->createInvoice($order);
 
             $invoice->getOrder()->setIsInProcess(true);
             $invoice->getOrder()->setSkipMconnect(true);
@@ -142,6 +172,13 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
         }
     }
 
+    /**
+     * Load Magento Order by Increment ID
+     *
+     * @param string $incrementId
+     *
+     * @return bool|\Magento\Sales\Model\Order
+     */
     protected function getOrder($incrementId)
     {
         try {

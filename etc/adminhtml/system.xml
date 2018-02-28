@@ -182,6 +182,10 @@
                     <label>Send shipment email to customers</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="create_invoice_with_shipment" sortOrder="40" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Create Invoice when Shipment is created</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
             </group>
 
             <group id="price_rule" type="text" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
