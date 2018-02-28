@@ -122,6 +122,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
             if (($code == 'customer' || $code == 'order') && ($action == 'export')) {
                 $model->{$method}($this->getEntityId());
             } else {
+                $model->setDetails($this->getDetails());
                 $model->{$method}();
             }
 
