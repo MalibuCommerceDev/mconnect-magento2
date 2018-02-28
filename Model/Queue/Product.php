@@ -86,7 +86,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
     {
         $details = json_decode($this->getDetails());
         if (!$details || !isset($details->nav_id) || !$details->nav_id) {
-            throw new LocalizedException('No nav_id specified');
+            throw new LocalizedException(__('No nav_id specified'));
         }
         $result = $this->navProduct->exportSingle($details->nav_id);
         $this->captureEntityId = true;

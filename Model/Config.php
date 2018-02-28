@@ -17,13 +17,28 @@ class Config
      */
     protected $registry;
 
+    /**
+     * @var \Magento\Framework\Encryption\EncryptorInterface
+     */
+    protected $_encryptor;
+
+    /**
+     * Config constructor
+     *
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
+     * @param \Magento\Framework\Registry $registry
+     */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Magento\Framework\Registry $registry
     ) {
         $this->scopeConfig = $scopeConfig;
+        $this->_encryptor = $encryptor;
         $this->registry = $registry;
     }
+
     public function getFlag($data, $store = null)
     {
         return boolval($this->scopeConfig->getValue(self::XML_PATH_CONFIG_SECTION . '/' . $data, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store));
@@ -67,6 +82,20 @@ class Config
     {
         return $this->scopeConfig->getValue(self::XML_PATH_CONFIG_SECTION . '/' . 'nav_connection/password',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store);
+    }
+
+    /**
+     * Get decrypted trigger password
+     *
+     * @param null $store
+     * @return string
+     */
+    public function getTriggerPassword($store = null)
+    {
+        $password = $this->scopeConfig->getValue(self::XML_PATH_CONFIG_SECTION . '/' . 'nav_connection/trigger_password',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store);
+        $decryptedPassword = $this->_encryptor->decrypt($password);
+        return $decryptedPassword;
     }
 
     public function getIsInsecureConnectionAllowed($store = null)

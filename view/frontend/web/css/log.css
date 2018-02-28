@@ -1,0 +1,27 @@
+.malibucommerce-mconnect-parsed pre {
+    padding: 16px;
+    line-height: 1.45;
+    border-radius: 3px;
+    white-space: pre;
+    border: 1px solid #ccc;
+    background: #eee;
+    overflow: scroll;
+}
+
+.malibucommerce-mconnect-parsed h1 {
+    padding-bottom: 0.3em;
+    font-size: 2em;
+    border-bottom: 1px solid #eee;
+}
+
+.malibucommerce-mconnect-parsed h3 {
+    font-size: 15px;
+}
+
+.malibucommerce-mconnect-parsed * + h1 {
+    margin-top: 16px;
+}
+
+.malibucommerce-mconnect-parsed pre + h3 {
+    margin-top: 12px;
+}
