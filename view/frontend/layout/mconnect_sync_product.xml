@@ -5,7 +5,7 @@
     <referenceContainer name="footer-container" remove="true"/>
 
     <head>
-        <meta charset="UTF-8" />
+        <meta name="charset" content="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <css src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" src_type="url"/>
         <css src="MalibuCommerce_MConnect::css/mconnect.css" />
