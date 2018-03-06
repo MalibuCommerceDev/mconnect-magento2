@@ -29,6 +29,10 @@ class Cron extends \Magento\Framework\App\Config\Value
             'cron_expr_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_pricerule_import/schedule/cron_expr',
             'cron_model_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_pricerule_import/run/model'
         ],
+        'malibucommerce_mconnect/inventory/cron_expr' => [
+            'cron_expr_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_inventory_import/schedule/cron_expr',
+            'cron_model_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_inventory_import/run/model'
+        ],
     ];
 
     /** @var \Magento\Framework\App\Config\ValueFactory */

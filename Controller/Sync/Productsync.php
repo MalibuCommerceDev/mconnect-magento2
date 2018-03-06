@@ -47,16 +47,22 @@ class Productsync extends Action
     protected $context;
 
     /**
+     * @var \Magento\Backend\Helper\Data
+     */
+    protected $backendHelper;
+
+    /**
      * Productsync constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
-     * @param \MalibuCommerce\MConnect\Model\Config $config
-     * @param \MalibuCommerce\MConnect\Model\QueueFactory $queue
-     * @param \Magento\Framework\Controller\ResultFactory $result
-     * @param \Magento\Catalog\Api\ProductRepositoryInterface $productRepository
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \MalibuCommerce\MConnect\Helper\Data $helper
-     * @param \Magento\Framework\App\Action\Context $context
+     * @param \MalibuCommerce\MConnect\Model\Config              $config
+     * @param \MalibuCommerce\MConnect\Model\QueueFactory        $queue
+     * @param \Magento\Framework\Controller\ResultFactory        $result
+     * @param \Magento\Catalog\Api\ProductRepositoryInterface    $productRepository
+     * @param \Magento\Store\Model\StoreManagerInterface         $storeManager
+     * @param \MalibuCommerce\MConnect\Helper\Data               $helper
+     * @param \Magento\Framework\App\Action\Context              $context
+     * @param \Magento\Backend\Helper\Data                       $backendHelper
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -66,6 +72,7 @@ class Productsync extends Action
         \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \MalibuCommerce\MConnect\Helper\Data $helper,
+        \Magento\Backend\Helper\Data $backendHelper,
         \Magento\Framework\App\Action\Context $context
     ) {
         $this->config = $config;
@@ -75,6 +82,7 @@ class Productsync extends Action
         $this->_storeManager = $storeManager;
         $this->productRepository = $productRepository;
         $this->helper = $helper;
+        $this->backendHelper = $backendHelper;
         $this->context = $context;
 
         parent::__construct($context);
@@ -114,10 +122,12 @@ class Productsync extends Action
                 $queueStatus = $queue->getStatus();
                 if ($queueStatus === \MalibuCommerce\MConnect\Model\Queue::STATUS_SUCCESS) {
                     $product = $this->productRepository->get($productSku, true, null, true);
+
+                    $productEditUrl = $this->backendHelper->getUrl('catalog/product/edit', [
+                        'id' => $product->getId()
+                    ]);
                     $data['success'] = 1;
                     $data['message'] = $message;
-                    $url = $this->context->getUrl();
-                    $productEditUrl = $url->getUrl('admin/catalog/product') .'edit/id/'. $product->getId();
                     $data['url'] = $productEditUrl;
                 } else {
                     $data['error'] = 1;
