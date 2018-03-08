@@ -11,6 +11,9 @@ class SalesEventQuoteSubmitBeforeObserver implements \Magento\Framework\Event\Ob
         $quote = $observer->getEvent()->getQuote();
         if ($quote && $quote->getBillingAddress()) {
             $navId = $quote->getBillingAddress()->getNavId();
+            if (!$navId && $quote->getShippingAddress()) {
+                $navId = $quote->getShippingAddress()->getNavId();
+            }
         }
 
         if (!empty($navId)) {
