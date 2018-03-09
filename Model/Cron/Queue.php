@@ -6,7 +6,6 @@ use \MalibuCommerce\Mconnect\Model\Queue as QueueModel;
 
 class Queue
 {
-
     /**
      * @var \MalibuCommerce\MConnect\Model\Config
      */
@@ -17,13 +16,21 @@ class Queue
      */
     protected $queueCollection;
 
+    /**
+     * @var \Magento\Framework\Stdlib\DateTime\DateTime
+     */
+    protected $date;
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $config,
-        \MalibuCommerce\MConnect\Model\Resource\Queue\Collection $queueCollection
+        \MalibuCommerce\MConnect\Model\Resource\Queue\Collection $queueCollection,
+        \Magento\Framework\Stdlib\DateTime\DateTime $date
     ) {
         $this->config = $config;
         $this->queueCollection = $queueCollection;
+        $this->date = $date;
     }
+
     public function process()
     {
         $config = $this->config;
@@ -54,7 +61,7 @@ class Queue
         if (!$value) {
             return 'Queue cleaning not enabled.';
         }
-        $queues = $this->queueCollection->olderThanDays($value);
+        $queues = $this->queueCollection->olderThanDays($value, $this->date);
         $count = $queues->getSize();
         if (!$count) {
             return 'No items in queue to remove.';
@@ -62,6 +69,7 @@ class Queue
         foreach ($queues as $queue) {
             $queue->delete();
         }
+
         return sprintf('Removed %d item(s) in queue.', $count);
     }
 
@@ -75,16 +83,26 @@ class Queue
         if (!$value) {
             return 'Error marking not enabled.';
         }
-        $queues = $this->queueCollection->olderThanMinutes($value)
-            ->addFieldToFilter('status', QueueModel::STATUS_RUNNING)
-        ;
+        $queues = $this->queueCollection->olderThanMinutes($value, $this->date)
+            ->addFieldToFilter('status', QueueModel::STATUS_RUNNING);
         $count = $queues->getSize();
         if (!$count) {
             return 'No items in queue to remove.';
         }
+
+        $gmtDate = $this->date->gmtDate();
+        $currentDate = date('Y-m-d H:i:s');
         foreach ($queues as $queue) {
-            $queue->setStatus(QueueModel::STATUS_ERROR)->save();
+            $message = sprintf( "Marked as staled after %s minutes\n", $value);
+            $message .= 'Created At in UTC: ' . $queue->getCreatedAt() . "\n";
+            $message .= 'GMT Date: ' . $gmtDate . "\n";
+            $message .= 'Current Date: ' . $currentDate;
+
+            $queue->setStatus(QueueModel::STATUS_ERROR)
+                ->setMessage($message)
+                ->save();
         }
+
         return sprintf('Marked %d item(s) in queue.', $count);
     }
 }

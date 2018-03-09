@@ -1,6 +1,6 @@
 <?php
-namespace MalibuCommerce\MConnect\Model\Resource\Queue;
 
+namespace MalibuCommerce\MConnect\Model\Resource\Queue;
 
 class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
 {
@@ -9,14 +9,12 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
         $this->_init('MalibuCommerce\MConnect\Model\Queue', 'MalibuCommerce\MConnect\Model\Resource\Queue');
     }
 
-
     public function findMatchingPending($code, $action, $id = null, $details = array())
     {
         $this
             ->addFieldToFilter('status', \MalibuCommerce\Mconnect\Model\Queue::STATUS_PENDING)
             ->addFieldToFilter('code', $code)
-            ->addFieldToFilter('action', $action)
-        ;
+            ->addFieldToFilter('action', $action);
         if ($id === null) {
             $this->addFieldToFilter('entity_id', array('null' => true));
         } else {
@@ -27,18 +25,23 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
         } else {
             $this->addFieldToFilter('details', json_encode($details));
         }
+
         return $this;
     }
 
-    public function olderThanDays($value)
+    public function olderThanDays($value, $date)
     {
-        $this->getSelect()->where(new \Zend_Db_Expr('main_table.created_at < "' . date('Y-m-d H:i:s') . '" - INTERVAL ' . $value . ' DAY'));
+        $gmtDate = $date->gmtDate();
+        $this->getSelect()->where(new \Zend_Db_Expr('main_table.created_at < "' . $gmtDate . '" - INTERVAL ' . (int)$value . ' DAY'));
+
         return $this;
     }
 
-    public function olderThanMinutes($value)
+    public function olderThanMinutes($value, $date)
     {
-        $this->getSelect()->where(new \Zend_Db_Expr('main_table.created_at < "' . date('Y-m-d H:i:s') . '" - INTERVAL ' . $value . ' MINUTE'));
+        $gmtDate = $date->gmtDate();
+        $this->getSelect()->where(new \Zend_Db_Expr('main_table.created_at < "' . $gmtDate . '" - INTERVAL ' . (int)$value . ' MINUTE'));
+
         return $this;
     }
 }
