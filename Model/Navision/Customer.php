@@ -10,21 +10,24 @@ class Customer extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
     protected $directoryRegion;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Config
+     * Customer constructor.
+     *
+     * @param \Magento\Directory\Model\Region       $directoryRegion
+     * @param \MalibuCommerce\MConnect\Model\Config $config
+     * @param Connection                            $mConnectNavisionConnection
+     * @param \Psr\Log\LoggerInterface              $logger
+     * @param array                                 $data
      */
-    protected $config;
-
     public function __construct(
         \Magento\Directory\Model\Region $directoryRegion,
         \MalibuCommerce\MConnect\Model\Config $config,
-        \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection
+        \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection,
+        \Psr\Log\LoggerInterface $logger,
+        array $data = []
     ) {
         $this->directoryRegion = $directoryRegion;
-        $this->config = $config;
 
-        parent::__construct(
-            $mConnectNavisionConnection
-        );
+        parent::__construct($config, $mConnectNavisionConnection, $logger);
     }
 
     public function import(\Magento\Customer\Api\Data\CustomerInterface $customer, \Magento\Customer\Model\Customer $customerDataModel)
@@ -46,7 +49,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
             $address->setIsDefaultShipping($defaultShippingAddressId == $address->getId());
             $this->_addAddress($address, $cust);
         }
-        
+
         return $this->_import('customer_import', $root);
     }
 
@@ -75,8 +78,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 
     public function export($page = 0, $lastUpdated = false)
     {
-        $config = $this->config;
-        $max    = $config->get('customer/max_rows');
+        $max = $this->config->get('customer/max_rows');
         $parameters = array(
             'skip'     => $page * $max,
             'max_rows' => $max,
@@ -84,6 +86,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         if ($lastUpdated) {
             $parameters['last_updated'] = $lastUpdated;
         }
+
         return $this->_export('customer_export', $parameters);
     }
 }

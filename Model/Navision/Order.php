@@ -10,11 +10,6 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
     protected $directoryRegion;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Config
-     */
-    protected $config;
-
-    /**
      * @var \Magento\Customer\Model\Address
      */
     protected $customerAddress;
@@ -24,21 +19,31 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
      */
     protected $customerFactory;
 
+    /**
+     * Order constructor.
+     *
+     * @param \Magento\Directory\Model\Region         $directoryRegion
+     * @param \Magento\Customer\Model\Address         $customerAddress
+     * @param \Magento\Customer\Model\CustomerFactory $customerFactory
+     * @param \MalibuCommerce\MConnect\Model\Config   $config
+     * @param Connection                              $mConnectNavisionConnection
+     * @param \Psr\Log\LoggerInterface                $logger
+     * @param array                                   $data
+     */
     public function __construct(
         \Magento\Directory\Model\Region $directoryRegion,
-        \MalibuCommerce\MConnect\Model\Config $config,
         \Magento\Customer\Model\Address $customerAddress,
         \Magento\Customer\Model\CustomerFactory $customerFactory,
-        \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection
+        \MalibuCommerce\MConnect\Model\Config $config,
+        \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection,
+        \Psr\Log\LoggerInterface $logger,
+        array $data = []
     ) {
-        $this->config = $config;
         $this->directoryRegion = $directoryRegion;
         $this->customerAddress = $customerAddress;
         $this->customerFactory = $customerFactory;
 
-        parent::__construct(
-            $mConnectNavisionConnection
-        );
+        parent::__construct($config, $mConnectNavisionConnection, $logger);
     }
 
     public function import(\Magento\Sales\Api\Data\OrderInterface $orderEntity)
