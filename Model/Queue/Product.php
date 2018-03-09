@@ -36,29 +36,47 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
     protected $queueFlagFactory;
 
     /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storeManager;
+
+    /**
      * Product constructor.
      *
      * @param \Magento\Catalog\Api\ProductRepositoryInterface $productRepository
      * @param \Magento\Catalog\Model\ProductFactory           $productFactory
      * @param \MalibuCommerce\MConnect\Model\Navision\Product $navProduct
      * @param \MalibuCommerce\MConnect\Model\Config           $config
+     * @param FlagFactory                                     $queueFlagFactory
+     * @param \Magento\Store\Model\StoreManagerInterface      $storeManager
      */
     public function __construct(
         \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
         \Magento\Catalog\Model\ProductFactory $productFactory,
         \MalibuCommerce\MConnect\Model\Navision\Product $navProduct,
         \MalibuCommerce\MConnect\Model\Config $config,
-        \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory
+        \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->productRepository = $productRepository;
         $this->productFactory = $productFactory;
         $this->navProduct = $navProduct;
         $this->config = $config;
         $this->queueFlagFactory = $queueFlagFactory;
+        $this->storeManager = $storeManager;
     }
 
     public function importAction()
     {
+        /**
+         * Currently a module-catalog\Model\ProductRepository.php is utilized to add/update product in Magento
+         * But it seems that the store id is retrieved from the current store on save,
+         * and not the one set via Product::setStoreId().
+         *
+         * Thus current store needs to be set to 0 (admin) before saving product.
+         */
+        $this->storeManager->setCurrentStore(\Magento\Store\Model\Store::ADMIN_CODE);
+
         $count       = 0;
         $page        = 0;
         $lastSync    = false;
@@ -85,6 +103,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
 
     public function importSingleAction()
     {
+        //@todo $this->storeManager->setCurrentStore(\Magento\Store\Model\Store::ADMIN_CODE); - this one is already set in vendor/malibucommerce/mconnect-magento2/Controller/Sync/Productsync.php initSync()
         $details = json_decode($this->getDetails());
         if (!$details || !isset($details->nav_id) || !$details->nav_id) {
             throw new LocalizedException(__('No nav_id specified'));
@@ -126,7 +145,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             }
         } else {
             $product->setAttributeSetId($this->getDefaultAttributeSetId())
-                ->setStoreId(\Magento\Store\Model\Store::DISTRO_STORE_ID)
+                ->setStoreId($this->storeManager->getStore()->getId())
                 ->setTypeId($this->getDefaultTypeId())
                 ->setSku($sku)
                 ->setVisibility($this->getDefaultVisibility())
