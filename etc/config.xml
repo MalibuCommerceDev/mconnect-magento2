@@ -13,7 +13,7 @@
             <navision>
                 <log>1</log>
                 <allow_insecure_connection>0</allow_insecure_connection>
-                <connection_timeout>60</connection_timeout>
+                <connection_timeout>300</connection_timeout>
             </navision>
             <customer>
                 <cron_expr>0 * * * *</cron_expr>

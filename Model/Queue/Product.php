@@ -68,14 +68,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
 
     public function importAction()
     {
-        /**
-         * Currently a module-catalog\Model\ProductRepository.php is utilized to add/update product in Magento
-         * But it seems that the store id is retrieved from the current store on save,
-         * and not the one set via Product::setStoreId().
-         *
-         * Thus current store needs to be set to 0 (admin) before saving product.
-         */
-        $this->storeManager->setCurrentStore(\Magento\Store\Model\Store::ADMIN_CODE);
+        $this->setCurrentStore();
 
         $count       = 0;
         $page        = 0;
@@ -103,7 +96,8 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
 
     public function importSingleAction()
     {
-        //@todo $this->storeManager->setCurrentStore(\Magento\Store\Model\Store::ADMIN_CODE); - this one is already set in vendor/malibucommerce/mconnect-magento2/Controller/Sync/Productsync.php initSync()
+        $this->setCurrentStore();
+
         $details = json_decode($this->getDetails());
         if (!$details || !isset($details->nav_id) || !$details->nav_id) {
             throw new LocalizedException(__('No nav_id specified'));
@@ -248,5 +242,22 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             $this->setDefaultTaxClass($this->config->get('product/import_tax_class'));
         }
         return parent::getDefaultTaxClass();
+    }
+
+    protected function setCurrentStore()
+    {
+        /**
+         * Currently a module-catalog\Model\ProductRepository.php is utilized to add/update product in Magento.
+         * But it seems that the store id is retrieved from the current store on save,
+         * and not the one set via Product::setStoreId().
+         *
+         * Thus current store needed to be set to default store in multi-store mode or to admin store in single-store mode
+         * before saving product.
+         */
+        if (!$this->storeManager->hasSingleStore()) {
+            $this->storeManager->setCurrentStore($this->storeManager->getDefaultStoreView()->getCode());
+        } else {
+            $this->storeManager->setCurrentStore(\Magento\Store\Model\Store::ADMIN_CODE);
+        }
     }
 }

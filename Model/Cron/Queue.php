@@ -45,8 +45,21 @@ class Queue
             return 'Module is disabled.';
         }
 
+        /**
+         * Make sure to process only those queue items with where action and code not matching any running queue items
+         */
         $queues = $this->queueCollectionFactory->create();
-        $queues = $queues->addFieldToFilter('status', QueueModel::STATUS_PENDING);
+        $queues->getSelect()->reset();
+        $queues->getSelect()
+            ->from(['q1' => 'malibucommerce_mconnect_queue'], '*')
+            ->joinLeft(
+                ['q2' => 'malibucommerce_mconnect_queue'],
+                $queues->getConnection()->quoteInto('q1.code = q2.code AND q1.action = q2.action AND q2.status = ?', QueueModel::STATUS_RUNNING),
+                []
+            )
+            ->where('q1.status = ?', QueueModel::STATUS_PENDING)
+            ->where('q2.id IS NULL');
+
         $count = $queues->getSize();
         if (!$count) {
             return 'No items in queue need processing.';
@@ -103,13 +116,9 @@ class Queue
             return 'No items in queue to remove.';
         }
 
-        $gmtDate = $this->date->gmtDate();
-        $currentDate = date('Y-m-d H:i:s');
         foreach ($queues as $queue) {
-            $message = sprintf("Marked as staled after %s minutes\n", $value);
-            $message .= 'Created At in UTC: ' . $queue->getCreatedAt() . "\n";
-            $message .= 'GMT Date: ' . $gmtDate . "\n";
-            $message .= 'Current Date: ' . $currentDate;
+            $message = sprintf("Marked as staled after %s minutes\n\n", $value);
+            $message .= $queue->getMessage();
 
             $queue->setStatus(QueueModel::STATUS_ERROR)
                 ->setMessage($message)
