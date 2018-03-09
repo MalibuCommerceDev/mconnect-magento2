@@ -14,20 +14,27 @@ class Queue
     /**
      * @var \MalibuCommerce\MConnect\Model\Resource\Queue\Collection
      */
-    protected $queueCollection;
+    protected $queueCollectionFactory;
 
     /**
      * @var \Magento\Framework\Stdlib\DateTime\DateTime
      */
     protected $date;
 
+    /**
+     * Queue constructor.
+     *
+     * @param \MalibuCommerce\MConnect\Model\Config                           $config
+     * @param \MalibuCommerce\MConnect\Model\Resource\Queue\CollectionFactory $queueCollectionFactory
+     * @param \Magento\Framework\Stdlib\DateTime\DateTime                     $date
+     */
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $config,
-        \MalibuCommerce\MConnect\Model\Resource\Queue\Collection $queueCollection,
+        \MalibuCommerce\MConnect\Model\Resource\Queue\CollectionFactory $queueCollectionFactory,
         \Magento\Framework\Stdlib\DateTime\DateTime $date
     ) {
         $this->config = $config;
-        $this->queueCollection = $queueCollection;
+        $this->queueCollectionFactory = $queueCollectionFactory;
         $this->date = $date;
     }
 
@@ -37,7 +44,9 @@ class Queue
         if (!$config->getFlag('general/enabled')) {
             return 'Module is disabled.';
         }
-        $queues = $this->queueCollection->addFieldToFilter('status', QueueModel::STATUS_PENDING);
+
+        $queues = $this->queueCollectionFactory->create();
+        $queues = $queues->addFieldToFilter('status', QueueModel::STATUS_PENDING);
         $count = $queues->getSize();
         if (!$count) {
             return 'No items in queue need processing.';
@@ -61,7 +70,9 @@ class Queue
         if (!$value) {
             return 'Queue cleaning not enabled.';
         }
-        $queues = $this->queueCollection->olderThanDays($value, $this->date);
+
+        $queues = $this->queueCollectionFactory->create();
+        $queues = $queues->olderThanDays($value, $this->date);
         $count = $queues->getSize();
         if (!$count) {
             return 'No items in queue to remove.';
@@ -83,8 +94,10 @@ class Queue
         if (!$value) {
             return 'Error marking not enabled.';
         }
-        $queues = $this->queueCollection->olderThanMinutes($value, $this->date)
-            ->addFieldToFilter('status', QueueModel::STATUS_RUNNING);
+
+        $queues = $this->queueCollectionFactory->create();
+        $queues = $queues->olderThanMinutes($value, $this->date)
+            ->addFieldToFilter('status', ['eq' => QueueModel::STATUS_RUNNING]);
         $count = $queues->getSize();
         if (!$count) {
             return 'No items in queue to remove.';
@@ -93,7 +106,7 @@ class Queue
         $gmtDate = $this->date->gmtDate();
         $currentDate = date('Y-m-d H:i:s');
         foreach ($queues as $queue) {
-            $message = sprintf( "Marked as staled after %s minutes\n", $value);
+            $message = sprintf("Marked as staled after %s minutes\n", $value);
             $message .= 'Created At in UTC: ' . $queue->getCreatedAt() . "\n";
             $message .= 'GMT Date: ' . $gmtDate . "\n";
             $message .= 'Current Date: ' . $currentDate;
