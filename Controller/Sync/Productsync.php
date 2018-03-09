@@ -27,11 +27,6 @@ class Productsync extends Action
     protected $resultFactory;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface
-     */
-    protected $_storeManager;
-
-    /**
      * @var \Magento\Catalog\Api\ProductRepositoryInterface|ProductRepositoryInterface
      */
     protected $productRepository;
@@ -59,10 +54,9 @@ class Productsync extends Action
      * @param \MalibuCommerce\MConnect\Model\QueueFactory        $queue
      * @param \Magento\Framework\Controller\ResultFactory        $result
      * @param \Magento\Catalog\Api\ProductRepositoryInterface    $productRepository
-     * @param \Magento\Store\Model\StoreManagerInterface         $storeManager
      * @param \MalibuCommerce\MConnect\Helper\Data               $helper
-     * @param \Magento\Framework\App\Action\Context              $context
      * @param \Magento\Backend\Helper\Data                       $backendHelper
+     * @param \Magento\Framework\App\Action\Context              $context
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -70,7 +64,6 @@ class Productsync extends Action
         \MalibuCommerce\MConnect\Model\QueueFactory $queue,
         \Magento\Framework\Controller\ResultFactory $result,
         \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
         \MalibuCommerce\MConnect\Helper\Data $helper,
         \Magento\Backend\Helper\Data $backendHelper,
         \Magento\Framework\App\Action\Context $context
@@ -79,7 +72,6 @@ class Productsync extends Action
         $this->scopeConfig = $scopeConfig;
         $this->queue = $queue;
         $this->resultFactory = $result;
-        $this->_storeManager = $storeManager;
         $this->productRepository = $productRepository;
         $this->helper = $helper;
         $this->backendHelper = $backendHelper;
@@ -102,7 +94,6 @@ class Productsync extends Action
         }
 
         $productSku = $this->getRequest()->getParam('id');
-        $this->initSync();
         $data = array();
         if (!$this->scopeConfig->getValue('malibucommerce_mconnect/general/enabled')) {
             $data['error'] = 1;
@@ -157,18 +148,6 @@ class Productsync extends Action
             return false;
         }
         return true;
-    }
-
-    /**
-     * Initialize
-     * Set Current Store to Backend
-     *
-     * @return $this
-     */
-    protected function initSync()
-    {
-        $this->_storeManager->setCurrentStore(\Magento\Store\Model\Store::ADMIN_CODE);
-        return $this;
     }
 
     /**
