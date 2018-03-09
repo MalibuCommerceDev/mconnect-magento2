@@ -2,67 +2,34 @@
 
 namespace MalibuCommerce\MConnect\Model\Resource\Adminhtml\Pricerule\Grid;
 
-use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection as GridCollection;
-use Magento\Framework\Search\AggregationInterface;
-use Magento\Framework\Api\Search\SearchResultInterface;
-use Magento\Framework\View\Element\UiComponent\DataProvider\Document;
-use MalibuCommerce\MConnect\Model\Resource\Pricerule;
-use Magento\Framework\Api\SearchCriteriaInterface;
+use Magento\Framework\Data\Collection\Db\FetchStrategyInterface as FetchStrategy;
+use Magento\Framework\Data\Collection\EntityFactoryInterface as EntityFactory;
+use Magento\Framework\Event\ManagerInterface as EventManager;
+use Psr\Log\LoggerInterface as Logger;
 
-class Collection extends GridCollection implements SearchResultInterface
+/**
+ * Queue grid collection
+ */
+class Collection extends \Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult
 {
-    protected $aggregations;
-    protected $_idFieldName = 'id';
-    protected $_eventPrefix = 'mconnect_pricerule_pricerule';
-    protected $_eventObject = 'pricerule_collection';
-
     /**
-     * Define resource model
+     * Initialize dependencies.
      *
-     * @return void
+     * @param EntityFactory $entityFactory
+     * @param Logger $logger
+     * @param FetchStrategy $fetchStrategy
+     * @param EventManager $eventManager
+     * @param string $mainTable
+     * @param string $resourceModel
      */
-    protected function _construct()
-    {
-        $this->_init(Document::class, Pricerule::class);
-    }
-
-    public function getAggregations()
-    {
-        return $this->aggregations;
-    }
-
-    public function setAggregations($aggregations)
-    {
-        $this->aggregations = $aggregations;
-    }
-
-    public function getAllIds($limit = null, $offset = null)
-    {
-        return $this->getConnection()->fetchCol($this->_getAllIdsSelect($limit, $offset), $this->_bindParams);
-    }
-
-    public function getSearchCriteria()
-    {
-        return null;
-    }
-
-    public function setSearchCriteria(SearchCriteriaInterface $searchCriteria = null)
-    {
-        return $this;
-    }
-
-    public function getTotalCount()
-    {
-        return $this->getSize();
-    }
-
-    public function setTotalCount($totalCount)
-    {
-        return $this;
-    }
-
-    public function setItems(array $items = null)
-    {
-        return $this;
+    public function __construct(
+        EntityFactory $entityFactory,
+        Logger $logger,
+        FetchStrategy $fetchStrategy,
+        EventManager $eventManager,
+        $mainTable = 'malibucommerce_mconnect_price_rule',
+        $resourceModel = \MalibuCommerce\MConnect\Model\Resource\Adminhtml\Pricerule::class
+    ) {
+        parent::__construct($entityFactory, $logger, $fetchStrategy, $eventManager, $mainTable, $resourceModel);
     }
 }
