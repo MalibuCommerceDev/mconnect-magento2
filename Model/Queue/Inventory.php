@@ -24,9 +24,6 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
      */
     protected $queueFlagFactory;
 
-    /** @var \Psr\Log\LoggerInterface $logger */
-    protected $logger;
-
     /**
      * @var \Magento\CatalogInventory\Api\StockStateInterface
      */
@@ -40,12 +37,11 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
     /**
      * Inventory constructor.
      *
-     * @param \Magento\Catalog\Api\ProductRepositoryInterface $productRepository
-     * @param \Magento\CatalogInventory\Api\StockStateInterface $stockStateInterface,
+     * @param \Magento\Catalog\Api\ProductRepositoryInterface      $productRepository
+     * @param \Magento\CatalogInventory\Api\StockStateInterface    $stockStateInterface ,
      * @param \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry
-     * @param \MalibuCommerce\MConnect\Model\Navision\Inventory $navInventory
-     * @param \MalibuCommerce\MConnect\Model\Config $config
-     * @param \Psr\Log\LoggerInterface $logger
+     * @param \MalibuCommerce\MConnect\Model\Navision\Inventory    $navInventory
+     * @param \MalibuCommerce\MConnect\Model\Config                $config
      */
     public function __construct(
         \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
@@ -53,16 +49,13 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
         \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
         \MalibuCommerce\MConnect\Model\Navision\Inventory $navInventory,
         \MalibuCommerce\MConnect\Model\Config $config,
-        \Psr\Log\LoggerInterface $logger,
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory
-    )
-    {
+    ) {
         $this->productRepository = $productRepository;
         $this->_stockStateInterface = $stockStateInterface;
         $this->_stockRegistry = $stockRegistry;
         $this->navInventory = $navInventory;
         $this->config = $config;
-        $this->logger = $logger;
         $this->queueFlagFactory = $queueFlagFactory;
     }
 
@@ -76,7 +69,6 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
         do {
             try {
                 $result = $this->navInventory->export($page++, $lastUpdated);
-                //$this->logger->info("result: " . print_r($result, 1));
                 foreach ($result->item_inventory as $data) {
                     $count++;
                     $import = $this->_importInventory($data);
@@ -101,9 +93,9 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
         }
 
         try {
-            $quantity = (int) $data->quantity;
+            $quantity = (int)$data->quantity;
             $stockItem = $this->_stockRegistry->getStockItemBySku($sku);
-            if ((bool) $stockItem->getData('manage_stock')) {
+            if ((bool)$stockItem->getData('manage_stock')) {
                 $stockItem->setData('is_in_stock', ($quantity > 0));
                 $stockItem->setData('qty', $quantity);
                 $stockItem->save();
@@ -113,8 +105,8 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
             }
         } catch (\Exception $e) {
             $this->messages .= $sku . ': ' . $e->getMessage();
+
             return false;
         }
-
     }
 }

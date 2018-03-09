@@ -4,6 +4,7 @@ namespace MalibuCommerce\MConnect\Model\Queue;
 
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\UrlRewrite\Model\Exception\UrlAlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Catalog\Model\Product\Attribute\Source\Status as ProductStatus;
 
@@ -114,7 +115,6 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             return false;
         }
 
-
         if ($productExists) {
             /** @var ProductExtensionInterface $ea */
             $stockItem = $product->getExtensionAttributes()->getStockItem();
@@ -177,22 +177,25 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             }
 
             $this->setEntityId($product->getId());
-        } catch (AlreadyExistsException $e) {
-            $urlKey = $product->formatUrlKey($product->getName() . '-' . $product->getSku());
-            $product->setUrlKey($urlKey);
+        } catch (\Exception $e) {
 
-            try {
-                $this->productRepository->save($product);
-                if ($productExists) {
-                    $this->messages .= $sku . ': updated';
-                } else {
-                    $this->messages .= $sku . ': created';
+            if ($e instanceof AlreadyExistsException || $e instanceof UrlAlreadyExistsException) {
+                $urlKey = $product->formatUrlKey($product->getName() . '-' . $product->getSku());
+                $product->setUrlKey($urlKey);
+
+                try {
+                    $this->productRepository->save($product);
+                    if ($productExists) {
+                        $this->messages .= $sku . ': updated';
+                    } else {
+                        $this->messages .= $sku . ': created';
+                    }
+                }  catch (\Exception $e) {
+                    $this->messages .= $sku . ': ' . $e->getMessage();
                 }
-            }  catch (\Exception $e) {
+            } else {
                 $this->messages .= $sku . ': ' . $e->getMessage();
             }
-        } catch (\Exception $e) {
-            $this->messages .= $sku . ': ' . $e->getMessage();
         }
     }
 
