@@ -1,0 +1,14 @@
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="admin-2columns-left" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="customer_form">
+            <block class="MalibuCommerce\MConnect\Block\Adminhtml\Customer\Edit\Tab\MConnect" name="customer_edit_tab_mconnect" >
+                <action method="setTabLabel">
+                    <argument name="label" xsi:type="string">MConnect</argument>
+                </action>
+            </block>
+        </referenceBlock>
+        <!--<referenceContainer name="content">-->
+            <!--<uiComponent name="MalibuCommerce_MConnect::customer_form"/>-->
+        <!--</referenceContainer>-->
+    </body>
+</page>

@@ -105,6 +105,10 @@ class UpgradeData implements UpgradeDataInterface
             $this->upgrade1_1_6($setup);
         }
 
+        if (version_compare($context->getVersion(), '1.1.7', '<')) {
+            $this->upgrade1_1_7($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -152,6 +156,25 @@ class UpgradeData implements UpgradeDataInterface
                     1000
                 );
             }
+        }
+    }
+
+    protected function upgrade1_1_17(ModuleDataSetupInterface $setup)
+    {
+        $customerSetup = $this->customerSetupFactory->create(['setup' => $setup]);
+        /** @var EavSetup $eavSetup */
+        $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+
+        $attributes = array('nav_id', 'nav_price_group', 'nav_payment_terms');
+        $sort_order = 100;
+        foreach ($attributes as $attributeCode) {
+            $attribute = $customerSetup->getEavConfig()->getAttribute(\Magento\Customer\Model\Customer::ENTITY, $attributeCode);
+            $used_in_forms[]="adminhtml_customer";
+            $used_in_forms[]="adminhtml_checkout";
+            $attribute->setData("used_in_forms", $used_in_forms)
+                ->setData("sort_order", $sort_order);
+            $sort_order += 10;
+            $attribute->save();
         }
     }
 }
