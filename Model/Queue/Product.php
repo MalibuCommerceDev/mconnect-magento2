@@ -80,7 +80,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
                 $result = $this->navProduct->export($page++, $lastUpdated);
                 foreach ($result->item as $data) {
                     $count++;
-                    $import = $this->_importProduct($data);
+                    $import = $this->addProduct($data);
                     $this->messages .= PHP_EOL;
                 }
                 if (!$lastSync) {
@@ -100,17 +100,17 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
 
         $details = json_decode($this->getDetails());
         if (!$details || !isset($details->nav_id) || !$details->nav_id) {
-            throw new LocalizedException(__('No nav_id specified'));
+            throw new LocalizedException(__('No NAV ID specified'));
         }
         $result = $this->navProduct->exportSingle($details->nav_id);
         $this->captureEntityId = true;
-        $result = $this->_importProduct($result->item);
+        $result = $this->addProduct($result->item);
         if ($result === false) {
-            throw new LocalizedException(sprintf('Unabled to import %s', $details->nav_id));
+            throw new LocalizedException(sprintf('Unable to import NAV product "%s"', $details->nav_id));
         }
     }
 
-    protected function _importProduct($data)
+    public function addProduct($data)
     {
         $sku = trim($data->item_nav_id);
         if (empty($sku)) {
@@ -210,6 +210,8 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
                 $this->messages .= $sku . ': ' . $e->getMessage();
             }
         }
+
+        return true;
     }
 
     public function getDefaultAttributeSetId()

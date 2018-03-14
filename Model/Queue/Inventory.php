@@ -71,7 +71,7 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
                 $result = $this->navInventory->export($page++, $lastUpdated);
                 foreach ($result->item_inventory as $data) {
                     $count++;
-                    $import = $this->_importInventory($data);
+                    $import = $this->updateInventory($data);
                     $this->messages .= PHP_EOL;
                 }
                 if (!$lastSync) {
@@ -85,12 +85,12 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
         $this->messages .= PHP_EOL . 'Processed ' . $count . ' inventory(ies).';
     }
 
-    protected function _importInventory($data)
+    public function updateInventory($data)
     {
-        $sku = trim($data->nav_item_id);
-        if (empty($sku)) {
+        if (empty($data->nav_item_id)) {
             return false;
         }
+        $sku = trim($data->nav_item_id);
 
         try {
             $quantity = (int)$data->quantity;
@@ -108,5 +108,7 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
 
             return false;
         }
+
+        return true;
     }
 }
