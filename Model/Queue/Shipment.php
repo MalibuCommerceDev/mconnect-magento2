@@ -59,6 +59,20 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
      */
     protected $invoiceSender;
 
+    /**
+     * Shipment constructor.
+     *
+     * @param \MalibuCommerce\MConnect\Model\Navision\Shipment               $navShipment
+     * @param \Magento\Sales\Model\OrderFactory                              $orderFactory
+     * @param \Magento\Sales\Model\Order\ShipmentFactory                     $shipmentFactory
+     * @param \Magento\Sales\Model\Order\Shipment\ShipmentValidatorInterface $shipmentValidator
+     * @param \Magento\Framework\DB\TransactionFactory                       $transactionFactory
+     * @param \Magento\Sales\Model\Order\Email\Sender\ShipmentSender         $shipmentSender
+     * @param \MalibuCommerce\MConnect\Model\Config                          $config
+     * @param FlagFactory                                                    $queueFlagFactory
+     * @param Invoice                                                        $malibuInvoice
+     * @param \Magento\Sales\Model\Order\Email\Sender\InvoiceSender          $invoiceSender
+     */
     public function __construct(
         \MalibuCommerce\MConnect\Model\Navision\Shipment $navShipment,
         \Magento\Sales\Model\OrderFactory $orderFactory,
@@ -130,15 +144,18 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
                 $navShipmentItems[(string)$item->nav_item_id] = (float)$item->quantity_shipped;
             }
 
+            $isPartialShipment = false;
             $shipmentItems = [];
             foreach ($order->getAllItems() as $item) {
                 if ($item->getQtyToShip() && !$item->getIsVirtual()
                     && isset($navShipmentItems[$item->getSku()]) && $navShipmentItems[$item->getSku()] > 0
                 ) {
                     $shipmentItems[$item->getId()] = $navShipmentItems[$item->getSku()];
+                    if ($item->getQtyToShip() > $navShipmentItems[$item->getSku()]) {
+                        $isPartialShipment = true;
+                    }
                 }
             }
-
 
             $tracks = array();
             if (isset($entity->package_tracking)) {
@@ -184,9 +201,9 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
             $saveTransaction->save();
 
             if (isset($invoice)) {
-                $this->messages .= 'Order #' . $incrementId . ' invoiced, invoice #' . $invoice->getIncrementId();
+                $this->messages .= 'Order #' . $incrementId . ' invoiced, invoice #' . $invoice->getIncrementId() . "\n";
             }
-            $this->messages .= 'Order #' . $incrementId . ' shipped, shipment #' . $shipment->getIncrementId();
+            $this->messages .= 'Order #' . $incrementId . ' shipped, shipment #' . $shipment->getIncrementId() . "\n";
 
             // send invoice email
             try {
@@ -194,7 +211,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
                     $this->invoiceSender->send($invoice);
                 }
             } catch (\Exception $e) {
-                $this->messages .= $e->getMessage();
+                $this->messages .= $e->getMessage() . "\n";
             }
 
             // send shipment email
@@ -203,7 +220,22 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
                     $this->shipmentSender->send($shipment);
                 }
             } catch (\Exception $e) {
-                $this->messages .= $e->getMessage();
+                $this->messages .= $e->getMessage() . "\n";
+            }
+
+            // cancel remaining order items and complete the order
+            try {
+                if ($shipment && $isPartialShipment
+                    && $this->config->get('shipment/cancel_remaining_not_shipped_items')
+                ) {
+                    if ($order->canCancel()) {
+                        $order->cancel();
+                        $order->save($order);
+                        $this->messages .= 'Order #' . $incrementId . ' was completed, remaining not shipped items were canceled' . "\n";
+                    }
+                }
+            } catch (\Exception $e) {
+                $this->messages .= $e->getMessage() . "\n";
             }
         } catch (\Exception $e) {
             throw $e;

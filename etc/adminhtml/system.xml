@@ -88,7 +88,7 @@
                     <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
                 </field>
                 <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Import entity limit per request</label>
+                    <label>Import Entity Limit Per Request</label>
                 </field>
                 <field id="default_group_taxable" sortOrder="30" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Default group for new customers (taxable)</label>
@@ -124,7 +124,7 @@
                     <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
                 </field>
                 <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Import entity limit per request</label>
+                    <label>Import Entity Limit Per Request</label>
                 </field>
                 <field id="import_attribute_set" sortOrder="30" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Default attribute set for new products</label>
@@ -153,7 +153,7 @@
                     <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
                 </field>
                 <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Import entity limit per request</label>
+                    <label>Import Entity Limit Per Request</label>
                 </field>
             </group>
 
@@ -165,7 +165,7 @@
                     <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
                 </field>
                 <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Import entity limit per request</label>
+                    <label>Import Entity Limit Per Request</label>
                 </field>
                 <field id="capture_type" sortOrder="30" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Default invoice capture type</label>
@@ -185,15 +185,21 @@
                     <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
                 </field>
                 <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Import entity limit per request</label>
+                    <label>Import Entity Limit Per Request</label>
                 </field>
                 <field id="send_email_enabled" sortOrder="30" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Send shipment email to customers</label>
+                    <label>Send Shipment Email To Customers</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="create_invoice_with_shipment" sortOrder="40" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Create Invoice when Shipment is created</label>
+                    <label>Create Invoice When Shipment Is Created</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Refer to "Invoice" configuration section on this page for invoicing settings.]]></comment>
+                </field>
+                <field id="cancel_remaining_not_shipped_items" sortOrder="50" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Cancel Remaining Order Items For Partial Shipments</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[If set to "Yes" then for any partial shipment remaining not shipped order items will be canceled and order status will changed to Complete.]]></comment>
                 </field>
             </group>
 
@@ -205,7 +211,7 @@
                     <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
                 </field>
                 <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Import entity limit per request</label>
+                    <label>Import Entity Limit Per Request</label>
                 </field>
             </group>
         </section>

@@ -48,6 +48,7 @@
                 <max_rows>50</max_rows>
                 <send_email_enabled>1</send_email_enabled>
                 <create_invoice_with_shipment>0</create_invoice_with_shipment>
+                <cancel_remaining_not_shipped_items>0</cancel_remaining_not_shipped_items>
             </shipment>
             <price_rule>
                 <cron_expr>0 * * * *</cron_expr>
