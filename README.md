@@ -3,29 +3,11 @@ MConnect for Magento 2
 
 # Installation
 
-Add the repository to your `composer.json`
+Install via composer
 
 ```
-"repositories": [
-    {
-        "type": "vcs",
-        "url": "git@bitbucket.org:MalibuCommerceDev/mconnect-magento2.git"
-    }
-]
-```
-
-And add the requirement to `composer.json`
-
-```
-"require": {
-    "malibucommerce/mconnect-magento2": "dev-master"
-}
-```
-
-Download the package
-
-```
-composer update
+composer config repositories.mconnect vcs git@bitbucket.org:MalibuCommerceDev/mconnect-magento2.git
+composer require malibucommerce/mconnect-magento2:dev-master
 ```
 
 Enabled the module
