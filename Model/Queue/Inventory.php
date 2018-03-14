@@ -71,7 +71,13 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
                 $result = $this->navInventory->export($page++, $lastUpdated);
                 foreach ($result->item_inventory as $data) {
                     $count++;
-                    $import = $this->updateInventory($data);
+                    $importResult = $this->updateInventory($data);
+                    if ($importResult) {
+                        $count++;
+                    }
+                    if ($importResult === false) {
+                        $this->messages .= 'Unable to import NAV price rule' . PHP_EOL;
+                    }
                     $this->messages .= PHP_EOL;
                 }
                 if (!$lastSync) {

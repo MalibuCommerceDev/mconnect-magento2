@@ -41,6 +41,16 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
     protected $storeManager;
 
     /**
+     * @var \Magento\Framework\Api\SearchCriteriaBuilder
+     */
+    protected $searchCriteriaBuilder;
+
+    /**
+     * @var \Magento\Catalog\Api\ProductAttributeRepositoryInterface
+     */
+    protected $attributeRepository;
+
+    /**
      * Product constructor.
      *
      * @param \Magento\Catalog\Api\ProductRepositoryInterface $productRepository
@@ -56,7 +66,9 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         \MalibuCommerce\MConnect\Model\Navision\Product $navProduct,
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
+        \Magento\Catalog\Api\ProductAttributeRepositoryInterface $attributeRepository
     ) {
         $this->productRepository = $productRepository;
         $this->productFactory = $productFactory;
@@ -64,6 +76,8 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         $this->config = $config;
         $this->queueFlagFactory = $queueFlagFactory;
         $this->storeManager = $storeManager;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->attributeRepository = $attributeRepository;
     }
 
     public function importAction()
@@ -79,15 +93,20 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             try {
                 $result = $this->navProduct->export($page++, $lastUpdated);
                 foreach ($result->item as $data) {
-                    $count++;
-                    $import = $this->addProduct($data);
+                    $importResult = $this->addProduct($data);
+                    if ($importResult) {
+                        $count++;
+                    }
+                    if ($importResult === false) {
+                        $this->messages .= 'Unable to import NAV product' . PHP_EOL;
+                    }
                     $this->messages .= PHP_EOL;
                 }
                 if (!$lastSync) {
                     $lastSync = $result->status->current_date_time;
                 }
             } catch (\Exception $e) {
-                $this->messages .= $e->getMessage();
+                $this->messages .= $e->getMessage() . PHP_EOL;
             }
         } while ($result && isset($result->status->end_of_records) && (string) $result->status->end_of_records === 'false');
         $this->setLastSyncTime(Flag::FLAG_CODE_LAST_PRODUCT_SYNC_TIME, $lastSync);
@@ -112,10 +131,11 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
 
     public function addProduct($data)
     {
-        $sku = trim($data->item_nav_id);
-        if (empty($sku)) {
+        if (empty($data->item_nav_id)) {
+            $this->messages .= 'No valid NAV ID found in response XML' . "\n";
             return false;
         }
+        $sku = trim($data->item_nav_id);
 
         $productExists = false;
         try {
@@ -171,6 +191,34 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             ? ProductStatus::STATUS_DISABLED
             : ProductStatus::STATUS_ENABLED;
 
+        /**
+         * Set required user defined attributes
+         */
+        $searchCriteria = $this->searchCriteriaBuilder
+            ->addFilter('is_required', '1')
+            ->addFilter('is_user_defined', '1')
+            ->create();
+        $attributes = $this->attributeRepository->getList($searchCriteria)->getItems();
+
+        foreach ($attributes as $attribute) {
+            switch ($attribute->getBackendType()) {
+                case 'decimal':
+                    $value = 0.00;
+                    break;
+                case 'int':
+                    $value = 0;
+                    break;
+                case 'datetime':
+                    $value = '0000-00-00 00:00:00';
+                    break;
+                default:
+                    $value = 'N/A';
+                    break;
+            }
+            $product->setDataUsingMethod($attribute->getAttributeCode(), $value);
+        }
+
+
         $product
             ->setOptions([])
             ->setName((string) $data->item_name)
@@ -205,9 +253,11 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
                     }
                 }  catch (\Exception $e) {
                     $this->messages .= $sku . ': ' . $e->getMessage();
+                    return false;
                 }
             } else {
                 $this->messages .= $sku . ': ' . $e->getMessage();
+                return false;
             }
         }
 
