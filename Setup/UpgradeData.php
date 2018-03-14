@@ -8,25 +8,28 @@ use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Eav\Setup\EavSetup;
 use Magento\Eav\Setup\EavSetupFactory;
+use Magento\Customer\Model\Customer;
+use Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface;
 
 class UpgradeData implements UpgradeDataInterface
 {
     /**
      * @var CustomerSetupFactory
      */
-    private $customerSetupFactory;
+    protected $customerSetupFactory;
 
     /**
      * EAV setup factory
      *
      * @var EavSetupFactory
      */
-    private $eavSetupFactory;
+    protected $eavSetupFactory;
 
     /**
-     * Init
+     * UpgradeData constructor.
      *
-     * @param PageFactory $pageFactory
+     * @param CustomerSetupFactory $customerSetupFactory
+     * @param EavSetupFactory      $eavSetupFactory
      */
     public function __construct(
         CustomerSetupFactory $customerSetupFactory,
@@ -41,75 +44,84 @@ class UpgradeData implements UpgradeDataInterface
         $setup->startSetup();
 
         if (version_compare($context->getVersion(), '1.0.1', '<')) {
-            $customerSetup = $this->customerSetupFactory->create(['setup' => $setup]);
-
-            $customerSetup->addAttribute(\Magento\Customer\Model\Customer::ENTITY, 'nav_id', array(
-                'label'        => 'Customer NAV ID',
-                'type'         => 'static',
-                'input'        => 'text',
-                'global'       => \Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface::SCOPE_GLOBAL,
-                'visible'      => true,
-                'required'     => false,
-                'user_defined' => true,
-            ));
-
-            /** @var EavSetup $eavSetup */
-            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
-            $entityTypeId = $eavSetup->getEntityTypeId(\Magento\Customer\Model\Customer::ENTITY);
-            $attributeSetId = $eavSetup->getDefaultAttributeSetId($entityTypeId);
-            $attributeGroupId = $eavSetup->getDefaultAttributeGroupId($entityTypeId, $attributeSetId);
-
-            $attribute = $eavSetup->getAttribute($entityTypeId, 'nav_id');
-            if ($attribute) {
-                $eavSetup->addAttributeToGroup(
-                    $entityTypeId,
-                    $attributeSetId,
-                    $attributeGroupId,
-                    $attribute['attribute_id'],
-                    1000
-                );
-            }
-
-            $customerSetup->addAttribute('customer_address', 'nav_id', [
-                'type'             => 'static',
-                'label'            => 'Customer Address NAV ID',
-                'input'            => 'text',
-                'global'           => \Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface::SCOPE_GLOBAL,
-                'required'         => false,
-                'visible'          => true,
-                'visible_on_front' => false,
-                'user_defined'     => false,
-                'sort_order'       => 5,
-                'position'         => 5,
-                'system'           => 0,
-                'default'          => 'DEFAULT'
-            ]);
-
-            $entityTypeId = $eavSetup->getEntityTypeId('customer_address');
-            $attributeSetId = $eavSetup->getDefaultAttributeSetId($entityTypeId);
-            $attributeGroupId = $eavSetup->getDefaultAttributeGroupId($entityTypeId, $attributeSetId);
-
-            $attribute = $eavSetup->getAttribute($entityTypeId, 'nav_id');
-            if ($attribute) {
-                $eavSetup->addAttributeToGroup(
-                    $entityTypeId,
-                    $attributeSetId,
-                    $attributeGroupId,
-                    $attribute['attribute_id'],
-                    1000
-                );
-            }
+            $this->upgrade1_0_1($setup);
         }
 
         if (version_compare($context->getVersion(), '1.1.6', '<')) {
             $this->upgrade1_1_6($setup);
         }
 
-        if (version_compare($context->getVersion(), '1.1.7', '<')) {
-            $this->upgrade1_1_7($setup);
+        if (version_compare($context->getVersion(), '1.1.17', '<')) {
+            $this->upgrade1_1_17($setup, $context);
         }
 
         $setup->endSetup();
+    }
+
+    protected function upgrade1_0_1(ModuleDataSetupInterface $setup)
+    {
+        $customerSetup = $this->customerSetupFactory->create(['setup' => $setup]);
+
+        $customerSetup->addAttribute(Customer::ENTITY, 'nav_id', array(
+            'label'                 => 'Customer NAV ID',
+            'type'                  => 'static',
+            'input'                 => 'text',
+            'global'                => ScopedAttributeInterface::SCOPE_GLOBAL,
+            'position'              => 1000,
+            'visible'               => true,
+            'required'              => false,
+            'user_defined'          => false,
+            'is_used_in_grid'       => true,
+            'is_visible_in_grid'    => true,
+            'is_filterable_in_grid' => true,
+            'is_searchable_in_grid' => true,
+        ));
+
+        /** @var EavSetup $eavSetup */
+        $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+        $entityTypeId = $eavSetup->getEntityTypeId(Customer::ENTITY);
+        $attributeSetId = $eavSetup->getDefaultAttributeSetId($entityTypeId);
+        $attributeGroupId = $eavSetup->getDefaultAttributeGroupId($entityTypeId, $attributeSetId);
+
+        $attribute = $eavSetup->getAttribute($entityTypeId, 'nav_id');
+        if ($attribute) {
+            $eavSetup->addAttributeToGroup(
+                $entityTypeId,
+                $attributeSetId,
+                $attributeGroupId,
+                $attribute['attribute_id'],
+                1000
+            );
+        }
+
+        $customerSetup->addAttribute('customer_address', 'nav_id', [
+            'type'             => 'static',
+            'label'            => 'Customer Address NAV ID',
+            'input'            => 'text',
+            'global'           => ScopedAttributeInterface::SCOPE_GLOBAL,
+            'required'         => false,
+            'visible'          => true,
+            'visible_on_front' => false,
+            'user_defined'     => false,
+            'position'         => 5,
+            'system'           => 0,
+            'default'          => 'DEFAULT'
+        ]);
+
+        $entityTypeId = $eavSetup->getEntityTypeId('customer_address');
+        $attributeSetId = $eavSetup->getDefaultAttributeSetId($entityTypeId);
+        $attributeGroupId = $eavSetup->getDefaultAttributeGroupId($entityTypeId, $attributeSetId);
+
+        $attribute = $eavSetup->getAttribute($entityTypeId, 'nav_id');
+        if ($attribute) {
+            $eavSetup->addAttributeToGroup(
+                $entityTypeId,
+                $attributeSetId,
+                $attributeGroupId,
+                $attribute['attribute_id'],
+                1000
+            );
+        }
     }
 
     protected function upgrade1_1_6(ModuleDataSetupInterface $setup)
@@ -119,32 +131,44 @@ class UpgradeData implements UpgradeDataInterface
         $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
         $attributes = array(
-            'nav_payment_terms' => array(
-                'label'        => 'Navision Payment Terms',
-                'type'         => 'static',
-                'input'        => 'textarea',
-                'global'       => \Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface::SCOPE_GLOBAL,
-                'visible'      => true,
-                'required'     => false,
-                'user_defined' => true,
+            'nav_price_group'   => array(
+                'label'                 => 'Navision Price Group',
+                'type'                  => 'static',
+                'input'                 => 'text',
+                'global'                => ScopedAttributeInterface::SCOPE_GLOBAL,
+                'visible'               => true,
+                'required'              => false,
+                'user_defined'          => false,
+                'system'                => false,
+                'position'              => 1001,
+                'is_used_in_grid'       => false,
+                'is_visible_in_grid'    => false,
+                'is_filterable_in_grid' => false,
+                'is_searchable_in_grid' => false,
             ),
-            'nav_price_group' => array(
-                'label'        => 'Navision Price Group',
-                'type'         => 'varchar',
-                'input'        => 'static',
-                'global'       => \Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface::SCOPE_GLOBAL,
-                'visible'      => true,
-                'required'     => false,
-                'user_defined' => true,
+            'nav_payment_terms' => array(
+                'label'                 => 'Navision Payment Terms',
+                'type'                  => 'static',
+                'input'                 => 'textarea',
+                'global'                => ScopedAttributeInterface::SCOPE_GLOBAL,
+                'visible'               => true,
+                'required'              => false,
+                'user_defined'          => false,
+                'system'                => false,
+                'position'              => 1002,
+                'is_used_in_grid'       => false,
+                'is_visible_in_grid'    => false,
+                'is_filterable_in_grid' => false,
+                'is_searchable_in_grid' => false,
             )
         );
 
-        $entityTypeId = $eavSetup->getEntityTypeId(\Magento\Customer\Model\Customer::ENTITY);
+        $entityTypeId = $eavSetup->getEntityTypeId(Customer::ENTITY);
         $attributeSetId = $eavSetup->getDefaultAttributeSetId($entityTypeId);
         $attributeGroupId = $eavSetup->getDefaultAttributeGroupId($entityTypeId, $attributeSetId);
 
         foreach ($attributes as $attribute => $attributeConfig) {
-            $customerSetup->addAttribute(\Magento\Customer\Model\Customer::ENTITY, $attribute, $attributeConfig);
+            $customerSetup->addAttribute(Customer::ENTITY, $attribute, $attributeConfig);
 
             $attribute = $eavSetup->getAttribute($entityTypeId, $attribute);
             if ($attribute) {
@@ -159,21 +183,94 @@ class UpgradeData implements UpgradeDataInterface
         }
     }
 
-    protected function upgrade1_1_17(ModuleDataSetupInterface $setup)
+    protected function upgrade1_1_17(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
     {
+        /** @var \Magento\Customer\Setup\CustomerSetup $customerSetup */
         $customerSetup = $this->customerSetupFactory->create(['setup' => $setup]);
-        /** @var EavSetup $eavSetup */
-        $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
-        $attributes = array('nav_id', 'nav_price_group', 'nav_payment_terms');
-        $sort_order = 100;
+        /**
+         * Fix nav_price_group and nav_payment_terms attributes
+         */
+        if (version_compare($context->getVersion(), '1.1.17', '<') && version_compare($context->getVersion(), '1.1.6', '>')) {
+            // Needed to reset foreign checks flag
+            $setup->endSetup();
+
+            /**
+             * Preserve attributes values
+             */
+            $attribute = $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, 'nav_price_group');
+            $select = $setup->getConnection()->select()
+                ->from($attribute->getBackend()->getTable(), ['entity_id', 'value'])
+                ->where('attribute_id = ?', $attribute->getAttributeId());
+            $priceGroupValues = $setup->getConnection()->fetchPairs($select);
+
+            $attribute = $customerSetup->getAttribute(Customer::ENTITY, 'nav_payment_terms');
+            $paymentTermsBackendType = $attribute['backend_type'];
+            if ($paymentTermsBackendType == 'text') {
+                $attribute = $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, 'nav_payment_terms');
+                $select = $setup->getConnection()->select()
+                    ->from($attribute->getBackend()->getTable(), ['entity_id', 'value'])
+                    ->where('attribute_id = ?', $attribute->getAttributeId());
+                $paymentTermsValues = $setup->getConnection()->fetchPairs($select);
+            }
+
+            /**
+             * Remove old attributes
+             */
+            $customerSetup->removeAttribute(Customer::ENTITY, 'nav_price_group');
+            $customerSetup->removeAttribute(Customer::ENTITY, 'nav_payment_terms');
+
+            /**
+             * Add required static columns to customer entity DB table
+             */
+            $setup->getConnection()->addColumn(
+                'customer_entity',
+                'nav_price_group',
+                array(
+                    'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                    'length'  => 255,
+                    'comment' => 'NAV Price Group'
+                )
+            );
+            if ($paymentTermsBackendType != 'static') {
+                $setup->getConnection()->addColumn(
+                    'customer_entity',
+                    'nav_payment_terms',
+                    array(
+                        'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                        'length'  => '64k',
+                        'comment' => 'NAV Payment Terms'
+                    )
+                );
+            }
+            /**
+             * Add updated attributes
+             */
+            $this->upgrade1_0_1($setup);
+            $this->upgrade1_1_6($setup);
+
+            /**
+             * Move attribute values
+             */
+            if (!empty($priceGroupValues)) {
+                foreach ($priceGroupValues as $entityId => $value) {
+                    $setup->getConnection()->update('customer_entity', ['nav_price_group' => $value], ['entity_id = ?' => $entityId]);
+                }
+            }
+            if (!empty($paymentTermsValues)) {
+                foreach ($paymentTermsValues as $entityId => $value) {
+                    $setup->getConnection()->update('customer_entity', ['nav_payment_terms' => $value], ['entity_id = ?' => $entityId]);
+                }
+            }
+
+            // Needed to reset foreign checks flag
+            $setup->startSetup();
+        }
+
+        $attributes = ['nav_id', 'nav_price_group', 'nav_payment_terms'];
         foreach ($attributes as $attributeCode) {
-            $attribute = $customerSetup->getEavConfig()->getAttribute(\Magento\Customer\Model\Customer::ENTITY, $attributeCode);
-            $used_in_forms[]="adminhtml_customer";
-            $used_in_forms[]="adminhtml_checkout";
-            $attribute->setData("used_in_forms", $used_in_forms)
-                ->setData("sort_order", $sort_order);
-            $sort_order += 10;
+            $attribute = $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, $attributeCode);
+            $attribute->setData('used_in_forms', ['adminhtml_customer']);
             $attribute->save();
         }
     }
