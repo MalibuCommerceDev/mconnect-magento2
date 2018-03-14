@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
-    <container name="content" label="Root">
-        <block class="\MalibuCommerce\MConnect\Block\Adminhtml\Customer\Edit\Tab\MConnect" name="customer.edit.tab.mconnect"  template="MalibuCommerce_MConnect::customer/mconect.phtml" />
-
-    </container>
-
-</layout>
