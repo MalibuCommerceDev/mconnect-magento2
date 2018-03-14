@@ -1,4 +1,5 @@
 <?php
+
 namespace MalibuCommerce\MConnect\Model\Queue;
 
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -26,7 +27,6 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
      */
     protected $regionFactory;
 
-
     /**
      * @var \MalibuCommerce\MConnect\Model\Navision\Customer
      */
@@ -47,7 +47,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
      */
     protected $queueFlagFactory;
 
-    /** @var \Magento\Customer\Model\CustomerFactory  */
+    /** @var \Magento\Customer\Model\CustomerFactory */
     protected $customer;
 
     /**
@@ -55,7 +55,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
      */
     protected $address;
 
-    /** @var \Magento\Customer\Model\ResourceModel\Address\CollectionFactory  */
+    /** @var \Magento\Customer\Model\ResourceModel\Address\CollectionFactory */
     protected $addressCollectionFactory;
 
     public function __construct(
@@ -92,15 +92,16 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
         }
 
         $response = $this->navCustomer->import($customerEntity, $customerDataModel);
-        $status = (string) $response->result->status;
+        $status = (string)$response->result->status;
         if ($status === 'Processed') {
-            $navId = (string) $response->result->Customer->nav_record_id;
+            $navId = (string)$response->result->Customer->nav_record_id;
             if ($customerDataModel->getNavId() != $navId) {
                 $customerDataModel->setNavId($navId)
                     ->setSkipMconnect(true)
                     ->save();
             }
             $this->messages .= sprintf('Customer exported, NAV ID: %s', $navId);
+
             return true;
         }
 
@@ -108,7 +109,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
             $errors = array();
             foreach ($response->result->Customer as $customer) {
                 foreach ($customer->error as $error) {
-                    $errors[] = (string) $error->message;
+                    $errors[] = (string)$error->message;
                 }
             }
             if (empty($errors)) {
@@ -124,9 +125,9 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
 
     public function importAction()
     {
-        $count       = 0;
-        $page        = 0;
-        $lastSync    = false;
+        $count = 0;
+        $page = 0;
+        $lastSync = false;
         $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_CUSTOMER_SYNC_TIME);
         do {
             $result = $this->navCustomer->export($page++, $lastUpdated);
@@ -138,7 +139,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
             if (!$lastSync) {
                 $lastSync = $result->status->current_date_time;
             }
-        } while (isset($result->status->end_of_records) && (string) $result->status->end_of_records === 'false');
+        } while (isset($result->status->end_of_records) && (string)$result->status->end_of_records === 'false');
         $this->setLastSyncTime(Flag::FLAG_CODE_LAST_CUSTOMER_SYNC_TIME, $lastSync);
         $this->messages .= PHP_EOL . 'Processed ' . $count . ' customer(s).';
     }
@@ -164,11 +165,12 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
             }
         } catch (\Exception $e) {
             $this->messages .= $email . ': ' . $e->getMessage();
+
             return false;
         }
 
         if (!$customerExists) {
-            $taxable = (string) $data->cust_taxable;
+            $taxable = (string)$data->cust_taxable;
             $customer->setEmail($email)
                 ->setGroupId(
                     empty($taxable) || $taxable == 'false'
@@ -178,8 +180,8 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
                 ->setWebsiteId($websiteId);
         }
 
-        $firstname = (string) $data->cust_first_name;
-        $lastname = (string) $data->cust_last_name;
+        $firstname = (string)$data->cust_first_name;
+        $lastname = (string)$data->cust_last_name;
         if (empty($lastname)) {
             $parts = explode(' ', $firstname);
             if (count($parts) > 1) {
@@ -193,9 +195,9 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
         $customer->setFirstname($firstname)
             ->setLastname($lastname)
             ->setSkipMconnect(true)
-            ->setNavId((string) $data->cust_nav_id)
-            ->setNavPaymentTerms((string) $data->cust_payment_terms)
-            ->setNavPriceGroup((string) $data->cust_price_group);
+            ->setNavId((string)$data->cust_nav_id)
+            ->setNavPaymentTerms((string)$data->cust_payment_terms)
+            ->setNavPriceGroup((string)$data->cust_price_group);
 
         try {
             if ($customer->hasDataChanges()) {
@@ -219,13 +221,13 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
         /**
          * Add addresses
          */
-        $addresses = [];
         if (!empty($data->address)) {
-            $country = $state = null;
             foreach ($data->address as $addressData) {
                 $this->importAddress($customer, $addressData);
             }
         }
+
+        return true;
     }
 
     protected function importAddress($customer, $addressData)
@@ -236,7 +238,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
         if (!empty($addressData->addr_nav_id)) {
             $collection = $this->addressCollectionFactory->create();
             $collection->addFieldToFilter('parent_id', $customer->getId())
-                ->addFieldToFilter('nav_id', (string) $addressData->addr_nav_id);
+                ->addFieldToFilter('nav_id', (string)$addressData->addr_nav_id);
 
             $addresses = $collection->getItems();
             if ($addresses) {
@@ -251,16 +253,16 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
         }
 
         if (empty($email) || $email != $customer->getEmail()) {
-            $country = (string) $addressData->addr_country;
-            $state = (string) $addressData->addr_state;
+            $country = (string)$addressData->addr_country;
+            $state = (string)$addressData->addr_state;
             $email = $customer->getEmail();
         }
-        $country = !empty((string) $addressData->addr_country) ? (string) $addressData->addr_country : $country;
-        $state = !empty((string) $addressData->addr_state) ? (string) $addressData->addr_state : $state;
+        $country = !empty((string)$addressData->addr_country) ? (string)$addressData->addr_country : $country;
+        $state = !empty((string)$addressData->addr_state) ? (string)$addressData->addr_state : $state;
         $region = $this->getRegion($country, $state);
 
-        $firstname = (string) $addressData->addr_name;
-        $lastname = (string) $addressData->addr_name2;
+        $firstname = (string)$addressData->addr_name;
+        $lastname = (string)$addressData->addr_name2;
         if (empty($lastname)) {
             $parts = explode(' ', $firstname);
             if (count($parts) > 1) {
@@ -271,25 +273,25 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
                 $lastname = 'Co.';
             }
         }
-        $telephone = (string) $addressData->addr_phone;
+        $telephone = (string)$addressData->addr_phone;
         $telephone = empty($telephone) ? 'N/A' : $telephone;
 
         $address
             ->setParentId($customer->getId())
             ->setFirstname($firstname)
             ->setLastname($lastname)
-            ->setStreet([(string) $addressData->addr_street])
-            ->setCity((string) $addressData->addr_city)
+            ->setStreet([(string)$addressData->addr_street])
+            ->setCity((string)$addressData->addr_city)
             ->setCountryId($country)
             ->setRegionId($region)
-            ->setPostcode((string) $addressData->addr_post_code)
+            ->setPostcode((string)$addressData->addr_post_code)
             ->setTelephone($telephone)
-            ->setFax((string) $addressData->addr_fax)
-            ->setNavId((string) $addressData->addr_nav_id)
+            ->setFax((string)$addressData->addr_fax)
+            ->setNavId((string)$addressData->addr_nav_id)
             ->setSkipMconnect(true)
             ->setShouldIgnoreValidation(true);
 
-        if ((string) $addressData->addr_nav_id == 'DEFAULT') {
+        if ((string)$addressData->addr_nav_id == 'DEFAULT') {
             $address->setIsDefaultBilling(true);
             $address->setIsDefaultShipping(true);
         }

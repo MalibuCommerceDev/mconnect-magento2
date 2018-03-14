@@ -12,7 +12,12 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     public function findMatchingPending($code, $action, $id = null, $details = array())
     {
         $this
-            ->addFieldToFilter('status', \MalibuCommerce\Mconnect\Model\Queue::STATUS_PENDING)
+            ->addFieldToFilter('status', [
+                'in' => [
+                    \MalibuCommerce\Mconnect\Model\Queue::STATUS_PENDING,
+                    \MalibuCommerce\Mconnect\Model\Queue::STATUS_RUNNING
+                ]
+            ])
             ->addFieldToFilter('code', $code)
             ->addFieldToFilter('action', $action);
         if ($id === null) {
