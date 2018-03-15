@@ -20,11 +20,17 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
     protected $customerFactory;
 
     /**
+     * @var \Magento\GiftMessage\Model\Message
+     */
+    protected $giftMessage;
+
+    /**
      * Order constructor.
      *
      * @param \Magento\Directory\Model\Region         $directoryRegion
      * @param \Magento\Customer\Model\Address         $customerAddress
      * @param \Magento\Customer\Model\CustomerFactory $customerFactory
+     * @param \Magento\GiftMessage\Model\Message      $giftMessage
      * @param \MalibuCommerce\MConnect\Model\Config   $config
      * @param Connection                              $mConnectNavisionConnection
      * @param \Psr\Log\LoggerInterface                $logger
@@ -34,6 +40,7 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         \Magento\Directory\Model\Region $directoryRegion,
         \Magento\Customer\Model\Address $customerAddress,
         \Magento\Customer\Model\CustomerFactory $customerFactory,
+        \Magento\GiftMessage\Model\Message $giftMessage,
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection,
         \Psr\Log\LoggerInterface $logger,
@@ -42,6 +49,7 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         $this->directoryRegion = $directoryRegion;
         $this->customerAddress = $customerAddress;
         $this->customerFactory = $customerFactory;
+        $this->giftMessage = $giftMessage;
 
         parent::__construct($config, $mConnectNavisionConnection, $logger);
     }
@@ -58,6 +66,22 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         $orderObject->mag_customer_id = $orderEntity->getCustomerId();
         $orderObject->email_address = $orderEntity->getCustomerEmail();
         $orderObject->store_id = $orderEntity->getStoreId();
+
+        $orderObject->gift_wrap_message_to = '';
+        $orderObject->gift_wrap_message_from = '';
+        $orderObject->gift_wrap_message = '';
+        $orderObject->gift_wrap_charge = '';
+
+        if ($giftMessageId = $orderEntity->getGiftMessageId()) {
+            $this->giftMessage->load($giftMessageId);
+            if ($this->giftMessage->getId()) {
+                $orderObject->gift_wrap_message_to = $this->giftMessage->getRecipient();
+                $orderObject->gift_wrap_message_from = $this->giftMessage->getSender();
+                $orderObject->gift_wrap_message = $this->giftMessage->getMessage();
+                $orderObject->gift_wrap_charge = $orderEntity->getGwBasePrice();
+            }
+        }
+
         $this->addShipping($orderEntity, $orderObject);
 
         $payment = $orderEntity->getPayment();
