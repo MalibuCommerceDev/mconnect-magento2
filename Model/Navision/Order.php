@@ -78,7 +78,7 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
                 $orderObject->gift_wrap_message_to = $this->giftMessage->getRecipient();
                 $orderObject->gift_wrap_message_from = $this->giftMessage->getSender();
                 $orderObject->gift_wrap_message = $this->giftMessage->getMessage();
-                $orderObject->gift_wrap_charge = $orderEntity->getGwPrice();
+                $orderObject->gift_wrap_charge = $orderEntity->getGwBasePrice();
             }
         }
 
