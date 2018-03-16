@@ -7,8 +7,6 @@ use Magento\Sales\Model\Order\Shipment\Validation\QuantityValidator;
 
 class Shipment extends \MalibuCommerce\MConnect\Model\Queue
 {
-    const SHIPPING_TITLE_DEFAULT = 'M-Connect';
-
     /**
      * @var \MalibuCommerce\MConnect\Model\Navision\Shipment
      */
@@ -60,6 +58,11 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
     protected $invoiceSender;
 
     /**
+     * @var \Magento\Shipping\Model\Config
+     */
+    protected $shippingConfig;
+
+    /**
      * Shipment constructor.
      *
      * @param \MalibuCommerce\MConnect\Model\Navision\Shipment               $navShipment
@@ -83,7 +86,8 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
         \MalibuCommerce\MConnect\Model\Queue\Invoice $malibuInvoice,
-        \Magento\Sales\Model\Order\Email\Sender\InvoiceSender $invoiceSender
+        \Magento\Sales\Model\Order\Email\Sender\InvoiceSender $invoiceSender,
+        \Magento\Shipping\Model\Config $shippingConfig
     ) {
         $this->navShipment = $navShipment;
         $this->orderFactory = $orderFactory;
@@ -95,6 +99,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
         $this->queueFlagFactory = $queueFlagFactory;
         $this->malibuInvoice = $malibuInvoice;
         $this->invoiceSender = $invoiceSender;
+        $this->shippingConfig = $shippingConfig;
     }
 
     public function importAction()
@@ -106,9 +111,11 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
         do {
             $result = $this->navShipment->export($page++, $lastUpdated);
             foreach ($result->shipment as $data) {
-                $count++;
                 try {
-                    $import = $this->importShipment($data);
+                    $importResult = $this->importShipment($data);
+                    if ($importResult) {
+                        $count++;
+                    }
                 } catch (\Exception $e) {
                     $this->messages .= $e->getMessage();
                 }
@@ -118,8 +125,12 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
                 $lastSync = $result->status->current_date_time;
             }
         } while ($this->hasRecords($result));
-        $this->setLastSyncTime(Flag::FLAG_CODE_LAST_SHIPMENT_SYNC_TIME, $lastSync);
-        $this->messages .= PHP_EOL . 'Processed ' . $count . ' shipments(s).';
+        if ($count > 0) {
+            $this->setLastSyncTime(Flag::FLAG_CODE_LAST_SHIPMENT_SYNC_TIME, $lastSync);
+            $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';
+        } else {
+            $this->messages .= PHP_EOL . 'Nothing to import.';
+        }
     }
 
     protected function importShipment(\SimpleXMLElement $entity)
@@ -159,12 +170,25 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
 
             $tracks = array();
             if (isset($entity->package_tracking)) {
+                $systemCarriers = $this->getCarriers();
+
                 foreach ($entity->package_tracking as $tracking) {
-                    $tracks[] = [
-                        'number'       => (string)$tracking->tracking_number,
-                        'carrier_code' => 'custom',
-                        'title'        => self::SHIPPING_TITLE_DEFAULT,
-                    ];
+                    $carrier = strtolower((string)$tracking->shipping_carrier);
+                    if (array_key_exists($carrier, $systemCarriers)) {
+                        $tracks[] = [
+                            'number'       => (string)$tracking->tracking_number,
+                            'carrier_code' => $carrier,
+                            'title'        => $systemCarriers[$carrier],
+                        ];
+                    } else {
+                        $title = (string)$tracking->shipping_carrier . ' ' . (string)$tracking->shipping_method;
+                        $title = ucwords($title);
+                        $tracks[] = [
+                            'number'       => (string)$tracking->tracking_number,
+                            'carrier_code' => 'custom',
+                            'title'        => $title,
+                        ];
+                    }
                 }
             }
 
@@ -257,5 +281,19 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
         }
 
         return false;
+    }
+
+    protected function getCarriers()
+    {
+        $carriers = [];
+        // @todo add store based retrieval $this->shippingConfig->getAllCarriers($this->getShipment()->getStoreId())
+        $carrierInstances = $this->shippingConfig->getAllCarriers();
+        $carriers['custom'] = __('Custom Value');
+        foreach ($carrierInstances as $code => $carrier) {
+            if ($carrier->isTrackingAvailable()) {
+                $carriers[$code] = $carrier->getConfigData('title');
+            }
+        }
+        return $carriers;
     }
 }

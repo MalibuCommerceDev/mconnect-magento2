@@ -132,23 +132,29 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
         do {
             $result = $this->navCustomer->export($page++, $lastUpdated);
             foreach ($result->customer as $data) {
-                $count++;
-                $import = $this->importCustomer($data);
+                $importResult = $this->importCustomer($data);
+                if ($importResult) {
+                    $count++;
+                }
                 $this->messages .= PHP_EOL;
             }
             if (!$lastSync) {
                 $lastSync = $result->status->current_date_time;
             }
         } while (isset($result->status->end_of_records) && (string)$result->status->end_of_records === 'false');
-        $this->setLastSyncTime(Flag::FLAG_CODE_LAST_CUSTOMER_SYNC_TIME, $lastSync);
-        $this->messages .= PHP_EOL . 'Processed ' . $count . ' customer(s).';
+        if ($count > 0) {
+            $this->setLastSyncTime(Flag::FLAG_CODE_LAST_CUSTOMER_SYNC_TIME, $lastSync);
+            $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';
+        } else {
+            $this->messages .= PHP_EOL . 'Nothing to import.';
+        }
     }
 
     protected function importCustomer($data)
     {
         $email = (string)$data->cust_email;
         if (empty($email)) {
-            $this->messages .= 'Skipping NAV ID "' . $data->cust_nav_id . '", email empty' . PHP_EOL;
+            $this->messages .= 'Skipping NAV ID "' . $data->cust_nav_id . '": email is empty' . PHP_EOL;
 
             return false;
         }

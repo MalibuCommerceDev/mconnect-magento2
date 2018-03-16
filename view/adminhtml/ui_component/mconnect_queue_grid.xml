@@ -147,6 +147,18 @@
                 </item>
             </argument>
         </column>
+        <column name="scheduled_at" class="Magento\Ui\Component\Listing\Columns\Date">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">dateRange</item>
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/date</item>
+                    <item name="dataType" xsi:type="string">date</item>
+                    <item name="label" xsi:type="string" translate="true">Scheduled At</item>
+                    <item name="timezone" xsi:type="boolean">true</item>
+                    <item name="sortOrder" xsi:type="number">70</item>
+                </item>
+            </argument>
+        </column>
         <column name="finished_at" class="Magento\Ui\Component\Listing\Columns\Date">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -155,7 +167,7 @@
                     <item name="dataType" xsi:type="string">date</item>
                     <item name="label" xsi:type="string" translate="true">Synced At</item>
                     <item name="timezone" xsi:type="boolean">true</item>
-                    <item name="sortOrder" xsi:type="number">70</item>
+                    <item name="sortOrder" xsi:type="number">80</item>
                 </item>
             </argument>
         </column>
@@ -164,7 +176,7 @@
                 <item name="config" xsi:type="array">
                     <item name="label" xsi:type="string" translate="true">Duration</item>
                     <item name="dataType" xsi:type="string">text</item>
-                    <item name="sortOrder" xsi:type="number">80</item>
+                    <item name="sortOrder" xsi:type="number">90</item>
                 </item>
             </argument>
         </column>
@@ -175,7 +187,7 @@
                     <item name="label" xsi:type="string" translate="true">Messages</item>
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                     <item name="dataType" xsi:type="string">text</item>
-                    <item name="sortOrder" xsi:type="number">90</item>
+                    <item name="sortOrder" xsi:type="number">100</item>
                 </item>
             </argument>
         </column>
@@ -186,7 +198,7 @@
                     <item name="label" xsi:type="string" translate="true">Log</item>
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                     <item name="dataType" xsi:type="string">text</item>
-                    <item name="sortOrder" xsi:type="number">100</item>
+                    <item name="sortOrder" xsi:type="number">110</item>
                 </item>
             </argument>
         </column>
@@ -198,7 +210,7 @@
                     <item name="label" xsi:type="string" translate="true">Status</item>
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                     <item name="dataType" xsi:type="string">select</item>
-                    <item name="sortOrder" xsi:type="number">110</item>
+                    <item name="sortOrder" xsi:type="number">120</item>
                 </item>
             </argument>
         </column>

@@ -9,15 +9,22 @@ class SalesOrderAfterPlaceObserver implements \Magento\Framework\Event\ObserverI
     protected $queue;
 
     /**
+     * @var \MalibuCommerce\MConnect\Model\Config
+     */
+    protected $config;
+
+    /**
      * @var \Psr\Log\LoggerInterface
      */
     protected $logger;
 
     public function __construct(
         \MalibuCommerce\MConnect\Model\QueueFactory $queue,
+        \MalibuCommerce\MConnect\Model\Config $config,
         \Psr\Log\LoggerInterface $logger
     ) {
         $this->queue = $queue;
+        $this->config = $config;
         $this->logger = $logger;
     }
 
@@ -40,7 +47,12 @@ class SalesOrderAfterPlaceObserver implements \Magento\Framework\Event\ObserverI
     protected function queue($code, $action, $id = null, $details = array())
     {
         try {
-            return $this->queue->create()->add($code, $action, $id, $details);
+            $scheduledAt = null;
+            if ($this->config->get('order/hold_new_orders_export')) {
+                $delayInMinutes =  $this->config->get('order/hold_new_orders_delay');
+                $scheduledAt = date('Y-m-d H:i:s', strtotime('+' . (int)$delayInMinutes . ' minutes'));
+            }
+            return $this->queue->create()->add($code, $action, $id, $details, $scheduledAt);
         } catch (\Exception $e) {
             $this->logger->critical($e);
         }

@@ -26,6 +26,7 @@ class Status extends \Magento\Ui\Component\Listing\Columns\Column
                              .' color: white;'
                              .' font-size: 10px;'
                              .' width: 100%;'
+                             .' padding: 1px 2px;'
                              .' display: block;'
                              .' text-align: center;'
                              .' border-radius: 10px;';

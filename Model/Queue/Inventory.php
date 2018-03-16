@@ -70,7 +70,6 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
             try {
                 $result = $this->navInventory->export($page++, $lastUpdated);
                 foreach ($result->item_inventory as $data) {
-                    $count++;
                     $importResult = $this->updateInventory($data);
                     if ($importResult) {
                         $count++;
@@ -87,8 +86,12 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
                 $this->messages .= $e->getMessage();
             }
         } while ($result && isset($result->status->end_of_records) && (string)$result->status->end_of_records === 'false');
-        $this->setLastSyncTime(Flag::FLAG_CODE_LAST_INVENTORY_SYNC_TIME, $lastSync);
-        $this->messages .= PHP_EOL . 'Processed ' . $count . ' inventory(ies).';
+        if ($count > 0) {
+            $this->setLastSyncTime(Flag::FLAG_CODE_LAST_INVENTORY_SYNC_TIME, $lastSync);
+            $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';
+        } else {
+            $this->messages .= PHP_EOL . 'Nothing to import.';
+        }
     }
 
     public function updateInventory($data)

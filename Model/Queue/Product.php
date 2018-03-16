@@ -109,8 +109,12 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
                 $this->messages .= $e->getMessage() . PHP_EOL;
             }
         } while ($result && isset($result->status->end_of_records) && (string) $result->status->end_of_records === 'false');
-        $this->setLastSyncTime(Flag::FLAG_CODE_LAST_PRODUCT_SYNC_TIME, $lastSync);
-        $this->messages .= PHP_EOL . 'Processed ' . $count . ' products(s).';
+        if ($count > 0) {
+            $this->setLastSyncTime(Flag::FLAG_CODE_LAST_PRODUCT_SYNC_TIME, $lastSync);
+            $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';
+        } else {
+            $this->messages .= PHP_EOL . 'Nothing to import.';
+        }
     }
 
     public function importSingleAction()
@@ -132,13 +136,14 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
     public function addProduct($data)
     {
         if (empty($data->item_nav_id)) {
-            $this->messages .= 'No valid NAV ID found in response XML' . "\n";
+            $this->messages .= 'No valid NAV ID found in response XML' . PHP_EOL;
             return false;
         }
         $sku = trim($data->item_nav_id);
 
         $productExists = false;
         try {
+            /** @var \Magento\Catalog\Api\Data\ProductInterface $product */
             $product = $this->productRepository->get($sku, true, null, true);
             $productExists = true;
         } catch (NoSuchEntityException $e) {
@@ -169,22 +174,26 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
                     'qty'                     => $data->item_qty_on_hand,
                     'is_in_stock'             => (int)(bool) $data->item_qty_on_hand
                 ));
-        }
 
-        if (!empty($data->item_meta_title)) {
-            $product->setMetaTitle((string) $data->item_meta_title);
-        }
+            if (!empty($data->item_meta_title)) {
+                $product->setMetaTitle((string) $data->item_meta_title);
+            }
 
-        if (!empty($data->item_meta_desc)) {
-            $product->setMetaDescription((string) $data->item_meta_desc);
+            if (!empty($data->item_meta_desc)) {
+                $product->setMetaDescription((string) $data->item_meta_desc);
+            }
+
+            if (!empty($data->item_desc)) {
+                $product->setDescription((string) $data->item_desc);
+            }
+
+            if (!empty($data->item_name)) {
+                $product->setName((string) $data->item_name);
+            }
         }
 
         if (!empty($data->item_net_weight)) {
             $product->setWeight(number_format((float) $data->item_net_weight, 4, '.', ''));
-        }
-
-        if (!empty($data->item_desc)) {
-            $product->setDescription((string) $data->item_desc);
         }
 
         $status = $data->item_blocked == 'true'
@@ -221,7 +230,6 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
 
         $product
             ->setOptions([])
-            ->setName((string) $data->item_name)
             ->setPrice(number_format((float) $data->item_unit_price, 4, '.', ''))
             ->setStatus((string) $status);
 

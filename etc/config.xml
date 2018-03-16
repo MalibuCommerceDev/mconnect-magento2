@@ -37,6 +37,11 @@
                 <cron_expr>*/10 * * * *</cron_expr>
                 <max_rows>50</max_rows>
             </inventory>
+            <order>
+                <hold_new_orders_export>0</hold_new_orders_export>
+                <hold_new_orders_delay>60</hold_new_orders_delay>
+                <order_status_when_synced_to_nav>nav_preparing_for_shipment</order_status_when_synced_to_nav>
+            </order>
             <invoice>
                 <cron_expr>*/10 * * * *</cron_expr>
                 <max_rows>50</max_rows>

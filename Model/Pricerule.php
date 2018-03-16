@@ -1,37 +1,41 @@
 <?php
-namespace MalibuCommerce\MConnect\Model;
 
+namespace MalibuCommerce\MConnect\Model;
 
 class Pricerule extends \Magento\Framework\Model\AbstractModel
 {
+    protected $matchedPrices = [];
+
     public function _construct()
     {
         $this->_init('MalibuCommerce\MConnect\Model\Resource\Pricerule');
     }
 
     /**
-     * @param \Magento\Catalog\Model\Product $product
+     * Match and retrieve discount price by specified product and QTY
+     *
+     * @param \Magento\Catalog\Model\Product|string $product
      * @param int $qty
      *
-     * @return Pricerule
+     * @return string|bool
      */
-    public function loadByApplicable($product, $qty)
+    public function matchDiscountPrice($product, $qty)
     {
+        $sku = $product;
         if ($product instanceof \Magento\Catalog\Model\Product) {
             $sku = $product->getSku();
-        } else {
-            $sku = $product;
         }
         $qty = max(1, $qty);
-        /** @var \MalibuCommerce\MConnect\Model\Resource\Pricerule\Collection $collection */
-        $collection = $this->getResourceCollection();
-        $collection->applyAllFilters($sku, $qty);
-        $ruleIds = $collection->getAllIds();
-        if (is_array($ruleIds) && sizeof($ruleIds) > 0) {
-            $id = current($ruleIds);
-            $this->load($id);
+
+        $cacheId = md5($sku . $qty);
+        if (array_key_exists($cacheId, $this->matchedPrices)) {
+            return $this->matchedPrices[$cacheId];
         }
 
-        return $this;
+        /** @var \MalibuCommerce\MConnect\Model\Resource\Pricerule\Collection $collection */
+        $collection = $this->getResourceCollection();
+        $this->matchedPrices[$cacheId] = $collection->matchDiscountPrice($sku, $qty);
+
+        return $this->matchedPrices[$cacheId];
     }
 }

@@ -157,6 +157,29 @@
                 </field>
             </group>
 
+            <group id="order" type="text" sortOrder="75" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <label>Order</label>
+                <field id="hold_new_orders_export" sortOrder="10" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Hold New Orders Export</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="hold_new_orders_delay" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>New Orders Sync Delay</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <comment><![CDATA[In minutes]]></comment>
+                    <depends>
+                        <field id="hold_new_orders_export">1</field>
+                    </depends>
+                </field>
+                <field id="order_status_when_synced_to_nav" sortOrder="30" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Order Status When Synced to NAV</label>
+                    <source_model>Magento\Sales\Model\Config\Source\Order\Status\Newprocessing</source_model>
+                    <depends>
+                        <field id="hold_new_orders_export">1</field>
+                    </depends>
+                </field>
+            </group>
+
             <group id="invoice" type="text" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Invoice</label>
                 <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">

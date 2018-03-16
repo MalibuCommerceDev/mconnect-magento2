@@ -56,9 +56,11 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue
         do {
             $result = $this->navPriceRule->export($page++, $lastUpdated);
             foreach ($result->sales_price as $data) {
-                $count++;
                 try {
-                    $import = $this->importPriceRule($data);
+                    $importResult = $this->importPriceRule($data);
+                    if ($importResult) {
+                        $count++;
+                    }
                 } catch (\Exception $e) {
                     $this->messages .= $e->getMessage();
                 }
@@ -68,8 +70,12 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue
                 $lastSync = $result->status->current_date_time;
             }
         } while ($this->hasRecords($result));
-        $this->setLastSyncTime(Flag::FLAG_CODE_LAST_PRICERULE_SYNC_TIME, $lastSync);
-        $this->messages .= PHP_EOL . 'Processed ' . $count . ' price rule(s).';
+        if ($count > 0) {
+            $this->setLastSyncTime(Flag::FLAG_CODE_LAST_PRICERULE_SYNC_TIME, $lastSync);
+            $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';
+        } else {
+            $this->messages .= PHP_EOL . 'Nothing to import.';
+        }
     }
 
     protected function importPriceRule(\SimpleXMLElement $entity)
@@ -94,5 +100,7 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue
             $this->messages .= $e->getMessage();
         }
         $this->rule->unsetData();
+
+        return true;
     }
 }

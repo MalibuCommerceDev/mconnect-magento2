@@ -63,20 +63,22 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         $this->_init('MalibuCommerce\MConnect\Model\Resource\Queue');
     }
 
-    public function add($code, $action, $id = null, $details = array())
+    public function add($code, $action, $id = null, $details = array(), $scheduledAt = null)
     {
         if (!$this->getConfig()->getFlag('general/enabled')) {
             return $this;
         }
         $this->unsetData();
         $id      = $id ? $id : null;
+        $scheduledAt = $scheduledAt ?? date('Y-m-d H:i:s');
         $details = is_array($details) ? (count($details) ? json_encode($details) : null) : $details;
         $count   = $this->getCollection()->findMatchingPending($code, $action, $id, $details)->getSize();
         if (!$count) {
             $this->setCode($code)
                 ->setAction($action)
                 ->setEntityId($id)
-                ->setDetails($details) 
+                ->setDetails($details)
+                ->setScheduledAt($scheduledAt)
                 ->setCreatedAt(date('Y-m-d H:i:s'))
                 ->setStatus(self::STATUS_PENDING)
                 ->save();

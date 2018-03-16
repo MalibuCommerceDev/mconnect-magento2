@@ -8,7 +8,7 @@ class Sync extends Queue
     {
         /** @var \Magento\Framework\Controller\Result\Redirect $resultRedirect */
         $resultRedirect = $this->resultRedirectFactory->create();
-        $result = $this->mConnectCronQueue->process();
+        $result = $this->mConnectCronQueue->process(true);
         $this->messageManager->addSuccessMessage(__($result));
 
         return $resultRedirect->setPath('*/*/');

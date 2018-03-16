@@ -55,6 +55,10 @@ class UpgradeData implements UpgradeDataInterface
             $this->upgrade1_1_17($setup, $context);
         }
 
+        if (version_compare($context->getVersion(), '1.1.19', '<')) {
+            $this->upgrade1_1_19($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -273,5 +277,14 @@ class UpgradeData implements UpgradeDataInterface
             $attribute->setData('used_in_forms', ['adminhtml_customer']);
             $attribute->save();
         }
+    }
+
+    protected function upgrade1_1_19(ModuleDataSetupInterface $setup)
+    {
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        /** @var \Magento\Sales\Model\Order\Status $status */
+        $status = $objectManager->get(\Magento\Sales\Model\Order\Status::class);
+        $status->setData('status', 'nav_preparing_for_shipment')->setData('label', 'Preparing for Shipment')->save();
+        $status->assignState(\Magento\Sales\Model\Order::STATE_NEW, false, true);
     }
 }

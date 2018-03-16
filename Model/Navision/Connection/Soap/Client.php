@@ -42,8 +42,11 @@ class Client extends SoapClient
             $response = curl_exec($ch);
         } catch (\Exception $e) {
             curl_close($ch);
+            if ($mConnectConfig->get('navision/log')) {
+                $this->logRequest($request, $location, $action, 500, null, 'Error: ' . $e->getMessage());
+            }
             $mConnectHelper->sendErrorEmail(array(
-                'title'    => 'An unknown error occured when connecting to Navision.',
+                'title'    => 'An unknown error occurred when connecting to Navision.',
                 'body'     => 'Action: ' . $action,
                 'response' => $e->getMessage(),
             ));

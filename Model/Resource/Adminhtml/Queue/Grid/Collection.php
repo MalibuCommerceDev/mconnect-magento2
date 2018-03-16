@@ -43,9 +43,9 @@ class Collection extends \Magento\Framework\View\Element\UiComponent\DataProvide
         parent::_initSelect();
 
         $this->getSelect()
-            ->columns(array(
-                    'duration' => 'IF(main_table.finished_at, TIME_TO_SEC(TIMEDIFF(main_table.finished_at, main_table.started_at)), "")')
-            );
+            ->columns([
+                'duration' => 'IF(main_table.finished_at, TIME_TO_SEC(TIMEDIFF(main_table.finished_at, main_table.started_at)), "")'
+            ]);
 
         return $this;
     }
