@@ -20,6 +20,10 @@ class Duration extends \Magento\Ui\Component\Listing\Columns\Column
             foreach ($dataSource['data']['items'] as & $item) {
                 if (!empty($item['duration'])) {
                     $item['duration'] = sprintf('%02dm:%02ds', floor($item['duration'] / 60), $item['duration'] % 60);
+                } else if (empty($item['finished_at'])) {
+                    $item['duration'] = 'N/A';
+                } else {
+                    $item['duration'] = '< 1s';
                 }
             }
         }

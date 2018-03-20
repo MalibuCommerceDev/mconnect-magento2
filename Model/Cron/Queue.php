@@ -60,7 +60,7 @@ class Queue
             ->where('q1.status = ?', QueueModel::STATUS_PENDING)
             ->where('q2.id IS NULL');
 
-        if (!$forceSyncNow) {
+        if (!$forceSyncNow || ($forceSyncNow instanceof \Magento\Cron\Model\Schedule)) {
             $queues->getSelect()->where('q1.scheduled_at <= ?', $this->date->gmtDate());
         }
 
