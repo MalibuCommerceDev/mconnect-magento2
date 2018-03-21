@@ -1,0 +1,133 @@
+<?php
+/** @see \MalibuCommerce\MConnect\Block\Navision\OrderHistory */
+$_orders = $this->getOrders();
+?>
+<form action="" method="get" id="mconnect-order-list" class="scaffold-form">
+    <table><tr><td>
+        <fieldset class="fieldset">
+            <div class="field date-from">
+                <label for="date_from"><?php echo __('Start Date') ?></label>
+                <div class="input-box">
+                    <input type="text" id="date_from" name="date_from" title="<?php echo __('Start Date') ?>" class="input-text validate-date" value="<?php echo $this->getFieldValue('date_from') ?>" style="width: 250px;" />
+                    <script type="text/javascript">
+                        require([
+                            "jquery",
+                            "mage/mage",
+                            "mage/calendar"
+                        ], function ($) {
+                            $("#date_from").calendar({
+                                showsTime: false,
+                                dateFormat: "yy-M-dd",
+                                buttonImage: "/pub/static/frontend/Sm/market/en_US/Magento_Theme/calendar.png",
+                                yearRange: "-120y:c+nn",
+                                buttonText: "Select Date",
+                                changeMonth: true,
+                                changeYear: true,
+                                showOn: "both"
+                            })
+                        });
+                    </script>
+                </div>
+            </div>
+            <div class="field po_number-from">
+                <label for="po_number_from"><?php echo __('Start PO Number') ?></label>
+                <div class="input-box">
+                    <input type="text" id="po_number_from" name="po_number_from" title="<?php echo __('Start PO Number') ?>" class="input-text" value="<?php echo $this->getFieldValue('po_number_from') ?>" />
+                </div>
+            </div>
+            <div class="field order_number-from">
+                <label for="order_number_from"><?php echo __('Start Order Number') ?></label>
+                <div class="input-box">
+                    <input type="text" id="order_number_from" name="order_number_from" title="<?php echo __('Start Order Number') ?>" class="input-text" value="<?php echo $this->getFieldValue('order_number_from') ?>" />
+                </div>
+            </div>
+        </fieldset>
+    </td>
+    <td>
+        <fieldset class="fieldset">
+            <div class="field date-to">
+                <label for="date_to"><?php echo __('End Date') ?></label>
+                <div class="input-box">
+                    <input type="text" id="date_to" name="date_to" title="<?php echo __('End Date') ?>" class="input-text validate-date" value="<?php echo $this->getFieldValue('date_to') ?>" style="width: 250px;" />
+                    <script type="text/javascript">
+                        require([
+                            "jquery",
+                            "mage/mage",
+                            "mage/calendar"
+                        ], function ($) {
+                            $("#date_to").calendar({
+                                showsTime: false,
+                                dateFormat: "yy-M-dd",
+                                buttonImage: "/pub/static/frontend/Sm/market/en_US/Magento_Theme/calendar.png",
+                                yearRange: "-120y:c+nn",
+                                buttonText: "Select Date",
+                                changeMonth: true,
+                                changeYear: true,
+                                showOn: "both"
+                            })
+                        });
+                    </script>
+                </div>
+            </div>
+            <div class="field po_number-to">
+                <label for="po_number_to"><?php echo __('End PO Number') ?></label>
+                <div class="input-box">
+                    <input type="text" id="po_number_to" name="po_number_to" title="<?php echo __('End PO Number') ?>" class="input-text" value="<?php echo $this->getFieldValue('po_number_to') ?>" />
+                </div>
+            </div>
+            <div class="field order_number-to">
+                <label for="order_number_to"><?php echo __('End Order Number') ?></label>
+                <div class="input-box">
+                    <input type="text" id="order_number_to" name="order_number_to" title="<?php echo __('End Order Number') ?>" class="input-text" value="<?php echo $this->getFieldValue('order_number_to') ?>" />
+                </div>
+            </div>
+        </fieldset>
+    </td></tr></table>
+    <div class="buttons-set">
+        <button type="submit" name="search" value="1" title="<?php echo __('Search') ?>" class="button"><span><span><?php echo __('Search') ?></span></span></button>
+    </div>
+</form>
+<?php if ($_orders && count($_orders)): ?>
+    <table class="data-table" id="mconnect-orders" >
+        <thead>
+        <tr>
+            <th><?php echo __('Order #') ?></th>
+            <th><?php echo __('PO Number') ?></th>
+            <th><?php echo __('Order Date') ?></th>
+            <th><?php echo __('Order Amount') ?></th>
+            <th><?php echo __('Ship To') ?></th>
+            <th><?php echo __('Ship To Address') ?></th>
+            <th>&nbsp;</th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($_orders as $_order): ?>
+            <?php $orderAmount = $this->helper('Magento\Framework\Pricing\Helper\Data')->currency($_order->getOrderAmt(), true, false); ?>
+                <tr>
+                <td><?php echo $_order->getOrderNumber() ?></td>
+                <td><?php echo $_order->getPoNumber() ?></td>
+                <td><?php echo date("D, j M, Y", strtotime($_order->getOrderDate())) ?></td>
+                <td><?php echo $orderAmount; ?></td>
+                <td><?php echo $_order->getShipToName() ?></td>
+                <td><?php echo $_order->getShipToAddress() ?></td>
+                <td><a target="_blank" href="<?php echo $this->getUrl('*/*/orderview', array('number' => $_order->getOrderNumber())) ?>"><?php echo __('View') ?></a></td>
+            </tr>
+        <?php endforeach ?>
+        </tbody>
+    </table>
+<?php endif?>
+<script>
+    var orderListForm = new VarienForm('mconnect-order-list');
+    Calendar.setup({
+        inputField: 'date_from',
+        ifFormat: '%Y-%m-%d',
+        align: 'Bl',
+        singleClick: true
+    });
+    Calendar.setup({
+        inputField: 'date_to',
+        ifFormat: '%Y-%m-%d',
+        align: 'Bl',
+        singleClick: true
+    });
+</script>

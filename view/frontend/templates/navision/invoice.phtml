@@ -1,0 +1,144 @@
+<?php
+$_invoices = $this->getInvoices();
+$_dob = $block->getLayout()->createBlock('Magento\Customer\Block\Widget\Dob');
+?>
+<form action="" method="get" id="mconnect-customer-invoice-list" class="scaffold-form">
+    <table><tr><td>
+            <fieldset class="fieldset">
+                <div class="field date-from">
+                    <label for="date_from"><?php echo __('Start Date') ?></label>
+                    <div class="input-box">
+                        <input type="text" id="date_from" name="date_from" title="<?php echo __('Start Date') ?>" class="input-text validate-date" value="<?php echo $this->getFieldValue('date_from') ?>" style="width: 250px;" />
+                        <script type="text/javascript">
+                            require([
+                                "jquery",
+                                "mage/mage",
+                                "mage/calendar"
+                            ], function ($) {
+                                $("#date_from").calendar({
+                                    showsTime: false,
+                                    dateFormat: "yy-M-dd",
+                                    buttonImage: "/pub/static/frontend/Sm/market/en_US/Magento_Theme/calendar.png",
+                                    yearRange: "-120y:c+nn",
+                                    buttonText: "Select Date",
+                                    changeMonth: true,
+                                    changeYear: true,
+                                    showOn: "both"
+                                })
+                            });
+                        </script>
+                    </div>
+                </div>
+                <div class="field po_number-from">
+                    <label for="po_number_from"><?php echo __('Start PO Number') ?></label>
+                    <div class="input-box">
+                        <input type="text" id="po_number_from" name="po_number_from" title="<?php echo __('Start PO Number') ?>" class="input-text" value="<?php echo $this->getFieldValue('po_number_from') ?>" />
+                    </div>
+                </div>
+                <div class="field invoice_number-from">
+                    <label for="invoice_number_from"><?php echo __('Start Invoice Number') ?></label>
+                    <div class="input-box">
+                        <input type="text" id="invoice_number_from" name="invoice_number_from" title="<?php echo __('Start Invoice Number') ?>" class="input-text" value="<?php echo $this->getFieldValue('invoice_number_from') ?>" />
+                    </div>
+                </div>
+            </fieldset>
+        </td>
+        <td>
+            <fieldset class="fieldset">
+            <div class="field date-to">
+                <label for="date_to"><?php echo __('End Date') ?></label>
+                <div class="input-box">
+                    <input type="text" id="date_to" name="date_to" title="<?php echo __('End Date') ?>" class="input-text validate-date" value="<?php echo $this->getFieldValue('date_to') ?>" style="width: 250px;" />
+                    <script type="text/javascript">
+                        require([
+                            "jquery",
+                            "mage/mage",
+                            "mage/calendar"
+                        ], function ($) {
+                            $("#date_to").calendar({
+                                showsTime: false,
+                                dateFormat: "yy-M-dd",
+                                buttonImage: "/pub/static/frontend/Sm/market/en_US/Magento_Theme/calendar.png",
+                                yearRange: "-120y:c+nn",
+                                buttonText: "Select Date",
+                                changeMonth: true,
+                                changeYear: true,
+                                showOn: "both"
+                            })
+                        });
+                    </script>
+                </div>
+            </div>
+            <div class="field po_number-to">
+                <label for="po_number_to"><?php echo __('End PO Number') ?></label>
+                <div class="input-box">
+                    <input type="text" id="po_number_to" name="po_number_to" title="<?php echo __('End PO Number') ?>" class="input-text" value="<?php echo $this->getFieldValue('po_number_to') ?>" />
+                </div>
+            </div>
+            <div class="field invoice_number-to">
+                <label for="invoice_number_to"><?php echo __('End Invoice Number') ?></label>
+                <div class="input-box">
+                    <input type="text" id="invoice_number_to" name="invoice_number_to" title="<?php echo __('End Invoice Number') ?>" class="input-text" value="<?php echo $this->getFieldValue('invoice_number_to') ?>" />
+                </div>
+            </div>
+        </fieldset>
+        </td></tr></table>
+    <div class="buttons-set">
+        <button type="submit" name="search" value="1" title="<?php echo __('Search') ?>" class="button"><span><span><?php echo __('Search') ?></span></span></button>
+    </div>
+</form>
+<?php if ($_invoices && count($_invoices)): ?>
+    <table class="data-table" id="mconnect-customer-invoices" >
+        <thead>
+        <tr>
+            <th><?php echo __('Number') ?></th>
+            <th><?php echo __('PO Number') ?></th>
+            <th><?php echo __('Order Number') ?></th>
+            <th><?php echo __('Date') ?></th>
+            <th><?php echo __('Original Amount') ?></th>
+            <th><?php echo __('Remaining Amount') ?></th>
+            <th>&nbsp;</th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($_invoices as $_invoice): ?>
+            <?php $originalAmount = $this->helper('Magento\Framework\Pricing\Helper\Data')->currency($_invoice->getOriginalAmt(), true, false); ?>
+            <?php $remainingAmount = $this->helper('Magento\Framework\Pricing\Helper\Data')->currency($_invoice->getRemainingAmt(), true, false); ?>
+            <tr>
+                <td><?php echo $_invoice->getInvoiceNumber() ?></td>
+                <td><?php echo $_invoice->getPoNumber() ?></td>
+                <td><?php echo $_invoice->getOrderNumber() ?></td>
+                <td><?php echo date("D, j M, Y", strtotime($_invoice->getPostingDate())) ?></td>
+                <td><?php echo $originalAmount ?></td>
+                <td><?php echo $remainingAmount ?></td>
+                <td><a target="_blank" href="<?php echo $this->getUrl('*/*/invoiceview', array('number' => $_invoice->getInvoiceNumber())) ?>"><?php echo __('View') ?></a></td>
+            </tr>
+        <?php endforeach ?>
+        </tbody>
+    </table>
+<?php endif?>
+<script>
+    require([
+        "jquery",
+        // "Amasty_Deliverydate/js/edit/date",
+        "mage/mage",
+        "mage/calendar"
+    ], function($, amdate){
+        var dataForm = $('#form-validate');
+        dataForm.mage('validation');
+        var amdateObj = amdate(<?php /* @escapeNotVerified */ echo $block->getAmastyCalendarJsonConfig()?>);
+        var config = <?php /* @escapeNotVerified */ echo $block->getCalendarJsonConfig()?>;
+        // config.beforeShowDay = amdateObj.restrictDates.bind(amdateObj);
+        $('#date_to').calendar({
+            showsTime: false,
+            dateFormat: "yy-M-d",
+            buttonImage: "/pub/static/frontend/Sm/market/en_US/Magento_Theme/calendar.png",
+            yearRange: "-120y:c+nn",
+            buttonText: "Select Date",
+            minDate: "+1d",
+            changeMonth: true,
+            changeYear: true,
+            showOn: "both"
+        });
+    });
+</script>
