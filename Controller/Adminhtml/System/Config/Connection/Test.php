@@ -53,12 +53,14 @@ class Test extends Action
                 CURLOPT_URL => $url,
                 CURLOPT_USERAGENT => 'PHP-SOAP-CURL',
                 CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_HTTPAUTH => CURLAUTH_NTLM,
                 CURLOPT_USERPWD => $username . ':' . $password,
                 CURLOPT_TIMEOUT => 60,
                 CURLOPT_HEADER => true,
                 CURLOPT_NOBODY => true,
             );
+            if ($this->mConnectConfig->getUseNtlmAuthentication()) {
+                $options[CURLOPT_HTTPAUTH] = CURLAUTH_NTLM;
+            }
             if ($this->mConnectConfig->getIsInsecureConnectionAllowed()) {
                 $options[CURLOPT_SSL_VERIFYHOST] = 0;
                 $options[CURLOPT_SSL_VERIFYPEER] = 0;

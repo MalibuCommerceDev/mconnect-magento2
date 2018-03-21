@@ -84,6 +84,12 @@ class Config
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store);
     }
 
+    public function getUseNtlmAuthentication($store = null)
+    {
+        return $this->scopeConfig->getValue(self::XML_PATH_CONFIG_SECTION . '/' . 'nav_connection/ntlm',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store);
+    }
+
     /**
      * Get decrypted trigger password
      *

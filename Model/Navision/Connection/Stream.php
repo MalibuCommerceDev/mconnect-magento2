@@ -104,7 +104,9 @@ class Stream
         }
 
         curl_setopt($this->_ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-        curl_setopt($this->_ch, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
+        if ($config->getUseNtlmAuthentication()) {
+            curl_setopt($this->_ch, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
+        }
         curl_setopt($this->_ch, CURLOPT_USERPWD, $config->getNavConnectionUsername() . ':' . $config->getNavConnectionPassword());
         $this->_stream = trim(curl_exec($this->_ch));
         $this->_pointer = 0;

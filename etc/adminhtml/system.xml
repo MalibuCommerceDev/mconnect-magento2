@@ -38,6 +38,10 @@
                     <label>Connection Timeout</label>
                     <comment><![CDATA[Connection Timeout to NAV server in seconds. If set to 0, default value will be used: 10 seconds]]></comment>
                 </field>
+                <field id="ntlm" sortOrder="35" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Use NTLM Authentication</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
                 <field id="url" sortOrder="40" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>NAV SOAP API URL</label>
                 </field>
