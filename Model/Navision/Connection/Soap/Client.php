@@ -44,7 +44,7 @@ class Client extends SoapClient
             $response = curl_exec($ch);
         } catch (\Exception $e) {
             curl_close($ch);
-            if ($mConnectConfig->get('navision/log')) {
+            if ($mConnectConfig->get('nav_connection/log')) {
                 $this->logRequest($request, $location, $action, 500, null, 'Error: ' . $e->getMessage());
             }
             $mConnectHelper->sendErrorEmail(array(
@@ -59,7 +59,7 @@ class Client extends SoapClient
         $header = substr($response, 0, $headerSize);
         $body = trim(substr($response, $headerSize));
         curl_close($ch);
-        if ($mConnectConfig->get('navision/log')) {
+        if ($mConnectConfig->get('nav_connection/log')) {
             $this->logRequest($request, $location, $action, $code, $header, $body);
         }
 

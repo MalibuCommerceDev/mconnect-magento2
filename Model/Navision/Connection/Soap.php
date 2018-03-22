@@ -57,7 +57,7 @@ class Soap
         try {
             $result = call_user_func_array(array($this->_client, $method), $arguments);
         } catch (SoapFault $e) {
-            if ($this->mConnectConfig->get('navision/log')) {
+            if ($this->mConnectConfig->get('nav_connection/log')) {
                 $this->_client->logRequest($arguments, null, $method, null, null, $e->getMessage());
             }
             $this->mConnectHelper->sendErrorEmail(array(

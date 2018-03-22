@@ -56,7 +56,7 @@ class Config
 
     public function getErrorRecipients()
     {
-        return array_map('trim', explode(',', $this->get('navision/error_recipient')));
+        return array_map('trim', explode(',', $this->get('nav_connection/error_recipient')));
     }
 
     public function getNavConnectionId($store = null)
