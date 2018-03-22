@@ -18,25 +18,19 @@ class OrderHistory extends \Magento\Customer\Block\Account\Dashboard
     protected $_template = 'navision/orders.phtml';
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Queue
-     */
-    protected $queue;
-
-    /**
      * @var \MalibuCommerce\MConnect\Model\Navision\Order\History
      */
-    protected $orderHistory;
+    protected $navOrderHistory;
 
     /**
      * Constructor
-     *\MalibuCommerce\MConnect\Model\Queue $queue
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Customer\Model\Session $customerSession
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Newsletter\Model\SubscriberFactory $subscriberFactory
      * @param CustomerRepositoryInterface $customerRepository
      * @param AccountManagementInterface $customerAccountManagement
-     * @param \MalibuCommerce\MConnect\Model\Queue
+     * @param \MalibuCommerce\MConnect\Model\Navision\Order\History $navOrderHistory
      * @param array $data
      */
     public function __construct(
@@ -46,7 +40,7 @@ class OrderHistory extends \Magento\Customer\Block\Account\Dashboard
         \Magento\Newsletter\Model\SubscriberFactory $subscriberFactory,
         CustomerRepositoryInterface $customerRepository,
         AccountManagementInterface $customerAccountManagement,
-        \MalibuCommerce\MConnect\Model\Queue $queue,
+        \MalibuCommerce\MConnect\Model\Navision\Order\History $navOrderHistory,
         array $data = []
     ) {
         $this->customerSession = $customerSession;
@@ -54,7 +48,7 @@ class OrderHistory extends \Magento\Customer\Block\Account\Dashboard
         $this->subscriberFactory = $subscriberFactory;
         $this->customerRepository = $customerRepository;
         $this->customerAccountManagement = $customerAccountManagement;
-        $this->queue = $queue;
+        $this->navOrderHistory = $navOrderHistory;
 
         parent::__construct($context, $customerSession, $subscriberFactory, $customerRepository, $customerAccountManagement, $data);
     }
@@ -69,8 +63,7 @@ class OrderHistory extends \Magento\Customer\Block\Account\Dashboard
         $data = $this->getData('mconnect-order-list');
         if ($data === null) {
             $formData = $this->customerSession->getCustomerFormData(true);
-            $data = [];        $this->_logger->critical("entities: ".print_r($entities, 1));
-
+            $data = [];
             if ($formData) {
                 $data['data'] = $formData;
                 $data['customer_data'] = 1;
@@ -118,13 +111,7 @@ class OrderHistory extends \Magento\Customer\Block\Account\Dashboard
                         $details[$key] = $value;
                     }
                 }
-                $this->queue->setData(array(
-                    'code' => 'order_history',
-                    'action' => 'list',
-                    'details' => json_encode($details),
-                ))
-                    ->process();
-                $entities = $this->registry->registry('MALIBUCOMMERCE_MCONNET_ORDER_HISTORY_ENTITIES');
+                $entities = $this->navOrderHistory->get($details);
             } catch (\Exception $e) {
                 $this->_logger->critical($e->getMessage());
                 return false;

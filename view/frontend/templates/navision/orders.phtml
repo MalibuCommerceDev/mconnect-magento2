@@ -1,6 +1,6 @@
 <?php
 /** @see \MalibuCommerce\MConnect\Block\Navision\OrderHistory */
-$_orders = $this->getOrders();
+$orders = $this->getOrders();
 ?>
 <form action="" method="get" id="mconnect-order-list" class="scaffold-form">
     <table><tr><td>
@@ -87,7 +87,7 @@ $_orders = $this->getOrders();
         <button type="submit" name="search" value="1" title="<?php echo __('Search') ?>" class="button"><span><span><?php echo __('Search') ?></span></span></button>
     </div>
 </form>
-<?php if ($_orders && count($_orders)): ?>
+<?php if ($orders && count($orders)): ?>
     <table class="data-table" id="mconnect-orders" >
         <thead>
         <tr>
@@ -101,16 +101,16 @@ $_orders = $this->getOrders();
         </tr>
         </thead>
         <tbody>
-        <?php foreach ($_orders as $_order): ?>
-            <?php $orderAmount = $this->helper('Magento\Framework\Pricing\Helper\Data')->currency($_order->getOrderAmt(), true, false); ?>
+        <?php foreach ($orders as $order): ?>
+            <?php $orderAmount = $this->helper('Magento\Framework\Pricing\Helper\Data')->currency($order->getOrderAmt(), true, false); ?>
                 <tr>
-                <td><?php echo $_order->getOrderNumber() ?></td>
-                <td><?php echo $_order->getPoNumber() ?></td>
-                <td><?php echo date("D, j M, Y", strtotime($_order->getOrderDate())) ?></td>
+                <td><?php echo $order->getOrderNumber() ?></td>
+                <td><?php echo $order->getPoNumber() ?></td>
+                <td><?php echo date("D, j M, Y", strtotime($order->getOrderDate())) ?></td>
                 <td><?php echo $orderAmount; ?></td>
-                <td><?php echo $_order->getShipToName() ?></td>
-                <td><?php echo $_order->getShipToAddress() ?></td>
-                <td><a target="_blank" href="<?php echo $this->getUrl('*/*/orderview', array('number' => $_order->getOrderNumber())) ?>"><?php echo __('View') ?></a></td>
+                <td><?php echo $order->getShipToName() ?></td>
+                <td><?php echo $order->getShipToAddress() ?></td>
+                <td><a target="_blank" href="<?php echo $this->getUrl('*/*/orderview', array('number' => $order->getOrderNumber())) ?>"><?php echo __('View') ?></a></td>
             </tr>
         <?php endforeach ?>
         </tbody>

@@ -3,9 +3,7 @@
     <update handle="customer_account"/>
     <body>
         <referenceContainer name="content">
-            <block class="MalibuCommerce\MConnect\Block\Navision\Statement" name="customer_navision_statement" cacheable="false">
-                <!--<container name="customer.newsletter.form.before" as="form_before" label="Newsletter Subscription Form Before" htmlTag="div" htmlClass="rewards"/>-->
-            </block>
+            <block class="MalibuCommerce\MConnect\Block\Navision\Statement" name="customer_navision_statement" cacheable="false" />
         </referenceContainer>
     </body>
 </page>

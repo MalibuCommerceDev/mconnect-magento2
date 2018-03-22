@@ -1,7 +1,4 @@
-<?php
-$_invoices = $this->getInvoices();
-$_dob = $block->getLayout()->createBlock('Magento\Customer\Block\Widget\Dob');
-?>
+<?php $_invoices = $this->getInvoices(); ?>
 <form action="" method="get" id="mconnect-customer-invoice-list" class="scaffold-form">
     <table><tr><td>
             <fieldset class="fieldset">
@@ -117,28 +114,3 @@ $_dob = $block->getLayout()->createBlock('Magento\Customer\Block\Widget\Dob');
         </tbody>
     </table>
 <?php endif?>
-<script>
-    require([
-        "jquery",
-        // "Amasty_Deliverydate/js/edit/date",
-        "mage/mage",
-        "mage/calendar"
-    ], function($, amdate){
-        var dataForm = $('#form-validate');
-        dataForm.mage('validation');
-        var amdateObj = amdate(<?php /* @escapeNotVerified */ echo $block->getAmastyCalendarJsonConfig()?>);
-        var config = <?php /* @escapeNotVerified */ echo $block->getCalendarJsonConfig()?>;
-        // config.beforeShowDay = amdateObj.restrictDates.bind(amdateObj);
-        $('#date_to').calendar({
-            showsTime: false,
-            dateFormat: "yy-M-d",
-            buttonImage: "/pub/static/frontend/Sm/market/en_US/Magento_Theme/calendar.png",
-            yearRange: "-120y:c+nn",
-            buttonText: "Select Date",
-            minDate: "+1d",
-            changeMonth: true,
-            changeYear: true,
-            showOn: "both"
-        });
-    });
-</script>

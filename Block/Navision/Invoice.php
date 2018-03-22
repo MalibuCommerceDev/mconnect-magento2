@@ -18,14 +18,9 @@ class Invoice extends \Magento\Customer\Block\Account\Dashboard
     protected $registry;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Queue
+     * @var \MalibuCommerce\MConnect\Model\Navision\Sales\Invoice
      */
-    protected $queue;
-
-    /**
-     * @var \MalibuCommerce\MConnect\Model\Navision\Order\History
-     */
-    protected $orderHistory;
+    protected $navSalesInvoice;
 
     /**
      * Constructor
@@ -36,7 +31,7 @@ class Invoice extends \Magento\Customer\Block\Account\Dashboard
      * @param \Magento\Newsletter\Model\SubscriberFactory $subscriberFactory
      * @param CustomerRepositoryInterface $customerRepository
      * @param AccountManagementInterface $customerAccountManagement
-     * @param \MalibuCommerce\MConnect\Model\Queue
+     * @param \MalibuCommerce\MConnect\Model\Navision\Sales\Invoice $navSalesInvoice
      * @param array $data
      */
     public function __construct(
@@ -46,7 +41,7 @@ class Invoice extends \Magento\Customer\Block\Account\Dashboard
         \Magento\Newsletter\Model\SubscriberFactory $subscriberFactory,
         CustomerRepositoryInterface $customerRepository,
         AccountManagementInterface $customerAccountManagement,
-        \MalibuCommerce\MConnect\Model\Queue $queue,
+        \MalibuCommerce\MConnect\Model\Navision\Sales\Invoice $navSalesInvoice,
         array $data = []
     ) {
         $this->customerSession = $customerSession;
@@ -54,7 +49,7 @@ class Invoice extends \Magento\Customer\Block\Account\Dashboard
         $this->subscriberFactory = $subscriberFactory;
         $this->customerRepository = $customerRepository;
         $this->customerAccountManagement = $customerAccountManagement;
-        $this->queue = $queue;
+        $this->navSalesInvoice = $navSalesInvoice;
 
         parent::__construct($context, $customerSession, $subscriberFactory, $customerRepository, $customerAccountManagement, $data);
     }
@@ -97,13 +92,7 @@ class Invoice extends \Magento\Customer\Block\Account\Dashboard
                         $details[$key] = $value;
                     }
                 }
-                $this->queue->setData(array(
-                    'code' => 'sales_invoice',
-                    'action' => 'list',
-                    'details' => json_encode($details),
-                ))
-                    ->process();
-                $entities = $this->registry->registry('MALIBUCOMMERCE_MCONNET_INVOICES');
+                $entities = $this->navSalesInvoice->get($details);
             } catch (\Exception $e) {
                 $this->_logger->critical($e->getMessage());
                 return false;

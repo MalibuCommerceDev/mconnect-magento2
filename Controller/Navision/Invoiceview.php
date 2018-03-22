@@ -19,22 +19,29 @@ class Invoiceview extends \MalibuCommerce\MConnect\Controller\Navision
      *
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Magento\Customer\Model\Session $customerSession
+     * @param \Magento\Framework\App\Response\Http $httpResponse
      * @param \MalibuCommerce\MConnect\Model\Queue $queue
      * @param \MalibuCommerce\MConnect\Model\Navision\Invoice\Pdf $invoicePdf
-     * @param \Magento\Framework\App\Response\Http\FileFactory $fileFactor
+     * @param \Magento\Framework\App\Response\Http\FileFactory $fileFactory
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Customer\Model\Session $customerSession,
+        \Magento\Framework\App\Response\Http $httpResponse,
         \MalibuCommerce\MConnect\Model\Queue $queue,
         \MalibuCommerce\MConnect\Model\Navision\Invoice\Pdf $invoicePdf,
-        \Magento\Framework\App\Response\Http\FileFactory $fileFactor
+        \Magento\Framework\App\Response\Http\FileFactory $fileFactory
     ) {
-        parent::__construct($context, $customerSession, $queue);
+        parent::__construct($context, $customerSession, $httpResponse, $queue);
         $this->invoicePdf = $invoicePdf;
-        $this->fileFactory = $fileFactor;
+        $this->fileFactory = $fileFactory;
     }
 
+    /**
+     * Generate and send PDF file wit Invoice
+     *
+     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface|void
+     */
     public function execute()
     {
         try {
@@ -46,7 +53,7 @@ class Invoiceview extends \MalibuCommerce\MConnect\Controller\Navision
             );
             if ($pdf) {
                 $this->fileFactory->create(
-                    $number . '.pdf',
+                    'invoice_'. $number .'.pdf',
                     $pdf,
                     \Magento\Framework\App\Filesystem\DirectoryList::MEDIA,
                     'application/pdf'
