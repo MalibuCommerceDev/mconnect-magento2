@@ -52,13 +52,7 @@ class Orderview extends \MalibuCommerce\MConnect\Controller\Navision
                 $customerNavId
             );
             if ($pdf) {
-                $this->fileFactory->create(
-                    'order_'. $number .'.pdf',
-                    $pdf,
-                    \Magento\Framework\App\Filesystem\DirectoryList::MEDIA,
-                    'application/pdf'
-                );
-                //$this->displayPdf($pdf, $number . '.pdf');
+                $this->displayPdf($pdf, $number . '.pdf');
             }
         } catch (\Exception $e) {
             echo $e->getMessage();

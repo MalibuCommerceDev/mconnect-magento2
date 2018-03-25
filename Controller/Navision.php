@@ -66,6 +66,7 @@ abstract class Navision extends \Magento\Framework\App\Action\Action
         $this->httpResponse->setHeader('Content-Type', 'application/x-pdf', true);
         $this->httpResponse->setHeader('Content-Length', strlen($content), true);
         $this->httpResponse->setHeader('Content-Disposition', "inline; filename= '{$fileName}'");
-        echo $content;
+        $this->httpResponse->setBody($content);
+//        echo $content;
     }
 }

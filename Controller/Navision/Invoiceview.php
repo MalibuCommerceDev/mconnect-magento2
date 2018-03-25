@@ -52,12 +52,7 @@ class Invoiceview extends \MalibuCommerce\MConnect\Controller\Navision
                 $customerNavId
             );
             if ($pdf) {
-                $this->fileFactory->create(
-                    'invoice_'. $number .'.pdf',
-                    $pdf,
-                    \Magento\Framework\App\Filesystem\DirectoryList::MEDIA,
-                    'application/pdf'
-                );
+                $this->displayPdf($pdf, 'invoice_'. $number . '.pdf');
             }
         } catch (\Exception $e) {
             echo $e->getMessage();

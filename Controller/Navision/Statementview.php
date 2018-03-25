@@ -54,12 +54,7 @@ class Statementview extends \MalibuCommerce\MConnect\Controller\Navision
                 $endDate
             );
             if ($pdf) {
-                $this->fileFactory->create(
-                    'statement_'.md5($customerNavId).'.pdf',
-                    $pdf,
-                    \Magento\Framework\App\Filesystem\DirectoryList::MEDIA,
-                    'application/pdf'
-                );
+                $this->displayPdf($pdf, 'statement.pdf');
             }
         } catch (\Exception $e) {
             echo $e->getMessage();
