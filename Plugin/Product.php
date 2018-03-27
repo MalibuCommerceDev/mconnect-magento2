@@ -39,9 +39,9 @@ class Product
     {
         $finalPrice = null;
         try {
-            $rule = $this->rule->loadByApplicable($product, $product->getQty());
-            if ($rule && $rule->getId() && (!$product->hasFinalPrice() || $rule->getPrice() < $product->getFinalPrice())) {
-                $finalPrice = min($product->getData('final_price'), $rule->getPrice());
+            $price = $this->rule->matchDiscountPrice($product, $product->getQty());
+            if ($price !== false && (!$product->hasFinalPrice() || $price < $product->getFinalPrice())) {
+                $finalPrice = min($product->getData('final_price'), $price);
             }
         } catch (\Exception $e) {
             $this->logger->critical($e);
