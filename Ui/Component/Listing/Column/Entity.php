@@ -12,64 +12,113 @@ class Entity extends \Magento\Ui\Component\Listing\Columns\Column
     protected $urlBuilder;
 
     /**
-     * @var \Magento\Customer\Model\Customer
+     * @var \Magento\Customer\Model\CustomerFactory
      */
-    protected $customerCustomer;
+    protected $customerFactory;
 
     /**
-     * @var \Magento\Catalog\Model\Product
+     * @var \Magento\Catalog\Model\ProductFactory
      */
-    protected $catalogProduct;
+    protected $catalogProductFactory;
 
     /**
-     * @var \Magento\Sales\Model\Order
+     * @var \Magento\Sales\Model\OrderFactory
      */
-    protected $salesOrder;
+    protected $salesOrderFactory;
 
+    protected $customers = [];
+    protected $products = [];
+    protected $orders = [];
+
+    /**
+     * Entity constructor
+     *
+     * @param \Magento\Framework\View\Element\UiComponent\ContextInterface $context
+     * @param \Magento\Framework\View\Element\UiComponentFactory           $uiComponentFactory
+     * @param \Magento\Framework\UrlInterface                              $urlBuilder
+     * @param \Magento\Customer\Model\CustomerFactory                      $customerFactory
+     * @param \Magento\Catalog\Model\ProductFactory                        $catalogProductFactory
+     * @param \Magento\Sales\Model\OrderFactory                            $salesOrderFactory
+     * @param array                                                        $components
+     * @param array                                                        $data
+     */
     public function __construct(
         \Magento\Framework\View\Element\UiComponent\ContextInterface $context,
         \Magento\Framework\View\Element\UiComponentFactory $uiComponentFactory,
         \Magento\Framework\UrlInterface $urlBuilder,
-        \Magento\Customer\Model\Customer $customerCustomer,
-        \Magento\Catalog\Model\Product $catalogProduct,
-        \Magento\Sales\Model\Order $salesOrder,
+        \Magento\Customer\Model\CustomerFactory $customerFactory,
+        \Magento\Catalog\Model\ProductFactory $catalogProductFactory,
+        \Magento\Sales\Model\OrderFactory $salesOrderFactory,
         array $components = [],
         array $data = []
     ) {
         $this->urlBuilder = $urlBuilder;
-        $this->customerCustomer = $customerCustomer;
-        $this->catalogProduct = $catalogProduct;
-        $this->salesOrder = $salesOrder;
+        $this->customerFactory = $customerFactory;
+        $this->catalogProductFactory = $catalogProductFactory;
+        $this->salesOrderFactory = $salesOrderFactory;
+
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
 
+    /**
+     * Decorate Entity grid column data
+     *
+     * @param array $dataSource
+     *
+     * @return array
+     */
     public function prepareDataSource(array $dataSource)
     {
-        if (isset($dataSource['data']['items'])) {
-            foreach ($dataSource['data']['items'] as & $item) {
-                if (!empty($item['entity_id'])) {
-                    $link = false;
-                    $title = false;
-                    if ($item['code'] === 'customer') {
-                        if ($item['action'] === 'export') {
-                            $link = $this->urlBuilder->getUrl('customer/index/edit', array('id' => $item['entity_id']));
-                            $title = $this->customerCustomer->load($item['entity_id'])->getEmail();
-                        }
-                    } else if ($item['code'] === 'product') {
-                        if ($item['action'] === 'import_single') {
-                            $link = $this->urlBuilder->getUrl('catalog/product/edit', array('id' => $item['entity_id']));
-                            $title = $this->catalogProduct->load($item['entity_id'])->getName();
-                        }
-                    } else if ($item['code'] === 'order') {
-                        if ($item['action'] === 'export') {
-                            $link = $this->urlBuilder->getUrl('sales/order/view', array('order_id' => $item['entity_id']));
-                            $title = '#' . $this->salesOrder->load($item['entity_id'])->getIncrementId();
-                        }
+        if (empty($dataSource['data']['items'])) {
+            return $dataSource;
+        }
+
+        foreach ($dataSource['data']['items'] as & $item) {
+            if (empty($item['entity_id'])) {
+                continue;
+            }
+
+            $link = false;
+            $title = false;
+            if ($item['code'] === 'customer') {
+                if ($item['action'] === 'export') {
+                    if (!array_key_exists($item['entity_id'], $this->customers)) {
+                        $this->customers[$item['entity_id']] = $this->customerFactory->create()->load($item['entity_id']);
                     }
-                    if ($link !== false) {
-                        $item['entity_id'] = sprintf('<a href="%s" target="_blank" title="%s">%s<a/>', $link, $title ? $title : $item['entity_id'], $title ? $title : $item['entity_id']);
+
+                    $entity = $this->customers[$item['entity_id']];
+                    if ($entity->getId()) {
+                        $link = $this->urlBuilder->getUrl('customer/index/edit', array('id' => $item['entity_id']));
+                        $title = $entity->getEmail();
                     }
                 }
+            } else if ($item['code'] === 'product') {
+                if ($item['action'] === 'import_single') {
+                    if (!array_key_exists($item['entity_id'], $this->products)) {
+                        $this->products[$item['entity_id']] = $this->catalogProductFactory->create()->load($item['entity_id']);
+                    }
+
+                    $entity = $this->products[$item['entity_id']];
+                    if ($entity->getId()) {
+                        $link = $this->urlBuilder->getUrl('catalog/product/edit', array('id' => $item['entity_id']));
+                        $title = $entity->getName();
+                    }
+                }
+            } else if ($item['code'] === 'order') {
+                if ($item['action'] === 'export') {
+                    if (!array_key_exists($item['entity_id'], $this->orders)) {
+                        $this->orders[$item['entity_id']] = $this->salesOrderFactory->create()->load($item['entity_id']);
+                    }
+
+                    $entity = $this->orders[$item['entity_id']];
+                    if ($entity->getId()) {
+                        $link = $this->urlBuilder->getUrl('sales/order/view', array('order_id' => $item['entity_id']));
+                        $title = '#' . $entity->getIncrementId();
+                    }
+                }
+            }
+            if ($link !== false) {
+                $item['entity_id'] = sprintf('<a href="%s" target="_blank" title="%s">%s<a/>', $link, $title ? $title : $item['entity_id'], $title ? $title : $item['entity_id']);
             }
         }
 
