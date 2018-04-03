@@ -65,23 +65,21 @@ class ProcessItemCommand extends Command
         $action = $input->getArgument(self::ARGUMENT_ACTION);
         $entityId = $input->getArgument(self::ARGUMENT_ENTITY_ID);
         $sync = $input->getOption(self::OPTION_SYNC);
-        $queue = $this->queue->add($code, $action, $entityId);
+        $queue = $this->queue->add($code, $action, $entityId, [], null, true);
         if (!$queue->getId()) {
-            $output->writeln('<error>Failed to add item to queue.  Perhaps it already exists?</error>');
+            $output->writeln('<error>Failed to add item to the queue</error>');
             return;
         }
-        $output->writeln(sprintf('Added item to queue. ID: %d', $queue->getId()));
+        $output->writeln(sprintf('Queue Item ID is "%d"', $queue->getId()));
         if ($sync) {
             $output->writeln('Syncing...');
             $queue->process();
             if ($queue->getStatus() === Queue::STATUS_SUCCESS) {
                 $output->writeln('Success');
             } else {
-                $output->writeln('<error>Failed</error>');
-            }
-            $message = $queue->getMessage();
-            if ($message) {
-                $output->writeln($message);
+                $message = 'Failed';
+                $message .= ': ' . $queue->getMessage();
+                $output->writeln('<error>' . $message . '</error>');
             }
         }
     }
