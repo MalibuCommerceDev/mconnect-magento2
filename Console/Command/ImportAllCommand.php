@@ -5,6 +5,8 @@ namespace MalibuCommerce\MConnect\Console\Command;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Magento\Config\Console\Command\EmulatedAdminhtmlAreaProcessor;
+use Magento\Framework\Console\Cli;
 
 class ImportAllCommand extends Command
 {
@@ -14,25 +16,34 @@ class ImportAllCommand extends Command
     protected $queue;
 
     /**
-     * @var \Magento\Framework\App\State
+     * Emulator adminhtml area for CLI command.
+     *
+     * @var EmulatedAdminhtmlAreaProcessor
      */
-    protected $appState;
+    protected $emulatedAreaProcessor;
 
     /**
      * @var \MalibuCommerce\MConnect\Model\Cron
      */
     protected $mconnectCron;
 
+    /**
+     * ImportAllCommand constructor
+     *
+     * @param \MalibuCommerce\MConnect\Model\Cron\Queue $queue
+     * @param EmulatedAdminhtmlAreaProcessor            $emulatedAreaProcessor
+     * @param \MalibuCommerce\MConnect\Model\Cron       $mconnectCron
+     */
     public function __construct(
         \MalibuCommerce\MConnect\Model\Cron\Queue $queue,
-        \Magento\Framework\App\State $appState,
+        EmulatedAdminhtmlAreaProcessor $emulatedAreaProcessor,
         \MalibuCommerce\MConnect\Model\Cron $mconnectCron
     ) {
-        parent::__construct();
         $this->queue = $queue;
-        $this->appState = $appState;
+        $this->emulatedAreaProcessor = $emulatedAreaProcessor;
         $this->mconnectCron = $mconnectCron;
-        $appState->setAreaCode('adminhtml');
+
+        parent::__construct();
     }
 
     protected function configure()
@@ -44,14 +55,26 @@ class ImportAllCommand extends Command
  
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->mconnectCron->queueCustomerImport();
-        $this->mconnectCron->queueProductImport();
-        $this->mconnectCron->queueInventoryImport();
-        $this->mconnectCron->queueInvoiceImport();
-        $this->mconnectCron->queueShipmentImport();
-        $this->mconnectCron->queuePriceRuleImport();
+        try {
+            $this->emulatedAreaProcessor->process(function () use ($input, $output) {
+                $this->mconnectCron->queueCustomerImport();
+                $this->mconnectCron->queueProductImport();
+                $this->mconnectCron->queueInventoryImport();
+                $this->mconnectCron->queueInvoiceImport();
+                $this->mconnectCron->queueShipmentImport();
+                $this->mconnectCron->queuePriceRuleImport();
 
-        $results = $this->queue->process();
-        $output->writeln($results);
+                $results = $this->queue->process();
+                $output->writeln($results);
+            });
+
+            return Cli::RETURN_SUCCESS;
+        } catch (\Exception $e) {
+            $output->writeln(
+                sprintf('<error>%s</error>', $e->getMessage())
+            );
+
+            return Cli::RETURN_FAILURE;
+        }
     }
 }
