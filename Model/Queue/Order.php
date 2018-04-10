@@ -26,17 +26,33 @@ class Order extends \MalibuCommerce\MConnect\Model\Queue
      */
     protected $queueFlagFactory;
 
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Config
+     */
+    protected $config;
+
+    /**
+     * Order constructor.
+     *
+     * @param \Magento\Sales\Api\OrderRepositoryInterface   $orderRepository
+     * @param \MalibuCommerce\MConnect\Model\Navision\Order $navOrder
+     * @param \Magento\Sales\Model\OrderFactory             $orderFactory
+     * @param FlagFactory                                   $queueFlagFactory
+     * @param \MalibuCommerce\MConnect\Model\Config         $config
+     */
     public function __construct(
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \MalibuCommerce\MConnect\Model\Navision\Order $navOrder,
         \Magento\Sales\Model\OrderFactory $orderFactory,
-        \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory
+        \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
+        \MalibuCommerce\MConnect\Model\Config $config
 
     ) {
         $this->orderRepository = $orderRepository;
         $this->navOrder = $navOrder;
         $this->orderFactory = $orderFactory;
         $this->queueFlagFactory = $queueFlagFactory;
+        $this->config = $config;
     }
 
     public function exportAction($entityId = null)
@@ -52,11 +68,19 @@ class Order extends \MalibuCommerce\MConnect\Model\Queue
 
         $response = $this->navOrder->import($orderEntity);
         $status = (string) $response->result->status;
+
         if ($status === 'Processed') {
             $navId = (string) $response->result->Order->nav_record_id;
             if ($orderDataModel->getNavId() != $navId) {
-                $orderDataModel->setNavId($navId)
-                    ->setSkipMconnect(true)
+                if (!$orderDataModel->getNavId() && $this->config->get('order/hold_new_orders_export')) {
+                    $newStatus = $this->config->get('order/order_status_when_synced_to_nav');
+                    $orderState = \Magento\Sales\Model\Order::STATE_NEW;
+                    $orderDataModel->setState($orderState)
+                        ->setStatus($newStatus);
+                    $orderDataModel->addStatusToHistory($orderDataModel->getStatus(), 'Order exported to NAV successfully with reference ID ' . $navId);
+                }
+                $orderDataModel->setNavId($navId);
+                $orderDataModel->setSkipMconnect(true)
                     ->save();
             }
             $this->messages .= sprintf('Order exported, NAV ID: %s', $navId);

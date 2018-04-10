@@ -31,7 +31,7 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
     protected $invoiceSender;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Config|Config
+     * @var \MalibuCommerce\MConnect\Model\Config
      */
     protected $config;
 
@@ -67,9 +67,11 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
         do {
             $result = $this->navInvoice->export($page++, $lastUpdated);
             foreach ($result->invoice as $data) {
-                $count++;
                 try {
-                    $import = $this->importInvoice($data);
+                    $importResult = $this->importInvoice($data);
+                    if ($importResult) {
+                        $count++;
+                    }
                 } catch (\Exception $e) {
                     $this->messages .= $e->getMessage();
                 }
@@ -79,8 +81,12 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
                 $lastSync = $result->status->current_date_time;
             }
         } while ($this->hasRecords($result));
-        $this->setLastSyncTime(Flag::FLAG_CODE_LAST_INVOICE_SYNC_TIME, $lastSync);
-        $this->messages .= PHP_EOL . 'Processed ' . $count . ' invoice(s).';
+        if ($count > 0) {
+            $this->setLastSyncTime(Flag::FLAG_CODE_LAST_INVOICE_SYNC_TIME, $lastSync);
+            $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';
+        } else {
+            $this->messages .= PHP_EOL . 'Nothing to import.';
+        }
     }
 
     /**

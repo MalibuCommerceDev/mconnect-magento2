@@ -34,7 +34,9 @@ class Client extends SoapClient
 
         curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
+        if ($mConnectConfig->getUseNtlmAuthentication()) {
+            curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
+        }
         curl_setopt($ch, CURLOPT_USERPWD, $username . ':' . $password);
         curl_setopt($ch, CURLOPT_TIMEOUT, $mConnectConfig->getConnectionTimeout());
 
@@ -42,8 +44,11 @@ class Client extends SoapClient
             $response = curl_exec($ch);
         } catch (\Exception $e) {
             curl_close($ch);
+            if ($mConnectConfig->get('nav_connection/log')) {
+                $this->logRequest($request, $location, $action, 500, null, 'Error: ' . $e->getMessage());
+            }
             $mConnectHelper->sendErrorEmail(array(
-                'title'    => 'An unknown error occured when connecting to Navision.',
+                'title'    => 'An unknown error occurred when connecting to Navision.',
                 'body'     => 'Action: ' . $action,
                 'response' => $e->getMessage(),
             ));
@@ -54,7 +59,7 @@ class Client extends SoapClient
         $header = substr($response, 0, $headerSize);
         $body = trim(substr($response, $headerSize));
         curl_close($ch);
-        if ($mConnectConfig->get('navision/log')) {
+        if ($mConnectConfig->get('nav_connection/log')) {
             $this->logRequest($request, $location, $action, $code, $header, $body);
         }
 

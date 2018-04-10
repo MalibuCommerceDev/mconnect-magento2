@@ -8,6 +8,8 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Magento\Config\Console\Command\EmulatedAdminhtmlAreaProcessor;
+use Magento\Framework\Console\Cli;
 
 class ProcessItemCommand extends Command
 {
@@ -21,11 +23,27 @@ class ProcessItemCommand extends Command
      */
     protected $queue;
 
+    /**
+     * Emulator adminhtml area for CLI command.
+     *
+     * @var EmulatedAdminhtmlAreaProcessor
+     */
+    protected $emulatedAreaProcessor;
+
+    /**
+     * ProcessItemCommand constructor.
+     *
+     * @param Queue                          $queue
+     * @param EmulatedAdminhtmlAreaProcessor $emulatedAreaProcessor
+     */
     public function __construct(
-        Queue $queue
+        Queue $queue,
+        EmulatedAdminhtmlAreaProcessor $emulatedAreaProcessor
     ) {
-        parent::__construct();
         $this->queue = $queue;
+        $this->emulatedAreaProcessor = $emulatedAreaProcessor;
+
+        parent::__construct();
     }
 
     protected function configure()
@@ -61,28 +79,38 @@ class ProcessItemCommand extends Command
  
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $code = $input->getArgument(self::ARGUMENT_CODE);
-        $action = $input->getArgument(self::ARGUMENT_ACTION);
-        $entityId = $input->getArgument(self::ARGUMENT_ENTITY_ID);
-        $sync = $input->getOption(self::OPTION_SYNC);
-        $queue = $this->queue->add($code, $action, $entityId);
-        if (!$queue->getId()) {
-            $output->writeln('<error>Failed to add item to queue.  Perhaps it already exists?</error>');
-            return;
-        }
-        $output->writeln(sprintf('Added item to queue. ID: %d', $queue->getId()));
-        if ($sync) {
-            $output->writeln('Syncing...');
-            $queue->process();
-            if ($queue->getStatus() === Queue::STATUS_SUCCESS) {
-                $output->writeln('Success');
-            } else {
-                $output->writeln('<error>Failed</error>');
-            }
-            $message = $queue->getMessage();
-            if ($message) {
-                $output->writeln($message);
-            }
+        try {
+            $this->emulatedAreaProcessor->process(function () use ($input, $output) {
+                $code = $input->getArgument(self::ARGUMENT_CODE);
+                $action = $input->getArgument(self::ARGUMENT_ACTION);
+                $entityId = $input->getArgument(self::ARGUMENT_ENTITY_ID);
+                $sync = $input->getOption(self::OPTION_SYNC);
+                $queue = $this->queue->add($code, $action, $entityId, [], null, true);
+                if (!$queue->getId()) {
+                    $output->writeln('<error>Failed to add item to the queue</error>');
+                    return;
+                }
+                $output->writeln(sprintf('Queue Item ID is "%d"', $queue->getId()));
+                if ($sync) {
+                    $output->writeln('Syncing...');
+                    $queue->process();
+                    if ($queue->getStatus() === Queue::STATUS_SUCCESS) {
+                        $output->writeln('Success');
+                    } else {
+                        $message = 'Failed';
+                        $message .= ': ' . $queue->getMessage();
+                        $output->writeln('<error>' . $message . '</error>');
+                    }
+                }
+            });
+
+            return Cli::RETURN_SUCCESS;
+        } catch (\Exception $e) {
+            $output->writeln(
+                sprintf('<error>%s</error>', $e->getMessage())
+            );
+
+            return Cli::RETURN_FAILURE;
         }
     }
 }

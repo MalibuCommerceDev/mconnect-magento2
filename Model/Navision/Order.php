@@ -2,6 +2,9 @@
 
 namespace MalibuCommerce\MConnect\Model\Navision;
 
+use Magento\Catalog\Model\Product\Type as ProductType;
+use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+
 class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 {
     /**
@@ -20,11 +23,22 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
     protected $customerFactory;
 
     /**
-     * Order constructor.
+     * @var \Magento\GiftMessage\Model\Message
+     */
+    protected $giftMessage;
+
+    /**
+     * @var \Magento\Framework\App\ProductMetadataInterface
+     */
+    protected $productMetadata;
+
+    /**
+     * Order constructor
      *
      * @param \Magento\Directory\Model\Region         $directoryRegion
      * @param \Magento\Customer\Model\Address         $customerAddress
      * @param \Magento\Customer\Model\CustomerFactory $customerFactory
+     * @param \Magento\GiftMessage\Model\Message      $giftMessage
      * @param \MalibuCommerce\MConnect\Model\Config   $config
      * @param Connection                              $mConnectNavisionConnection
      * @param \Psr\Log\LoggerInterface                $logger
@@ -34,18 +48,29 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         \Magento\Directory\Model\Region $directoryRegion,
         \Magento\Customer\Model\Address $customerAddress,
         \Magento\Customer\Model\CustomerFactory $customerFactory,
+        \Magento\GiftMessage\Model\Message $giftMessage,
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection,
+        \Magento\Framework\App\ProductMetadataInterface $productMetadata,
         \Psr\Log\LoggerInterface $logger,
         array $data = []
     ) {
         $this->directoryRegion = $directoryRegion;
         $this->customerAddress = $customerAddress;
         $this->customerFactory = $customerFactory;
+        $this->productMetadata = $productMetadata;
+        $this->giftMessage = $giftMessage;
 
         parent::__construct($config, $mConnectNavisionConnection, $logger);
     }
 
+    /**
+     * Export order to NAV (or if from NAV side - this is actually an order import from Magento)
+     *
+     * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
+     *
+     * @return \simpleXMLElement
+     */
     public function import(\Magento\Sales\Api\Data\OrderInterface $orderEntity)
     {
         $root = new \simpleXMLElement('<sales_order_import />');
@@ -58,6 +83,23 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         $orderObject->mag_customer_id = $orderEntity->getCustomerId();
         $orderObject->email_address = $orderEntity->getCustomerEmail();
         $orderObject->store_id = $orderEntity->getStoreId();
+
+        $orderObject->gift_wrap_message_to = '';
+        $orderObject->gift_wrap_message_from = '';
+        $orderObject->gift_wrap_message = '';
+        $orderObject->gift_wrap_charge = '';
+
+        $giftMessageId = $orderEntity->getGiftMessageId();
+        if ($giftMessageId && $this->isGiftWrapEnabled()) {
+            $this->giftMessage->load($giftMessageId);
+            if ($this->giftMessage->getId()) {
+                $orderObject->gift_wrap_message_to = $this->giftMessage->getRecipient();
+                $orderObject->gift_wrap_message_from = $this->giftMessage->getSender();
+                $orderObject->gift_wrap_message = $this->giftMessage->getMessage();
+                $orderObject->gift_wrap_charge = $orderEntity->getGwBasePrice();
+            }
+        }
+
         $this->addShipping($orderEntity, $orderObject);
 
         $payment = $orderEntity->getPayment();
@@ -71,6 +113,22 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         return $this->_import('order_import', $root);
     }
 
+    /**
+     * Check if "Gift Wrap" feature enabled in current Magento installation
+     *
+     * @return bool
+     */
+    protected function isGiftWrapEnabled()
+    {
+        return $this->productMetadata->getEdition() != 'Community';
+    }
+
+    /**
+     * Add order addresses to NAV payload XML
+     *
+     * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
+     * @param \simpleXMLElement $root
+     */
     protected function addAddresses(\Magento\Sales\Api\Data\OrderInterface $orderEntity, &$root)
     {
         foreach ($orderEntity->getAddresses() as $address) {
@@ -78,6 +136,12 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         }
     }
 
+    /**
+     * Construct NAV address XML and set address data
+     *
+     * @param \Magento\Sales\Api\Data\OrderAddressInterface $address
+     * @param \simpleXMLElement $root
+     */
     protected function addAddress(\Magento\Sales\Api\Data\OrderAddressInterface $address, &$root)
     {
         $child = $root->addChild('order_address');
@@ -97,6 +161,12 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         $child->fax = $address->getFax();
     }
 
+    /**
+     * Add order items to NAV payload XML
+     *
+     * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
+     * @param \simpleXMLElement $root
+     */
     protected function addItems(\Magento\Sales\Api\Data\OrderInterface $orderEntity, &$root)
     {
         foreach ($orderEntity->getItems() as $item) {
@@ -104,17 +174,42 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         }
     }
 
+    /**
+     * Construct NAV item XML and set item data
+     *
+     * @param \Magento\Sales\Api\Data\OrderItemInterface $item
+     * @param \simpleXMLElement $root
+     *
+     * @return $this
+     */
     protected function addItem(\Magento\Sales\Api\Data\OrderItemInterface $item, &$root)
     {
+        /**
+         * Add only simple products to NAV
+         */
+        if ($item->getProductType() != ProductType::TYPE_SIMPLE) {
+            return $this;
+        }
+
         $child = $root->addChild('order_item');
 
         $child->mag_item_id = $item->getSku();
         $child->name = $item->getName();
         $child->quantity = $item->getQtyOrdered();
-        $child->unit_price = $item->getBasePrice();
-        $child->line_discount_amount = $item->getBaseDiscountAmount();
+        $child->unit_price = $item->getParentItem() ? $item->getParentItem()->getBasePrice() : $item->getBasePrice();
+        $child->line_discount_amount = $item->getParentItem() ? $item->getParentItem()->getBaseDiscountAmount() : $item->getBaseDiscountAmount();
+
+        return $this;
     }
 
+    /**
+     * Construct NAV shipping information XML
+     *
+     * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
+     * @param \simpleXMLElement $root
+     *
+     * @return $this
+     */
     protected function addShipping(\Magento\Sales\Api\Data\OrderInterface $orderEntity, &$root)
     {
         $shippingAssignments = $orderEntity->getExtensionAttributes()->getShippingAssignments();

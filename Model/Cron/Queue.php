@@ -38,7 +38,7 @@ class Queue
         $this->date = $date;
     }
 
-    public function process()
+    public function process($forceSyncNow = false)
     {
         $config = $this->config;
         if (!$config->getFlag('general/enabled')) {
@@ -59,6 +59,10 @@ class Queue
             )
             ->where('q1.status = ?', QueueModel::STATUS_PENDING)
             ->where('q2.id IS NULL');
+
+        if (!$forceSyncNow || ($forceSyncNow instanceof \Magento\Cron\Model\Schedule)) {
+            $queues->getSelect()->where('q1.scheduled_at <= ?', $this->date->gmtDate());
+        }
 
         $count = $queues->getSize();
         if (!$count) {

@@ -56,7 +56,7 @@ class Config
 
     public function getErrorRecipients()
     {
-        return array_map('trim', explode(',', $this->get('navision/error_recipient')));
+        return array_map('trim', explode(',', $this->get('nav_connection/error_recipient')));
     }
 
     public function getNavConnectionId($store = null)
@@ -81,6 +81,12 @@ class Config
     public function getNavConnectionPassword($store = null)
     {
         return $this->scopeConfig->getValue(self::XML_PATH_CONFIG_SECTION . '/' . 'nav_connection/password',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store);
+    }
+
+    public function getUseNtlmAuthentication($store = null)
+    {
+        return $this->scopeConfig->getValue(self::XML_PATH_CONFIG_SECTION . '/' . 'nav_connection/ntlm',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store);
     }
 

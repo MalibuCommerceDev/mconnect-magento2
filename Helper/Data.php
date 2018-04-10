@@ -115,8 +115,7 @@ class Data
         $logDir = $logDirObj->getPath('log');
         $logDir .= DIRECTORY_SEPARATOR . $dir;
         if (!is_dir($logDir)) {
-            mkdir($logDir);
-            chmod($logDir, 0750);
+            mkdir($logDir, 0750, true);
         }
 
         $file = ($absolute ? $logDir : $dir) . DIRECTORY_SEPARATOR . $file;

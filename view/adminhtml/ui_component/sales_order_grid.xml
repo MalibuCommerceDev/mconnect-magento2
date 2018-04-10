@@ -16,7 +16,7 @@
                 <item name="config" xsi:type="array">
                     <item name="label" xsi:type="string" translate="true">MConnect Status</item>
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
-                    <item name="sortOrder" xsi:type="number">110</item>
+                    <item name="sortOrder" xsi:type="number">106</item>
                 </item>
             </argument>
         </column>

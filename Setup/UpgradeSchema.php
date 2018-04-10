@@ -24,6 +24,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->upgrade1_1_5($setup);
         }
 
+        if (version_compare($context->getVersion(), '1.1.19', '<=')) {
+            $this->upgrade1_1_19($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -65,12 +69,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ->addColumn('created_at', \Magento\Framework\DB\Ddl\Table::TYPE_DATETIME, null, array(
                 'nullable' => false,
             ), 'Created At')
-            ->addColumn('started_at', \Magento\Framework\DB\Ddl\Table::TYPE_DATETIME, null, array(
-
-            ), 'Started At')
-            ->addColumn('finished_at', \Magento\Framework\DB\Ddl\Table::TYPE_DATETIME, null, array(
-
-            ), 'Finished At')
+            ->addColumn('started_at', \Magento\Framework\DB\Ddl\Table::TYPE_DATETIME, null, array(), 'Started At')
+            ->addColumn('finished_at', \Magento\Framework\DB\Ddl\Table::TYPE_DATETIME, null, array(), 'Finished At')
             ->addColumn('message', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, null, array(
                 'nullable' => true,
             ), 'Message');
@@ -178,5 +178,23 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 )
             );
         }
+    }
+
+    protected function upgrade1_1_19(SchemaSetupInterface $setup)
+    {
+        $setup->getConnection()->addColumn(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            'scheduled_at',
+            array(
+                'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_DATETIME,
+                'comment' => 'Scheduled At',
+                'after'   => 'created_at'
+            )
+        );
+
+        $setup->getConnection()->update(
+            'malibucommerce_mconnect_queue',
+            ['scheduled_at' => new \Zend_Db_Expr('created_at')]
+        );
     }
 }

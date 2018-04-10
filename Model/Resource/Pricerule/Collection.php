@@ -23,13 +23,16 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     protected $customerRegistry;
 
     /**
+     * Collection constructor.
+     *
      * @param \Magento\Framework\Data\Collection\EntityFactoryInterface    $entityFactory
      * @param \Psr\Log\LoggerInterface                                     $logger
-     * @param \Magento\Customer\Model\CustomerRegistry                     $CustomerRegistry
+     * @param \Magento\Customer\Model\CustomerRegistry                     $customerRegistry
      * @param \Magento\Framework\Data\Collection\Db\FetchStrategyInterface $fetchStrategy
      * @param \Magento\Framework\Event\ManagerInterface                    $eventManager
-     * @param \Magento\Framework\DB\Adapter\AdapterInterface               $connection
-     * @param \Magento\Framework\Model\ResourceModel\Db\AbstractDb         $resource
+     * @param Session                                                      $customerSession
+     * @param \Magento\Framework\DB\Adapter\AdapterInterface|null          $connection
+     * @param \Magento\Framework\Model\ResourceModel\Db\AbstractDb|null    $resource
      */
     public function __construct(
         \Magento\Framework\Data\Collection\EntityFactoryInterface $entityFactory,
@@ -51,24 +54,66 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
         $this->_init('MalibuCommerce\MConnect\Model\Pricerule', 'MalibuCommerce\MConnect\Model\Resource\Pricerule');
     }
 
-    public function applyAllFilters($sku, $qty, $navisionCustomerId = false, $customerPriceGroup = null, $dateStart = null, $dateEnd = null)
+    /**
+     * Match and retrieve discount price by specified product and QTY
+     *
+     * @param string $sku
+     * @param int $qty
+     *
+     * @return string|bool
+     */
+    public function matchDiscountPrice($sku, $qty)
+    {
+        $this->applyAllFilters($sku, $qty);
+        $select = clone $this->getSelect();
+        $select->reset(\Magento\Framework\DB\Select::COLUMNS);
+        $select->columns('price', 'main_table');
+
+        return $this->getConnection()->fetchOne($select);
+    }
+
+    /**
+     * Apply all filters to match "cheapest" discounted price for given product SKU and QTY
+     *
+     * @param string $sku
+     * @param int $qty
+     *
+     * @return $this
+     */
+    public function applyAllFilters($sku, $qty)
     {
         $this->applySkuFilter($sku)
             ->applyQtyFilter($qty)
-            ->applyNavisionCustomerIdFilter($navisionCustomerId)
-            ->applyCustomerPriceGroup($customerPriceGroup)
-            ->applyDateStartFilter($dateStart)
-            ->applyDateEndFilter($dateEnd);
-        $this->getSelect()->order('main_table.price ASC');
+            ->applyCustomerFilter()
+            ->applyFromToDateFilter()
+            ->setOrder('price', self::SORT_ORDER_ASC)
+            ->setPageSize(1)
+            ->setCurPage(1);
 
         return $this;
     }
 
+    /**
+     * Apply product SKU filter
+     *
+     * @param string $value
+     *
+     * @return $this
+     */
     public function applySkuFilter($value)
     {
-        return $this->applyNullableFilter('sku', $value);
+        $this->addFieldToFilter('sku', ['eq' => $value]);
+
+        return $this;
     }
 
+    /**
+     * Apply product QTY filter
+     *
+     * @param int $value
+     *
+     * @return $this
+     */
     public function applyQtyFilter($value)
     {
         if ($value !== null) {
@@ -81,48 +126,49 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
         return $this;
     }
 
-    public function applyNavisionCustomerIdFilter($value = false)
+    /**
+     * Apply currently logged in customer filter (customer NAV ID and NAV price group)
+     *
+     * @return $this
+     */
+    public function applyCustomerFilter()
     {
-        if (!$value && $this->getCustomer()) {
-            $value = $this->getCustomer()->getNavId();
+        if ($this->getCustomer()) {
+            $this->addFieldToFilter(
+                array('navision_customer_id', 'customer_price_group'),
+                array(
+                    array('eq' => $this->getCustomer()->getNavId()),
+                    array('eq' => $this->getCustomer()->getNavPriceGroup())
+                )
+            );
         }
-
-        return $this->applyNullableFilter('navision_customer_id', $value);
-    }
-
-    public function applyCustomerPriceGroup($value)
-    {
-        if ($value === null) {
-            $value = $this->getCustomer() ? $this->getCustomer()->getNavPriceGroup() : false;
-        }
-
-        return $this->applyNullableFilter('customer_price_group', $value);
-    }
-
-    public function applyDateStartFilter($value)
-    {
-        return $this->applyDateFilter('date_start', $value, 'to');
-    }
-
-    public function applyDateEndFilter($value)
-    {
-        return $this->applyDateFilter('date_end', $value, 'from');
-    }
-
-    protected function applyNullableFilter($field, $value)
-    {
-        $params = array(
-            array('null' => true),
-            array('eq' => ''),
-        );
-        if ($value) {
-            $params[] = array('eq' => $value);
-        }
-        $this->addFieldToFilter($field, $params);
 
         return $this;
     }
 
+    /**
+     * Apply price rule from/to dates filter
+     *
+     * @return $this
+     */
+    public function applyFromToDateFilter()
+    {
+        $this->applyDateFilter('date_start', null, 'to');
+        $this->applyDateFilter('date_end', null, 'from');
+
+        return $this;
+    }
+
+    /**
+     * Apply price rule date filter
+     *
+     * @param string $field
+     * @param string|null $value
+     * @param string $direction
+     *
+     * @return $this
+     * @throws LocalizedException
+     */
     protected function applyDateFilter($field, $value, $direction = 'to')
     {
         if ($value === null) {
@@ -160,6 +206,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
                 return null;
             }
         }
+
         return $this->customer;
     }
 }
