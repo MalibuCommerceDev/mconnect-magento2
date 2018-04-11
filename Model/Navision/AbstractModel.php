@@ -114,4 +114,24 @@ class AbstractModel extends \Magento\Framework\DataObject
             'responseXML' => false,
         ));
     }
+
+    /**
+     * Handle ErrorLog in Xml response
+     *
+     * @param $response
+     * @throws \Exception
+     */
+    protected function handleErrorLogXml($response)
+    {
+        if (isset($response->errorLogXML) && strlen($response->errorLogXML)) {
+            $xml = new \simpleXMLElement(base64_decode($response->errorLogXML));
+            if (isset($xml->Error) && (strlen($xml->Error) || count($xml->Error))) {
+                $errors = array();
+                foreach ($xml->Error as $error) {
+                    $errors[] = (string) $error;
+                }
+                throw new \Exception(implode(',', $errors));
+            }
+        }
+    }
 }
