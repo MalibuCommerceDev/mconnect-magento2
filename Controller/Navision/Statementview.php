@@ -10,42 +10,33 @@ class Statementview extends \MalibuCommerce\MConnect\Controller\Navision
     protected $statementPdf;
 
     /**
-     * @var \Magento\Framework\App\Response\Http\FileFactory
-     */
-    protected $fileFactory;
-
-    /**
      * Statementview constructor.
      *
-     * @param \Magento\Framework\App\Action\Context $context
-     * @param \Magento\Customer\Model\Session $customerSession
-     * @param \Magento\Framework\App\Response\Http $httpResponse
-     * @param \MalibuCommerce\MConnect\Model\Queue $queue
+     * @param \Magento\Framework\App\Action\Context                 $context
+     * @param \Magento\Customer\Model\Session                       $customerSession
+     * @param \Magento\Framework\App\Response\Http                  $httpResponse
      * @param \MalibuCommerce\MConnect\Model\Navision\Statement\Pdf $statementPdf
-     * @param \Magento\Framework\App\Response\Http\FileFactory $fileFactory
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Framework\App\Response\Http $httpResponse,
-        \MalibuCommerce\MConnect\Model\Queue $queue,
-        \MalibuCommerce\MConnect\Model\Navision\Statement\Pdf $statementPdf,
-        \Magento\Framework\App\Response\Http\FileFactory $fileFactory
+        \MalibuCommerce\MConnect\Model\Navision\Statement\Pdf $statementPdf
     ) {
-        parent::__construct($context, $customerSession, $httpResponse, $queue);
         $this->statementPdf = $statementPdf;
-        $this->fileFactory = $fileFactory;
+        parent::__construct($context, $customerSession, $httpResponse);
     }
 
     /**
-     * Generate and send PDF file wit Statement
-     *
-     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface|void
+     * @return \Magento\Backend\Model\View\Result\Redirect|void
      */
     public function execute()
     {
+        /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
+        $resultRedirect = $this->resultRedirectFactory->create();
+
         try {
-            $customerNavId = $this->_customerSession->getCustomer()->getNavId();
+            $customerNavId = $this->customerSession->getCustomer()->getNavId();
             $startDate     = $this->getRequest()->getParam('date_from');
             $endDate       = $this->getRequest()->getParam('date_to');
             $pdf = $this->statementPdf->get(
@@ -55,10 +46,24 @@ class Statementview extends \MalibuCommerce\MConnect\Controller\Navision
             );
             if ($pdf) {
                 $this->displayPdf($pdf, 'statement.pdf');
+            } else {
+                throw new \Exception('There are no transactions for requested date range');
             }
+
+            return;
+        } catch (\Magento\Framework\Exception\LocalizedException $e) {
+            $message = $e->getMessage();
+            if (!empty($message)) {
+                $this->messageManager->addError($message);
+            }
+            $resultRedirect->setPath('*/*/statement');
+
+            return $resultRedirect;
         } catch (\Exception $e) {
-            echo $e->getMessage();
+            $this->messageManager->addException($e, __('NAV statement retrieving error: %1', $e->getMessage()));
+            $resultRedirect->setPath('*/*/statement');
+
+            return $resultRedirect;
         }
-        exit;
     }
 }

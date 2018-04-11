@@ -1,0 +1,33 @@
+#mconnect-orders-list table td, #mconnect-customer-statement table td, #mconnect-customer-invoices-list table td {
+    padding: 0 10px 11px 0;
+}
+
+.nav-content {
+    margin-top: 30px;
+}
+
+.nav-content h3 {
+    background: url(../images/bkg_block-title.gif) repeat-x scroll 0 100% #FFFFFF;
+    border-color: #DDDDDD #DDDDDD;
+    border-image: none;
+    border-style: solid solid none;
+    border-width: 1px 1px 0;
+    color: #444444;
+    font: 14px/1.25 Arial,Helvetica,sans-serif;
+    margin: -1px 0 0;
+    padding: 3px 7px 4px;
+    text-transform: uppercase;
+    clear: right;
+}
+
+.mconnect-nav-table thead th, .mconnect-nav-table tbody td {
+    border-bottom: 1px solid silver;
+}
+
+.mconnect-nav-table th {
+    background: #f4f4f4;
+    text-transform: uppercase;
+    font-family: "Raleway", "Helvetica Neue", Verdana, Arial, sans-serif;
+    line-height: 1.4;
+    white-space: nowrap;
+}

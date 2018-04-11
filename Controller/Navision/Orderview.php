@@ -2,6 +2,8 @@
 
 namespace MalibuCommerce\MConnect\Controller\Navision;
 
+use Braintree\Exception;
+
 class Orderview extends \MalibuCommerce\MConnect\Controller\Navision
 {
     /**
@@ -10,53 +12,58 @@ class Orderview extends \MalibuCommerce\MConnect\Controller\Navision
     protected $orderPdf;
 
     /**
-     * @var \Magento\Framework\App\Response\Http\FileFactory
-     */
-    protected $fileFactory;
-
-    /**
      * Orderview constructor.
      *
-     * @param \Magento\Framework\App\Action\Context $context
-     * @param \Magento\Customer\Model\Session $customerSession
-     * @param \Magento\Framework\App\Response\Http $httpResponse
-     * @param \MalibuCommerce\MConnect\Model\Queue $queue
+     * @param \Magento\Framework\App\Action\Context             $context
+     * @param \Magento\Customer\Model\Session                   $customerSession
+     * @param \Magento\Framework\App\Response\Http              $httpResponse
      * @param \MalibuCommerce\MConnect\Model\Navision\Order\Pdf $orderPdf
-     * @param \Magento\Framework\App\Response\Http\FileFactory $fileFactory
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Framework\App\Response\Http $httpResponse,
-        \MalibuCommerce\MConnect\Model\Queue $queue,
-        \MalibuCommerce\MConnect\Model\Navision\Order\Pdf $orderPdf,
-        \Magento\Framework\App\Response\Http\FileFactory $fileFactory
+        \MalibuCommerce\MConnect\Model\Navision\Order\Pdf $orderPdf
     ) {
-        parent::__construct($context, $customerSession, $httpResponse, $queue);
         $this->orderPdf = $orderPdf;
-        $this->fileFactory = $fileFactory;
+        parent::__construct($context, $customerSession, $httpResponse);
     }
 
     /**
-     * Generate and send PDF file wit Order
-     *
-     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface|void
+     * @return \Magento\Backend\Model\View\Result\Redirect|void
      */
     public function execute()
     {
+        /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
+        $resultRedirect = $this->resultRedirectFactory->create();
+
         try {
             $number = $this->getRequest()->getParam('number');
-            $customerNavId = $this->_customerSession->getCustomer()->getNavId();
+            $customerNavId = $this->customerSession->getCustomer()->getNavId();
             $pdf = $this->orderPdf->get(
                 $number,
                 $customerNavId
             );
             if ($pdf) {
                 $this->displayPdf($pdf, $number . '.pdf');
+            } else {
+                throw new \Exception('Requested order can\'t be found');
             }
+
+            return;
+        } catch (\Magento\Framework\Exception\LocalizedException $e) {
+            $message = $e->getMessage();
+            if (!empty($message)) {
+                $this->messageManager->addError($message);
+            }
+            $resultRedirect->setPath('*/*/orderhistory');
+
+            return $resultRedirect;
         } catch (\Exception $e) {
-            echo $e->getMessage();
+            $this->messageManager->addException($e, __('NAV order retrieving error: %1', $e->getMessage()));
+            $resultRedirect->setPath('*/*/orderhistory');
+
+            return $resultRedirect;
         }
-        return;
     }
 }

@@ -1,10 +1,10 @@
 <?php
 /**
- * @var $block \MalibuCommerce\MConnect\Block\Navision\OrderHistory
+ * @var $block \MalibuCommerce\MConnect\Block\Navision\Invoice
  */
-$orders = $block->getOrders();
+$invoices = $block->getInvoices(); 
 ?>
-<form action="<?php echo $block->getUrl('*/*/orderhistory') ?>" method="post" id="mconnect-orders-list" class="form" autocomplete="off">
+<form action="<?php echo $block->getUrl('*/*/invoice') ?>" method="post" id="mconnect-customer-invoices-list" class="form" autocomplete="off">
     <table>
         <tr>
             <td>
@@ -12,7 +12,7 @@ $orders = $block->getOrders();
                     <div class="field date-from">
                         <label for="date_from"><?php echo __('Start Date') ?></label>
                         <div class="input-box">
-                            <input type="text" id="date_from" name="date_from" title="<?php echo __('Start Date') ?>" class="input-text" data-validate="{'validate-date':true}" value="<?php echo $block->getFieldValue('date_from') ?>" style="width: 250px;" />
+                            <input type="text" id="date_from" name="date_from" title="<?php echo __('Start Date') ?>" class="input-text" data-validate="{'validate-date':true}" value="<?php echo $block->getFieldValue('date_from') ?>" style="width: 250px;"/>
                             <script type="text/javascript">
                                 require([
                                     "jquery",
@@ -35,13 +35,13 @@ $orders = $block->getOrders();
                     <div class="field po_number-from">
                         <label for="po_number_from"><?php echo __('Start PO Number') ?></label>
                         <div class="input-box">
-                            <input type="text" id="po_number_from" name="po_number_from" title="<?php echo __('Start PO Number') ?>" class="input-text" value="<?php echo $block->getFieldValue('po_number_from') ?>" />
+                            <input type="text" id="po_number_from" name="po_number_from" title="<?php echo __('Start PO Number') ?>" class="input-text" value="<?php echo $block->getFieldValue('po_number_from') ?>"/>
                         </div>
                     </div>
-                    <div class="field order_number-from">
-                        <label for="order_number_from"><?php echo __('Start Order Number') ?></label>
+                    <div class="field invoice_number-from">
+                        <label for="invoice_number_from"><?php echo __('Start Invoice Number') ?></label>
                         <div class="input-box">
-                            <input type="text" id="order_number_from" name="order_number_from" title="<?php echo __('Start Order Number') ?>" class="input-text" value="<?php echo $block->getFieldValue('order_number_from') ?>" />
+                            <input type="text" id="invoice_number_from" name="invoice_number_from" title="<?php echo __('Start Invoice Number') ?>" class="input-text" value="<?php echo $block->getFieldValue('invoice_number_from') ?>"/>
                         </div>
                     </div>
                 </fieldset>
@@ -51,7 +51,7 @@ $orders = $block->getOrders();
                     <div class="field date-to">
                         <label for="date_to"><?php echo __('End Date') ?></label>
                         <div class="input-box">
-                            <input type="text" id="date_to" name="date_to" title="<?php echo __('End Date') ?>" class="input-text" data-validate="{'validate-date':true}" value="<?php echo $block->getFieldValue('date_to') ?>" style="width: 250px;" />
+                            <input type="text" id="date_to" name="date_to" title="<?php echo __('End Date') ?>" class="input-text" data-validate="{'validate-date':true}" value="<?php echo $block->getFieldValue('date_to') ?>" style="width: 250px;"/>
                             <script type="text/javascript">
                                 require([
                                     "jquery",
@@ -74,13 +74,13 @@ $orders = $block->getOrders();
                     <div class="field po_number-to">
                         <label for="po_number_to"><?php echo __('End PO Number') ?></label>
                         <div class="input-box">
-                            <input type="text" id="po_number_to" name="po_number_to" title="<?php echo __('End PO Number') ?>" class="input-text" value="<?php echo $block->getFieldValue('po_number_to') ?>" />
+                            <input type="text" id="po_number_to" name="po_number_to" title="<?php echo __('End PO Number') ?>" class="input-text" value="<?php echo $block->getFieldValue('po_number_to') ?>"/>
                         </div>
                     </div>
-                    <div class="field order_number-to">
-                        <label for="order_number_to"><?php echo __('End Order Number') ?></label>
+                    <div class="field invoice_number-to">
+                        <label for="invoice_number_to"><?php echo __('End Invoice Number') ?></label>
                         <div class="input-box">
-                            <input type="text" id="order_number_to" name="order_number_to" title="<?php echo __('End Order Number') ?>" class="input-text" value="<?php echo $block->getFieldValue('order_number_to') ?>" />
+                            <input type="text" id="invoice_number_to" name="invoice_number_to" title="<?php echo __('End Invoice Number') ?>" class="input-text" value="<?php echo $block->getFieldValue('invoice_number_to') ?>"/>
                         </div>
                     </div>
                 </fieldset>
@@ -92,31 +92,32 @@ $orders = $block->getOrders();
     </div>
 </form>
 <div class="nav-content">
-<?php if ($orders && count($orders)): ?>
-    <h3><?php echo __('Orders List') ?></h3>
+<?php if ($invoices && count($invoices)): ?>
+    <h3><?php echo __('Invoices List') ?></h3>
     <table class="mconnect-nav-table">
         <thead>
         <tr>
-            <th><?php echo __('Order #') ?></th>
+            <th><?php echo __('Number') ?></th>
             <th><?php echo __('PO Number') ?></th>
-            <th><?php echo __('Order Date') ?></th>
-            <th><?php echo __('Order Amount') ?></th>
-            <th><?php echo __('Ship To') ?></th>
-            <th><?php echo __('Ship To Address') ?></th>
+            <th><?php echo __('Order Number') ?></th>
+            <th><?php echo __('Date') ?></th>
+            <th><?php echo __('Original Amount') ?></th>
+            <th><?php echo __('Remaining Amount') ?></th>
             <th>&nbsp;</th>
         </tr>
         </thead>
         <tbody>
-        <?php foreach ($orders as $order): ?>
-            <?php $orderAmount = $this->helper('Magento\Framework\Pricing\Helper\Data')->currency($order->getOrderAmt(), true, false); ?>
+        <?php foreach ($invoices as $invoice): ?>
+            <?php $originalAmount = $this->helper('Magento\Framework\Pricing\Helper\Data')->currency($invoice->getOriginalAmt(), true, false); ?>
+            <?php $remainingAmount = $this->helper('Magento\Framework\Pricing\Helper\Data')->currency($invoice->getRemainingAmt(), true, false); ?>
             <tr>
-                <td><?php echo $order->getOrderNumber() ?></td>
-                <td><?php echo $order->getPoNumber() ?></td>
-                <td><?php echo date("D, j M, Y", strtotime($order->getOrderDate())) ?></td>
-                <td><?php echo $orderAmount; ?></td>
-                <td><?php echo $order->getShipToName() ?></td>
-                <td><?php echo $order->getShipToAddress() ?></td>
-                <td><a target="_blank" href="<?php echo $block->getUrl('*/*/orderview', array('number' => $order->getOrderNumber())) ?>"><?php echo __('View') ?></a></td>
+                <td><?php echo $invoice->getInvoiceNumber() ?></td>
+                <td><?php echo $invoice->getPoNumber() ?></td>
+                <td><?php echo $invoice->getOrderNumber() ?></td>
+                <td><?php echo date("D, j M, Y", strtotime($invoice->getPostingDate())) ?></td>
+                <td><?php echo $originalAmount ?></td>
+                <td><?php echo $remainingAmount ?></td>
+                <td><a target="_blank" href="<?php echo $block->getUrl('*/*/invoiceview', array('number' => $invoice->getInvoiceNumber())) ?>"><?php echo __('View') ?></a></td>
             </tr>
         <?php endforeach ?>
         </tbody>
@@ -131,7 +132,7 @@ $orders = $block->getOrders();
         'mage/mage'
     ], function($){
 
-        var dataForm = $('#mconnect-orders-list');
+        var dataForm = $('#mconnect-customer-invoices-list');
         dataForm.mage('validation', {});
 
     });

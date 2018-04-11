@@ -11,12 +11,8 @@ abstract class Navision extends \Magento\Framework\App\Action\Action
      *
      * @var \Magento\Customer\Model\Session
      */
-    protected $_customerSession;
+    protected $customerSession;
 
-    /**
-     * @var \MalibuCommerce\MConnect\Model\Queue
-     */
-    protected $queue;
 
     /**
      * @var \Magento\Framework\App\Response\Http
@@ -27,17 +23,14 @@ abstract class Navision extends \Magento\Framework\App\Action\Action
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Magento\Customer\Model\Session $customerSession
      * @param \Magento\Framework\App\Response\Http $httpResponse
-     * @param \MalibuCommerce\MConnect\Model\Queue $queue
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Customer\Model\Session $customerSession,
-        \Magento\Framework\App\Response\Http $httpResponse,
-        \MalibuCommerce\MConnect\Model\Queue $queue
+        \Magento\Framework\App\Response\Http $httpResponse
     ) {
         parent::__construct($context);
-        $this->_customerSession = $customerSession;
-        $this->queue = $queue;
+        $this->customerSession = $customerSession;
         $this->httpResponse = $httpResponse;
     }
 
@@ -49,7 +42,7 @@ abstract class Navision extends \Magento\Framework\App\Action\Action
      */
     public function dispatch(RequestInterface $request)
     {
-        if (!$this->_customerSession->authenticate()) {
+        if (!$this->customerSession->authenticate()) {
             $this->_actionFlag->set('', 'no-dispatch', true);
         }
         return parent::dispatch($request);
@@ -63,10 +56,9 @@ abstract class Navision extends \Magento\Framework\App\Action\Action
      */
     public function displayPdf($content, $fileName = 'report.pdf')
     {
-        $this->httpResponse->setHeader('Content-Type', 'application/x-pdf', true);
+        $this->httpResponse->setHeader('Content-Type', 'application/pdf', true);
         $this->httpResponse->setHeader('Content-Length', strlen($content), true);
         $this->httpResponse->setHeader('Content-Disposition', "inline; filename= '{$fileName}'");
         $this->httpResponse->setBody($content);
-//        echo $content;
     }
 }

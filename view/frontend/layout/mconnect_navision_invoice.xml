@@ -1,9 +1,12 @@
 <?xml version="1.0"?>
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <update handle="customer_account"/>
+    <head>
+        <css src="MalibuCommerce_MConnect::css/nav_reports.css" />
+    </head>
     <body>
         <referenceContainer name="content">
-            <block class="MalibuCommerce\MConnect\Block\Navision\Invoice" name="customer_navision_invoice" cacheable="false" />
+            <block class="MalibuCommerce\MConnect\Block\Navision\Invoice" name="customer.navision.invoices.history" cacheable="false" />
         </referenceContainer>
     </body>
 </page>

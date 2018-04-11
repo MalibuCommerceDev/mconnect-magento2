@@ -4,6 +4,12 @@ namespace MalibuCommerce\MConnect\Model\Navision\Order;
 
 class Pdf extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 {
+    /**
+     * @param $orderNumber
+     * @param $customerNumber
+     *
+     * @return bool|string
+     */
     public function get($orderNumber, $customerNumber)
     {
         $xml = new \simpleXMLElement('<sales_order />');
@@ -17,8 +23,10 @@ class Pdf extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         ));
         if (isset($response->response) && strlen($response->response)) {
             $responsePdf = base64_decode($response->response);
+
             return $responsePdf;
         }
+
         return false;
     }
 

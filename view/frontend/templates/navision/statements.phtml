@@ -1,0 +1,77 @@
+<?php
+/** @see \MalibuCommerce\MConnect\Block\Navision\Statement */
+?>
+<form action="<?php echo $block->getUrl('*/*/statementview') ?>" method="post" id="mconnect-customer-statement" class="form" autocomplete="off">
+    <table>
+        <tr>
+            <td>
+                <fieldset class="fieldset">
+                    <div class="field date-from">
+                        <label for="date_from"><?php echo __('Start Date') ?></label>
+                        <div class="input-box">
+                            <input type="text" id="date_from" name="date_from" title="<?php echo __('Start Date') ?>" class="input-text" data-validate="{required:true, 'validate-date':true}" value="<?php echo $block->getFieldValue('date_from') ?>" style="width: 250px;"/>
+                            <script type="text/javascript">
+                                require([
+                                    "jquery",
+                                    "mage/mage",
+                                    "mage/calendar"
+                                ], function ($) {
+                                    $("#date_from").calendar({
+                                        showsTime: false,
+                                        dateFormat: "yy-M-dd",
+                                        yearRange: "-120y:c+nn",
+                                        buttonText: "Select Date",
+                                        changeMonth: true,
+                                        changeYear: true,
+                                        showOn: "both"
+                                    })
+                                });
+                            </script>
+                        </div>
+                    </div>
+                </fieldset>
+            </td>
+            <td>
+                <fieldset class="fieldset">
+                    <div class="field date-to">
+                        <label for="date_to"><?php echo __('End Date') ?></label>
+                        <div class="input-box">
+                            <input type="text" id="date_to" name="date_to" title="<?php echo __('End Date') ?>" class="input-text" data-validate="{required:true, 'validate-date':true}" value="<?php echo $block->getFieldValue('date_to') ?>" style="width: 250px;"/>
+                            <script type="text/javascript">
+                                require([
+                                    "jquery",
+                                    "mage/mage",
+                                    "mage/calendar"
+                                ], function ($) {
+                                    $("#date_to").calendar({
+                                        showsTime: false,
+                                        dateFormat: "yy-M-dd",
+                                        yearRange: "-120y:c+nn",
+                                        buttonText: "Select Date",
+                                        changeMonth: true,
+                                        changeYear: true,
+                                        showOn: "both"
+                                    })
+                                });
+                            </script>
+                        </div>
+                    </div>
+                </fieldset>
+            </td>
+        </tr>
+    </table>
+    <div class="buttons-set">
+        <button type="submit" name="search" value="1" title="<?php echo __('View Statement') ?>" class="button action submit primary"><span><span><?php echo __('View Statement') ?></span></span></button>
+    </div>
+</form>
+<script type="text/javascript">
+    require([
+        'jquery',
+        'mage/mage'
+    ], function($){
+
+        var dataForm = $('#mconnect-customer-statement');
+        dataForm.mage('validation', {});
+
+    });
+</script>

@@ -7,6 +7,17 @@ class Statement extends \Magento\Customer\Block\Account\Dashboard
     /**
      * @var string
      */
-    protected $_template = 'navision/statement.phtml';
+    protected $_template = 'navision/statements.phtml';
 
+    /**
+     * Return request param
+     *
+     * @param $name
+     *
+     * @return mixed
+     */
+    public function getFieldValue($name)
+    {
+        return $this->getRequest()->getParam($name, '');
+    }
 }
