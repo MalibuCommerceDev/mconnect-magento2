@@ -141,6 +141,19 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
                     array('eq' => $this->getCustomer()->getNavPriceGroup())
                 )
             );
+        } else {
+            $this->addFieldToFilter('navision_customer_id',
+                array(
+                    array('null' => true),
+                    array('eq' => ''),
+                )
+            );
+            $this->addFieldToFilter('customer_price_group',
+                array(
+                    array('null' => true),
+                    array('eq' => ''),
+                )
+            );
         }
 
         return $this;
