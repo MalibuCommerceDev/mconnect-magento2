@@ -75,7 +75,7 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
                         $count++;
                     }
                     if ($importResult === false) {
-                        $this->messages .= 'Unable to import NAV price rule' . PHP_EOL;
+                        $this->messages .= 'Unable to import NAV inventory data' . PHP_EOL;
                     }
                     $this->messages .= PHP_EOL;
                 }
@@ -83,7 +83,7 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
                     $lastSync = $result->status->current_date_time;
                 }
             } catch (\Exception $e) {
-                $this->messages .= $e->getMessage();
+                $this->messages .= $e->getMessage() . PHP_EOL;
             }
         } while ($result && isset($result->status->end_of_records) && (string)$result->status->end_of_records === 'false');
         if ($count > 0) {
