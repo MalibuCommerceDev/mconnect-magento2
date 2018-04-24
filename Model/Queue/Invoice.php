@@ -73,7 +73,7 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
                         $count++;
                     }
                 } catch (\Exception $e) {
-                    $this->messages .= $e->getMessage();
+                    $this->messages .= $e->getMessage() . PHP_EOL;
                 }
                 $this->messages .= PHP_EOL;
             }
