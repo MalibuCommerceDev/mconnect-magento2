@@ -19,16 +19,15 @@ class Test extends Action
     protected $mConnectConfig;
 
     /**
-     * @param Context $context
-     * @param JsonFactory $resultJsonFactory
+     * @param Context                               $context
+     * @param JsonFactory                           $resultJsonFactory
      * @param \MalibuCommerce\MConnect\Model\Config $mConnectConfig
      */
     public function __construct(
         Context $context,
         JsonFactory $resultJsonFactory,
         \MalibuCommerce\MConnect\Model\Config $mConnectConfig
-    )
-    {
+    ) {
         $this->resultJsonFactory = $resultJsonFactory;
         $this->mConnectConfig = $mConnectConfig;
         parent::__construct($context);
@@ -50,13 +49,14 @@ class Test extends Action
             $password = $this->mConnectConfig->getNavConnectionPassword();
             $options = array(
                 CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_URL => $url,
-                CURLOPT_USERAGENT => 'PHP-SOAP-CURL',
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_USERPWD => $username . ':' . $password,
-                CURLOPT_TIMEOUT => 60,
-                CURLOPT_HEADER => true,
-                CURLOPT_NOBODY => true,
+                CURLOPT_URL            => $url,
+                CURLOPT_USERAGENT      => 'PHP-SOAP-CURL',
+                CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
+                CURLOPT_USERPWD        => $username . ':' . $password,
+                CURLOPT_TIMEOUT        => $this->mConnectConfig->getConnectionTimeout(),
+                CURLOPT_HEADER         => true,
+                CURLOPT_NOBODY         => true,
+                CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
             );
             if ($this->mConnectConfig->getUseNtlmAuthentication()) {
                 $options[CURLOPT_HTTPAUTH] = CURLAUTH_NTLM;
@@ -65,18 +65,29 @@ class Test extends Action
                 $options[CURLOPT_SSL_VERIFYHOST] = 0;
                 $options[CURLOPT_SSL_VERIFYPEER] = 0;
             }
+            if ($this->mConnectConfig->getUseNtlmAuthentication()) {
+                $options[CURLOPT_HTTPAUTH] = CURLAUTH_NTLM;
+            }
             curl_setopt_array($ch, $options);
-            curl_exec($ch);
+            $response = curl_exec($ch);
+            if (curl_errno($ch)) {
+                $response = curl_error($ch);
+            }
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $success = $httpCode === 200;
         } catch (\Exception $e) {
+            $response = $e->getMessage();
             curl_close($ch);
         }
 
         /** @var \Magento\Framework\Controller\Result\Json $result */
         $result = $this->resultJsonFactory->create();
 
-        return $result->setData(['success' => $success, 'time' => number_format(microtime(true) - $time, 2, '.', '')]);
+        return $result->setData([
+            'success'  => $success,
+            'time'     => number_format(microtime(true) - $time, 2, '.', ''),
+            'response' => $response
+        ]);
     }
 
     protected function _isAllowed()

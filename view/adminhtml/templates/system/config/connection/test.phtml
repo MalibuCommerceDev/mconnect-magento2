@@ -38,12 +38,12 @@
                             }
                             connectionResult.find('.success').show();
                         } else {
-                            resultText = 'Failed: check URL and credentials';
+                            resultText = 'Connection Failed<br /><strong>Response:</strong><pre style="width: 450px">' + json.response + '</pre>';
                             connectionResult.find('.failure').show();
                         }
                     }
 
-                    jQuery('#test-connection-result-msg').text(resultText);
+                    jQuery('#test-connection-result-msg').html(resultText);
                     jQuery('#test_connection_button').prop('disabled', false);
                 },
                 onFailure: function() {
