@@ -94,6 +94,10 @@
                 <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
                 </field>
+                <field id="default_nav_id" sortOrder="25" type="text" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
+                    <label>Default NAV ID For New Customers</label>
+                    <comment><![CDATA[Leave blank to disable]]></comment>
+                </field>
                 <field id="default_group_taxable" sortOrder="30" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Default group for new customers (taxable)</label>
                     <source_model>\Magento\Customer\Model\Config\Source\Group</source_model>

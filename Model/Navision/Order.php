@@ -78,7 +78,11 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         $orderObject = $root->addChild('Order');
 
         $customerDataModel = $this->customerFactory->create()->load($orderEntity->getCustomerId());
-        $orderObject->nav_customer_id = $customerDataModel && $customerDataModel->getId() ? $customerDataModel->getNavId() : '';
+
+        $defaultNavId = $this->config->get('customer/default_nav_id', $orderEntity->getStoreId());
+        $orderObject->nav_customer_id = $customerDataModel && $customerDataModel->getId()
+            ? $customerDataModel->getNavId()
+            : $defaultNavId;
         $orderObject->mag_order_id = $orderEntity->getIncrementId();
         $orderObject->mag_customer_id = $orderEntity->getCustomerId();
         $orderObject->email_address = $orderEntity->getCustomerEmail();
