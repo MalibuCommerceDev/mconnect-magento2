@@ -65,7 +65,7 @@ class ProcessItemCommand extends Command
                 new InputArgument(
                     self::ARGUMENT_ENTITY_ID,
                     InputArgument::OPTIONAL,
-                    'Action'
+                    'Entity ID'
                 ),
                 new InputOption(
                     self::OPTION_SYNC,
