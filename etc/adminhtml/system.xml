@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
-        <section id="malibucommerce_mconnect" translate="label" sortOrder="500" showInDefault="1" showInWebsite="0" showInStore="0">
+        <section id="malibucommerce_mconnect" translate="label" sortOrder="500" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>M-Connect</label>
             <tab>service</tab>
             <resource>MalibuCommerce_MConnect::config</resource>
 
-            <group id="info" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+            <group id="info" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
                 <label>Information</label>
-                <field id="version" sortOrder="10" type="label" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="version" sortOrder="10" type="label" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
                     <label>M-Connect Version</label>
                     <frontend_model>\MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Version\Module</frontend_model>
                 </field>
@@ -84,7 +84,7 @@
                 </field>
             </group>
 
-            <group id="customer" type="text" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+            <group id="customer" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
                 <label>Customer</label>
                 <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
