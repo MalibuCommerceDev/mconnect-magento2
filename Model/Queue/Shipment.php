@@ -209,7 +209,14 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
             $shipment->register();
 
             if ($this->config->get('shipment/create_invoice_with_shipment')) {
-                $invoice = $this->malibuInvoice->createInvoice($order, $shipmentItems);
+                try {
+                    $invoice = $this->malibuInvoice->createInvoice($order, $shipmentItems);
+                } catch (\LogicException $e) {
+                    // Ignore logical exceptions when attempting to create an invoice.
+                    // This is needed when for ex. an invoice already exists and "Create Invoice With Shipment" is ON.
+                } catch (\Exception $e) {
+                    throw $e;
+                }
             }
 
             $shipment->getOrder()->setIsInProcess(true);
