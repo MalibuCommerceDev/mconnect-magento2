@@ -1,7 +1,6 @@
 <?php
-namespace MalibuCommerce\MConnect\Model\Queue;
 
-use Magento\Framework\Exception\LocalizedException;
+namespace MalibuCommerce\MConnect\Model\Queue;
 
 class Invoice extends \MalibuCommerce\MConnect\Model\Queue
 {
@@ -96,13 +95,13 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
      * @param array $qtys
      *
      * @return \Magento\Sales\Model\Order\Invoice
-     * @throws LocalizedException
+     * @throws \LogicException
      */
     public function createInvoice($order, $qtys = [])
     {
         $orderIncrementId = $order->getIncrementId();
         if (!$order->canInvoice()) {
-            throw new LocalizedException(
+            throw new \LogicException(
                 __('The order #%1 does not allow an invoice to be created.', $orderIncrementId)
             );
         }
@@ -110,11 +109,11 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
         $invoice = $this->invoiceService->prepareInvoice($order, $qtys);
 
         if (!$invoice) {
-            throw new LocalizedException(__('Can\'t save the invoice for order #%1 right now.', $orderIncrementId));
+            throw new \LogicException(__('Can\'t save the invoice for order #%1 right now.', $orderIncrementId));
         }
 
         if (!$invoice->getTotalQty()) {
-            throw new LocalizedException(
+            throw new \LogicException(
                 __('Can\'t create an invoice without products for order #%1.', $orderIncrementId)
             );
         }
@@ -145,7 +144,7 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
 
         try {
             if (!$order || !$order->getId()) {
-                throw new LocalizedException(__('The order #%1 no longer exists.', $incrementId));
+                throw new \LogicException(__('The order #%1 no longer exists.', $incrementId));
             }
 
             $invoice = $this->createInvoice($order);
