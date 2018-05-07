@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../lib/internal/Magento/Framework/ObjectManager/etc/config.xsd">
+    <preference for="Magento\Customer\Block\Account\SortLink" type="MalibuCommerce\MConnect\Block\Customer\Account\SortLink" />
     <type name="Magento\Catalog\Model\Product">
         <plugin name="mconnect_price_rule" type="MalibuCommerce\MConnect\Plugin\Product" sortOrder="100" disabled="false"/>
     </type>
