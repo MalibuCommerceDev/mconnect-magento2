@@ -47,8 +47,14 @@ class Productsync extends Action
     protected $backendHelper;
 
     /**
+     * @var \Magento\Framework\Controller\Result\JsonFactory
+     */
+    protected $resultJsonFactory;
+
+    /**
      * Productsync constructor.
      *
+     * @param \Magento\Framework\Controller\Result\JsonFactory   $resultJsonFactory
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \MalibuCommerce\MConnect\Model\Config              $config
      * @param \MalibuCommerce\MConnect\Model\QueueFactory        $queue
@@ -59,6 +65,7 @@ class Productsync extends Action
      * @param \Magento\Framework\App\Action\Context              $context
      */
     public function __construct(
+        \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\QueueFactory $queue,
@@ -68,6 +75,7 @@ class Productsync extends Action
         \Magento\Backend\Helper\Data $backendHelper,
         \Magento\Framework\App\Action\Context $context
     ) {
+        $this->resultJsonFactory = $resultJsonFactory;
         $this->config = $config;
         $this->scopeConfig = $scopeConfig;
         $this->queue = $queue;
@@ -87,10 +95,13 @@ class Productsync extends Action
      */
     public function execute()
     {
+        $result = $this->resultJsonFactory->create();
         if (!$this->auth()) {
-            $resultRedirect = $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT);
-            $resultRedirect->setPath('/');
-            return $resultRedirect;
+
+            $data['error'] = 1;
+            $data['message'] = 'You are not authorized.';
+
+            return $result->setData($data);
         }
 
         $productSku = $this->getRequest()->getParam('id');
@@ -130,8 +141,8 @@ class Productsync extends Action
                 $data['message'] = $e->getMessage();
             }
         }
-        $this->getResponse()->setHeader('Content-type', 'application/json');
-        $this->getResponse()->setBody(json_encode($data));
+
+        return $result->setData($data);
     }
 
     /**
