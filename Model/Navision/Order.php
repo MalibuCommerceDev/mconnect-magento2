@@ -3,7 +3,6 @@
 namespace MalibuCommerce\MConnect\Model\Navision;
 
 use Magento\Catalog\Model\Product\Type as ProductType;
-use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 
 class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 {
@@ -33,16 +32,23 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
     protected $productMetadata;
 
     /**
-     * Order constructor
+     * @var \Magento\Framework\Serialize\Serializer\Json
+     */
+    protected $serializer;
+
+    /**
+     * Order constructor.
      *
-     * @param \Magento\Directory\Model\Region         $directoryRegion
-     * @param \Magento\Customer\Model\Address         $customerAddress
-     * @param \Magento\Customer\Model\CustomerFactory $customerFactory
-     * @param \Magento\GiftMessage\Model\Message      $giftMessage
-     * @param \MalibuCommerce\MConnect\Model\Config   $config
-     * @param Connection                              $mConnectNavisionConnection
-     * @param \Psr\Log\LoggerInterface                $logger
-     * @param array                                   $data
+     * @param \Magento\Directory\Model\Region                 $directoryRegion
+     * @param \Magento\Customer\Model\Address                 $customerAddress
+     * @param \Magento\Customer\Model\CustomerFactory         $customerFactory
+     * @param \Magento\GiftMessage\Model\Message              $giftMessage
+     * @param \MalibuCommerce\MConnect\Model\Config           $config
+     * @param Connection                                      $mConnectNavisionConnection
+     * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
+     * @param \Magento\Framework\Serialize\Serializer\Json    $serializer
+     * @param \Psr\Log\LoggerInterface                        $logger
+     * @param array                                           $data
      */
     public function __construct(
         \Magento\Directory\Model\Region $directoryRegion,
@@ -52,6 +58,7 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection,
         \Magento\Framework\App\ProductMetadataInterface $productMetadata,
+        \Magento\Framework\Serialize\Serializer\Json $serializer,
         \Psr\Log\LoggerInterface $logger,
         array $data = []
     ) {
@@ -60,6 +67,7 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         $this->customerFactory = $customerFactory;
         $this->productMetadata = $productMetadata;
         $this->giftMessage = $giftMessage;
+        $this->serializer = $serializer;
 
         parent::__construct($config, $mConnectNavisionConnection, $logger);
     }
@@ -88,22 +96,7 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         $orderObject->email_address = $orderEntity->getCustomerEmail();
         $orderObject->store_id = $orderEntity->getStoreId();
 
-        $orderObject->gift_wrap_message_to = '';
-        $orderObject->gift_wrap_message_from = '';
-        $orderObject->gift_wrap_message = '';
-        $orderObject->gift_wrap_charge = '';
-
-        $giftMessageId = $orderEntity->getGiftMessageId();
-        if ($giftMessageId && $this->isGiftWrapEnabled()) {
-            $this->giftMessage->load($giftMessageId);
-            if ($this->giftMessage->getId()) {
-                $orderObject->gift_wrap_message_to = $this->giftMessage->getRecipient();
-                $orderObject->gift_wrap_message_from = $this->giftMessage->getSender();
-                $orderObject->gift_wrap_message = $this->giftMessage->getMessage();
-                $orderObject->gift_wrap_charge = $orderEntity->getGwBasePrice();
-            }
-        }
-
+        $this->addGiftOptions($orderEntity, $orderObject);
         $this->addShipping($orderEntity, $orderObject);
 
         $payment = $orderEntity->getPayment();
@@ -118,11 +111,86 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
     }
 
     /**
-     * Check if "Gift Wrap" feature enabled in current Magento installation
+     * Add gift options to NAV export XML
+     *
+     * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
+     * @param \simpleXMLElement $root
+     *
+     * @return $this
+     */
+    public function addGiftOptions(\Magento\Sales\Api\Data\OrderInterface $orderEntity, &$root)
+    {
+        try {
+            $root->gift_wrap_message_to = '';
+            $root->gift_wrap_message_from = '';
+            $root->gift_wrap_message = '';
+            $root->gift_wrap_charge = '';
+            $root->gift_card_amt_used = '';
+            $root->gift_card_number = '';
+
+            if (!$this->isCommerceEdition()) {
+                return $this;
+            }
+
+            /**
+             * Gift Wrapping
+             */
+            $giftMessageId = $orderEntity->getGiftMessageId();
+            $giftWrappingId = $orderEntity->getGwId();
+            $giftWrappingPrintedCard = $orderEntity->getGwAddCard();
+            $isGiftWrappingAmountSet = false;
+            $giftWrappingAmount = 0.00;
+            $giftCards = $orderEntity->getGiftCards();
+
+            if ($giftMessageId) {
+                $this->giftMessage->load($giftMessageId);
+                if ($this->giftMessage->getId()) {
+                    $root->gift_wrap_message_to = $this->giftMessage->getRecipient();
+                    $root->gift_wrap_message_from = $this->giftMessage->getSender();
+                    $root->gift_wrap_message = $this->giftMessage->getMessage();
+                }
+            }
+
+            if ($giftWrappingId) {
+                $giftWrappingAmount += $orderEntity->getGwBasePrice();
+                $isGiftWrappingAmountSet = true;
+            }
+            if ($giftWrappingPrintedCard) {
+                $isGiftWrappingAmountSet = true;
+                $giftWrappingAmount += $orderEntity->getGwCardBasePrice();
+            }
+            if ($isGiftWrappingAmountSet) {
+                $root->gift_wrap_charge = number_format((float) $giftWrappingAmount, 4, '.', '');
+            }
+
+            /**
+             * Gift Cards
+             */
+            $giftCards = $giftCards ? $this->serializer->unserialize($giftCards) : [];
+            if (!empty($giftCards)) {
+                $baseAmount = 0.00;
+                $codes = [];
+                foreach ($giftCards as $card) {
+                    $codes[] = $card[\Magento\GiftCardAccount\Model\Giftcardaccount::CODE];
+                    $baseAmount += $card[\Magento\GiftCardAccount\Model\Giftcardaccount::BASE_AMOUNT];
+                }
+
+                $root->gift_card_number = implode(', ', $codes);
+                $root->gift_card_amt_used = number_format((float) $baseAmount, 4, '.', '');
+            }
+        } catch (\Exception $e) {
+            // Ignore exceptions
+        }
+
+        return $this;
+    }
+
+    /**
+     * Check if Commerce features available in current Magento installation
      *
      * @return bool
      */
-    protected function isGiftWrapEnabled()
+    protected function isCommerceEdition()
     {
         return $this->productMetadata->getEdition() != 'Community';
     }
