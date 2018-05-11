@@ -18,7 +18,6 @@
                 <arguments>
                     <argument name="path" xsi:type="string">mconnect/navision/statement</argument>
                     <argument name="label" xsi:type="string" translate="true">Customer Statement</argument>
-                    <argument name="target" xsi:type="string">_blank</argument>
                     <argument name="sortOrder" xsi:type="number">15</argument>
                 </arguments>
             </block>
