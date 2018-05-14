@@ -3,6 +3,7 @@
 namespace MalibuCommerce\MConnect\Model\Navision;
 
 use Magento\Catalog\Model\Product\Type as ProductType;
+use Magento\Framework\Module\Manager;
 
 class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 {
@@ -36,6 +37,9 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
      */
     protected $serializer;
 
+
+    protected $moduleManager;
+
     /**
      * Order constructor.
      *
@@ -47,6 +51,7 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
      * @param Connection                                      $mConnectNavisionConnection
      * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
      * @param \Magento\Framework\Serialize\Serializer\Json    $serializer
+     * @param Manager                                         $moduleManager
      * @param \Psr\Log\LoggerInterface                        $logger
      * @param array                                           $data
      */
@@ -59,6 +64,7 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection,
         \Magento\Framework\App\ProductMetadataInterface $productMetadata,
         \Magento\Framework\Serialize\Serializer\Json $serializer,
+        \Magento\Framework\Module\Manager $moduleManager,
         \Psr\Log\LoggerInterface $logger,
         array $data = []
     ) {
@@ -68,6 +74,7 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         $this->productMetadata = $productMetadata;
         $this->giftMessage = $giftMessage;
         $this->serializer = $serializer;
+        $this->moduleManager = $moduleManager;
 
         parent::__construct($config, $mConnectNavisionConnection, $logger);
     }
@@ -135,48 +142,52 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
             /**
              * Gift Wrapping
              */
-            $giftMessageId = $orderEntity->getGiftMessageId();
-            $giftWrappingId = $orderEntity->getGwId();
-            $giftWrappingPrintedCard = $orderEntity->getGwAddCard();
-            $isGiftWrappingAmountSet = false;
-            $giftWrappingAmount = 0.00;
-            $giftCards = $orderEntity->getGiftCards();
+            if ($this->moduleManager->isEnabled('Magento_GiftWrapping')) {
+                $giftMessageId = $orderEntity->getGiftMessageId();
+                $giftWrappingId = $orderEntity->getGwId();
+                $giftWrappingPrintedCard = $orderEntity->getGwAddCard();
+                $isGiftWrappingAmountSet = false;
+                $giftWrappingAmount = 0.00;
 
-            if ($giftMessageId) {
-                $this->giftMessage->load($giftMessageId);
-                if ($this->giftMessage->getId()) {
-                    $root->gift_wrap_message_to = $this->giftMessage->getRecipient();
-                    $root->gift_wrap_message_from = $this->giftMessage->getSender();
-                    $root->gift_wrap_message = $this->giftMessage->getMessage();
+                if ($giftMessageId) {
+                    $this->giftMessage->load($giftMessageId);
+                    if ($this->giftMessage->getId()) {
+                        $root->gift_wrap_message_to = $this->giftMessage->getRecipient();
+                        $root->gift_wrap_message_from = $this->giftMessage->getSender();
+                        $root->gift_wrap_message = $this->giftMessage->getMessage();
+                    }
                 }
-            }
 
-            if ($giftWrappingId) {
-                $giftWrappingAmount += $orderEntity->getGwBasePrice();
-                $isGiftWrappingAmountSet = true;
-            }
-            if ($giftWrappingPrintedCard) {
-                $isGiftWrappingAmountSet = true;
-                $giftWrappingAmount += $orderEntity->getGwCardBasePrice();
-            }
-            if ($isGiftWrappingAmountSet) {
-                $root->gift_wrap_charge = number_format((float) $giftWrappingAmount, 4, '.', '');
+                if ($giftWrappingId) {
+                    $giftWrappingAmount += $orderEntity->getGwBasePrice();
+                    $isGiftWrappingAmountSet = true;
+                }
+                if ($giftWrappingPrintedCard) {
+                    $isGiftWrappingAmountSet = true;
+                    $giftWrappingAmount += $orderEntity->getGwCardBasePrice();
+                }
+                if ($isGiftWrappingAmountSet) {
+                    $root->gift_wrap_charge = number_format((float) $giftWrappingAmount, 4, '.', '');
+                }
             }
 
             /**
              * Gift Cards
              */
-            $giftCards = $giftCards ? $this->serializer->unserialize($giftCards) : [];
-            if (!empty($giftCards)) {
-                $baseAmount = 0.00;
-                $codes = [];
-                foreach ($giftCards as $card) {
-                    $codes[] = $card[\Magento\GiftCardAccount\Model\Giftcardaccount::CODE];
-                    $baseAmount += $card[\Magento\GiftCardAccount\Model\Giftcardaccount::BASE_AMOUNT];
-                }
+            if ($this->moduleManager->isEnabled('Magento_GiftCard')) {
+                $giftCards = $orderEntity->getGiftCards();
+                $giftCards = $giftCards ? $this->serializer->unserialize($giftCards) : [];
+                if (!empty($giftCards)) {
+                    $baseAmount = 0.00;
+                    $codes = [];
+                    foreach ($giftCards as $card) {
+                        $codes[] = $card[\Magento\GiftCardAccount\Model\Giftcardaccount::CODE];
+                        $baseAmount += $card[\Magento\GiftCardAccount\Model\Giftcardaccount::BASE_AMOUNT];
+                    }
 
-                $root->gift_card_number = implode(', ', $codes);
-                $root->gift_card_amt_used = number_format((float) $baseAmount, 4, '.', '');
+                    $root->gift_card_number = implode(', ', $codes);
+                    $root->gift_card_amt_used = number_format((float) $baseAmount, 4, '.', '');
+                }
             }
         } catch (\Exception $e) {
             // Ignore exceptions
@@ -259,7 +270,9 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         /**
          * Add only simple products to NAV
          */
-        if ($item->getProductType() != ProductType::TYPE_SIMPLE) {
+        if ($item->getProductType() != ProductType::TYPE_SIMPLE
+            && ($this->moduleManager->isEnabled('Magento_GiftCard') && $item->getProductType() != \Magento\GiftCard\Model\Catalog\Product\Type\Giftcard::TYPE_GIFTCARD)
+        ) {
             return $this;
         }
 
