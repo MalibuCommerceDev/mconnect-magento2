@@ -122,6 +122,10 @@
                     <label>Password reset email template</label>
                     <!--<source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>-->
                 </field>
+                <field id="show_reports" sortOrder="90" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Show NAV Reports In Customer Account</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
             </group>
 
             <group id="product" type="text" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
