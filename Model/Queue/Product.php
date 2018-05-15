@@ -196,6 +196,11 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             $product->setWeight(number_format((float) $data->item_net_weight, 4, '.', ''));
         }
 
+        if (!empty($data->item_webshop_list)) {
+            $ids = (string) $data->item_webshop_list;
+            $product->setWebsiteIds(explode(',', $ids));
+        }
+
         $status = $data->item_blocked == 'true'
             ? ProductStatus::STATUS_DISABLED
             : ProductStatus::STATUS_ENABLED;
