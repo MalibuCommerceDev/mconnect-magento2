@@ -51,6 +51,11 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
     protected $attributeRepository;
 
     /**
+     * @var \Magento\Framework\App\ResourceConnection
+     */
+    protected $resource;
+
+    /**
      * Product constructor.
      *
      * @param \Magento\Catalog\Api\ProductRepositoryInterface $productRepository
@@ -68,7 +73,8 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
-        \Magento\Catalog\Api\ProductAttributeRepositoryInterface $attributeRepository
+        \Magento\Catalog\Api\ProductAttributeRepositoryInterface $attributeRepository,
+        \Magento\Framework\App\ResourceConnection $resource
     ) {
         $this->productRepository = $productRepository;
         $this->productFactory = $productFactory;
@@ -78,6 +84,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         $this->storeManager = $storeManager;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->attributeRepository = $attributeRepository;
+        $this->resource = $resource;
     }
 
     public function importAction()
@@ -241,6 +248,9 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         try {
             if ($product->hasDataChanges()) {
                 $this->productRepository->save($product);
+                if (!empty($data->item_webshop_list)) {
+                    $this->updateProductWebsites($product->getId(), explode(',', $ids));
+                }
                 if ($productExists) {
                     $this->messages .= $sku . ': updated';
                 } else {
@@ -275,6 +285,17 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         }
 
         return true;
+    }
+
+    public function updateProductWebsites($productId, array $websiteIds)
+    {
+        $connection = $this->resource->getConnection();
+        $tableName = $this->resource->getTableName('catalog_product_website');
+        $connection->query('DELETE FROM ' . $tableName . ' WHERE product_id = ' . $productId);
+        foreach ($websiteIds as $id) {
+            $id = (int) $id;
+            $connection->query('INSERT INTO ' . $tableName . ' (product_id, website_id) VALUES (' . $productId . ', ' . $id . ')');
+        }
     }
 
     public function getDefaultAttributeSetId()
