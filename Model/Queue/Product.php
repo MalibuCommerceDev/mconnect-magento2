@@ -249,7 +249,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             if ($product->hasDataChanges()) {
                 $this->productRepository->save($product);
                 if (!empty($data->item_webshop_list)) {
-                    $this->updateProductWebsites($product->getId(), explode(',', $ids));
+                    $this->updateProductWebsites($sku, explode(',', $ids));
                 }
                 if ($productExists) {
                     $this->messages .= $sku . ': updated';
@@ -287,10 +287,17 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         return true;
     }
 
-    public function updateProductWebsites($productId, array $websiteIds)
+    public function updateProductWebsites($sku, array $websiteIds)
     {
         $connection = $this->resource->getConnection();
         $tableName = $this->resource->getTableName('catalog_product_website');
+        try {
+            /** @var \Magento\Catalog\Api\Data\ProductInterface $product */
+            $product = $this->productRepository->get($sku, true, null, true);
+        } catch (\Exception $e) {
+            return false;
+        }
+        $productId = $product->getId();
         $connection->query('DELETE FROM ' . $tableName . ' WHERE product_id = ' . $productId);
         foreach ($websiteIds as $id) {
             $id = (int) $id;
