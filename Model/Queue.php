@@ -68,6 +68,11 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         if (!$this->getConfig()->getFlag('general/enabled')) {
             return $this;
         }
+
+        if ($action == 'import' && !$this->getConfig()->getFlag($code . '/import_enabled')) {
+            return $this;
+        }
+
         $this->unsetData();
         $id      = $id ? $id : null;
         $scheduledAt = $scheduledAt ?? date('Y-m-d H:i:s');

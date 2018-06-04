@@ -86,6 +86,10 @@
 
             <group id="customer" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
                 <label>Customer</label>
+                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Enabled</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
                 <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
@@ -130,6 +134,10 @@
 
             <group id="product" type="text" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Product</label>
+                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Enabled</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
                 <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
@@ -159,6 +167,10 @@
 
             <group id="inventory" type="text" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Inventory</label>
+                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Enabled</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
                 <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
@@ -171,6 +183,10 @@
 
             <group id="order" type="text" sortOrder="75" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Order</label>
+                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Enabled</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
                 <field id="hold_new_orders_export" sortOrder="10" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Hold New Orders Export</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -194,6 +210,10 @@
 
             <group id="invoice" type="text" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Invoice</label>
+                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Enabled</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
                 <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
@@ -214,6 +234,10 @@
 
             <group id="shipment" type="text" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Shipment</label>
+                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Enabled</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
                 <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
@@ -240,6 +264,10 @@
 
             <group id="price_rule" type="text" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Price Rule</label>
+                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Enabled</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
                 <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>

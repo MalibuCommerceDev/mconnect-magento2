@@ -54,10 +54,14 @@ class Cron
 
     protected function queueImportItem($code)
     {
-        $config = $this->config;
-        if (!$config->getFlag('general/enabled')) {
-            return 'M-Connect is disabled).';
+        if (!$this->config->getFlag('general/enabled')) {
+            return 'M-Connect is disabled.';
         }
+
+        if (!$this->config->getFlag($code . '/import_enabled')) {
+            return 'Import functionality is disabled for ' . $code;
+        }
+
         $queue = $this->queue->create()->add(
             $code,
             'import'

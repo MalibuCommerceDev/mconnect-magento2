@@ -3,7 +3,7 @@
     <default>
         <malibucommerce_mconnect>
             <general>
-                <enabled>1</enabled>
+                <enabled>0</enabled>
             </general>
             <queue>
                 <cron_expr>* * * * *</cron_expr>
@@ -17,6 +17,7 @@
                 <ntlm>1</ntlm>
             </nav_connection>
             <customer>
+                <import_enabled>1</import_enabled>
                 <cron_expr>0 * * * *</cron_expr>
                 <max_rows>50</max_rows>
                 <default_nav_id></default_nav_id>
@@ -28,6 +29,7 @@
                 <new_email_template>malibucommerce_mconnect_customer_new</new_email_template>
             </customer>
             <product>
+                <import_enabled>1</import_enabled>
                 <cron_expr>0 * * * *</cron_expr>
                 <max_rows>50</max_rows>
                 <import_attribute_set>4</import_attribute_set>
@@ -36,21 +38,25 @@
                 <import_tax_class>2</import_tax_class>
             </product>
             <inventory>
+                <import_enabled>1</import_enabled>
                 <cron_expr>*/10 * * * *</cron_expr>
                 <max_rows>50</max_rows>
             </inventory>
             <order>
+                <import_enabled>1</import_enabled>
                 <hold_new_orders_export>0</hold_new_orders_export>
                 <hold_new_orders_delay>60</hold_new_orders_delay>
                 <order_status_when_synced_to_nav>nav_preparing_for_shipment</order_status_when_synced_to_nav>
             </order>
             <invoice>
+                <import_enabled>1</import_enabled>
                 <cron_expr>*/10 * * * *</cron_expr>
                 <max_rows>50</max_rows>
                 <capture_type>online</capture_type>
                 <send_email_enabled>1</send_email_enabled>
             </invoice>
             <shipment>
+                <import_enabled>1</import_enabled>
                 <cron_expr>*/10 * * * *</cron_expr>
                 <max_rows>50</max_rows>
                 <send_email_enabled>1</send_email_enabled>
@@ -58,6 +64,7 @@
                 <cancel_remaining_not_shipped_items>0</cancel_remaining_not_shipped_items>
             </shipment>
             <price_rule>
+                <import_enabled>1</import_enabled>
                 <cron_expr>0 * * * *</cron_expr>
                 <max_rows>50</max_rows>
             </price_rule>
