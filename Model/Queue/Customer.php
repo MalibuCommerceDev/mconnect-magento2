@@ -55,8 +55,25 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
      */
     protected $address;
 
-    /** @var \Magento\Customer\Model\ResourceModel\Address\CollectionFactory */
+    /**
+     * @var \Magento\Customer\Model\ResourceModel\Address\CollectionFactory
+     */
     protected $addressCollectionFactory;
+
+    /**
+     * @var \Magento\Framework\Api\SearchCriteriaBuilder
+     */
+    protected $searchCriteriaBuilder;
+
+    /**
+     * @var \Magento\Eav\Model\AttributeRepository
+     */
+    protected $attributeRepository;
+
+    /**
+     * @var array
+     */
+    protected $customAttributesMap = [];
 
     public function __construct(
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
@@ -67,7 +84,9 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
         \Magento\Customer\Model\CustomerFactory $customerFactory,
         \Magento\Customer\Model\AddressFactory $addressFactory,
-        \Magento\Customer\Model\ResourceModel\Address\CollectionFactory $addressCollectionFactory
+        \Magento\Customer\Model\ResourceModel\Address\CollectionFactory $addressCollectionFactory,
+        \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
+        \Magento\Eav\Model\AttributeRepository $attributeRepository
     ) {
         $this->customerRepository = $customerRepository;
         $this->regionFactory = $regionFactory;
@@ -78,6 +97,20 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
         $this->customerFactory = $customerFactory;
         $this->addressFactory = $addressFactory;
         $this->addressCollectionFactory = $addressCollectionFactory;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->attributeRepository = $attributeRepository;
+    }
+
+    public function initImport()
+    {
+        return $this;
+    }
+
+    public function mapEavToNavCustomCustomerAttribute($eavAttributeCode, $navAttributeCode)
+    {
+        $this->customAttributesMap[$eavAttributeCode] = $navAttributeCode;
+
+        return $this->customAttributesMap;
     }
 
     public function exportAction($entityId = null)
@@ -125,6 +158,8 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
 
     public function importAction()
     {
+        $this->initImport();
+
         $count = 0;
         $page = 0;
         $lastSync = false;
@@ -205,9 +240,43 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
             ->setNavPaymentTerms((string)$data->cust_payment_terms)
             ->setNavPriceGroup((string)$data->cust_price_group);
 
+        /**
+         * Set required user defined attributes
+         */
+        $searchCriteria = $this->searchCriteriaBuilder
+            ->addFilter('is_required', '1')
+            ->addFilter('is_user_defined', '1')
+            ->create();
+
+        $attributes = $this->attributeRepository->getList(
+            'customer',
+            $searchCriteria
+        )->getItems();
+
+        foreach ($attributes as $attribute) {
+            switch ($attribute->getBackendType()) {
+                case 'decimal':
+                    $value = 0.00;
+                    break;
+                case 'int':
+                    $value = 0;
+                    break;
+                case 'datetime':
+                    $value = '0000-00-00 00:00:00';
+                    break;
+                default:
+                    $value = 'N/A';
+                    break;
+            }
+            $customer->setDataUsingMethod($attribute->getAttributeCode(), $value);
+        }
+
         try {
-            if ($customer->hasDataChanges()) {
+            if ($customer->hasDataChanges() || !empty($this->customAttributesMap)) {
                 $customer->save();
+
+                $this->saveCustomCustomerAttributes($customer, $data);
+
                 if ($customerExists) {
                     $this->messages .= $email . ': updated';
                 } else {
@@ -234,6 +303,29 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
         }
 
         return true;
+    }
+
+    public function saveCustomCustomerAttributes(
+        \Magento\Customer\Model\Customer $customerDataModel,
+        \simpleXMLElement $data
+    ) {
+        foreach ($this->customAttributesMap as $eavAttributeCode => $navAttributeCode) {
+            if (!isset($data->$navAttributeCode)) {
+                continue;
+            }
+
+            $value = (string) $data->$navAttributeCode;
+            $attribute = $customerDataModel->getResource()->getAttribute($eavAttributeCode);
+            if ($attribute->usesSource()) {
+                $value = $attribute->getSource()->getOptionId($value);
+            }
+
+            $customerData = $customerDataModel->getDataModel();
+            $customerData->setId($customerDataModel->getData('entity_id'));
+            $customerData->setCustomAttribute($eavAttributeCode, $value);
+            $customerDataModel->updateData($customerData);
+            $customerDataModel->getResource()->saveAttribute($customerDataModel, $eavAttributeCode);
+        }
     }
 
     protected function importAddress($customer, $addressData)

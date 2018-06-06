@@ -30,16 +30,20 @@ class Customer extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         parent::__construct($config, $mConnectNavisionConnection, $logger);
     }
 
-    public function import(\Magento\Customer\Api\Data\CustomerInterface $customer, \Magento\Customer\Model\Customer $customerDataModel)
-    {
+    public function import(
+        \Magento\Customer\Api\Data\CustomerInterface $customer,
+        \Magento\Customer\Model\Customer $customerDataModel
+    ) {
         $root = new \simpleXMLElement('<customer_import />');
-        $cust = $root->addChild('Customer');
-        $cust->nav_customer_id = $customerDataModel->getNavId();
-        $cust->mag_customer_id = $customer->getId();
-        $cust->first_name      = $customer->getFirstname();
-        $cust->last_name       = $customer->getLastname();
-        $cust->email_address   = $customer->getEmail();
-        $cust->store_id        = $customer->getStoreId();
+        $exportXml = $root->addChild('Customer');
+        $exportXml->nav_customer_id = $customerDataModel->getNavId();
+        $exportXml->mag_customer_id = $customer->getId();
+        $exportXml->first_name      = $customer->getFirstname();
+        $exportXml->last_name       = $customer->getLastname();
+        $exportXml->email_address   = $customer->getEmail();
+        $exportXml->store_id        = $customer->getStoreId();
+
+        $exportXml = $this->setCustomCustomerAttributes($customer, $customerDataModel, $exportXml);
 
         $defaultBillingAddressId  = $customer->getDefaultBilling();
         $defaultShippingAddressId = $customer->getDefaultShipping();
@@ -47,15 +51,23 @@ class Customer extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         foreach ($customer->getAddresses() as $address) {
             $address->setIsDefaultBilling($defaultBillingAddressId == $address->getId());
             $address->setIsDefaultShipping($defaultShippingAddressId == $address->getId());
-            $this->_addAddress($address, $cust);
+            $this->addAddress($address, $exportXml);
         }
 
         return $this->_import('customer_import', $root);
     }
 
-    protected function _addAddress(\Magento\Customer\Api\Data\AddressInterface $address, &$cust)
+    public function setCustomCustomerAttributes(
+        \Magento\Customer\Api\Data\CustomerInterface $customer,
+        \Magento\Customer\Model\Customer $customerDataModel,
+        \simpleXMLElement $exportXml
+    ) {
+        return $exportXml;
+    }
+
+    protected function addAddress(\Magento\Customer\Api\Data\AddressInterface $address, \simpleXMLElement &$exportXml)
     {
-        $child  = $cust->addChild('customer_address');
+        $child  = $exportXml->addChild('customer_address');
         $street = $address->getStreet();
 
         $navId                      = $address->getCustomAttribute('nav_id');
