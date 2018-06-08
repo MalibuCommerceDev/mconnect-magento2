@@ -150,7 +150,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
             }
             $this->messages .= implode("\n", $errors);
 
-            throw new LocalizedException(implode("\n", $errors));
+            throw new \Exception(implode("\n", $errors));
         }
 
         throw new LocalizedException(__('Unexpected status: "%1". Check log for details.', $status));
