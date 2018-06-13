@@ -18,7 +18,8 @@ class Queue extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
                 'message' => $message
             ],
             [
-                'entity_id =?' => $entityId
+                'entity_id = ?' => $entityId,
+                'status = ?' => \MalibuCommerce\MConnect\Model\Queue::STATUS_PENDING
             ]
         );
     }
