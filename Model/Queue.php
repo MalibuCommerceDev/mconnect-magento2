@@ -104,6 +104,11 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         );
     }
 
+    public function removePendingItemsByEntityId($entityId, $message = null)
+    {
+        return $this->getResource()->removePendingItemsByEntityId($entityId, $message);
+    }
+
     public function process()
     {
         if (!$this->getConfig()->getFlag('general/enabled')) {
