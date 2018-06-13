@@ -1,7 +1,7 @@
 <?php
 namespace MalibuCommerce\MConnect\Observer;
 
-class SalesOrderAfterPlaceObserver implements \Magento\Framework\Event\ObserverInterface
+class SalesEventQuoteSubmitSuccessObserver implements \Magento\Framework\Event\ObserverInterface
 {
     /**
      * @var \MalibuCommerce\MConnect\Model\QueueFactory
