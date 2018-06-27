@@ -59,6 +59,10 @@ class UpgradeData implements UpgradeDataInterface
             $this->upgrade1_1_19($setup);
         }
 
+        if (version_compare($context->getVersion(), '1.1.42', '<')) {
+            $this->upgrade1_1_42($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -75,6 +79,7 @@ class UpgradeData implements UpgradeDataInterface
             'visible'               => true,
             'required'              => false,
             'user_defined'          => false,
+            'system'                => false,
             'is_used_in_grid'       => true,
             'is_visible_in_grid'    => true,
             'is_filterable_in_grid' => true,
@@ -185,6 +190,29 @@ class UpgradeData implements UpgradeDataInterface
                 );
             }
         }
+
+        /**
+         * Add required static columns to customer entity DB table
+         */
+        $setup->getConnection()->addColumn(
+            'customer_entity',
+            'nav_price_group',
+            array(
+                'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                'length'  => 255,
+                'comment' => 'NAV Price Group'
+            )
+        );
+
+        $setup->getConnection()->addColumn(
+            'customer_entity',
+            'nav_payment_terms',
+            array(
+                'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                'length'  => '64k',
+                'comment' => 'NAV Payment Terms'
+            )
+        );
     }
 
     protected function upgrade1_1_17(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
@@ -225,30 +253,7 @@ class UpgradeData implements UpgradeDataInterface
             $customerSetup->removeAttribute(Customer::ENTITY, 'nav_payment_terms');
 
             /**
-             * Add required static columns to customer entity DB table
-             */
-            $setup->getConnection()->addColumn(
-                'customer_entity',
-                'nav_price_group',
-                array(
-                    'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
-                    'length'  => 255,
-                    'comment' => 'NAV Price Group'
-                )
-            );
-            if ($paymentTermsBackendType != 'static') {
-                $setup->getConnection()->addColumn(
-                    'customer_entity',
-                    'nav_payment_terms',
-                    array(
-                        'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
-                        'length'  => '64k',
-                        'comment' => 'NAV Payment Terms'
-                    )
-                );
-            }
-            /**
-             * Add updated attributes
+             * Add updated attributes, add required static columns to customer entity DB table
              */
             $this->upgrade1_0_1($setup);
             $this->upgrade1_1_6($setup);
@@ -270,13 +275,6 @@ class UpgradeData implements UpgradeDataInterface
             // Needed to reset foreign checks flag
             $setup->startSetup();
         }
-
-        $attributes = ['nav_id', 'nav_price_group', 'nav_payment_terms'];
-        foreach ($attributes as $attributeCode) {
-            $attribute = $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, $attributeCode);
-            $attribute->setData('used_in_forms', ['adminhtml_customer']);
-            $attribute->save();
-        }
     }
 
     protected function upgrade1_1_19(ModuleDataSetupInterface $setup)
@@ -286,5 +284,21 @@ class UpgradeData implements UpgradeDataInterface
         $status = $objectManager->get(\Magento\Sales\Model\Order\Status::class);
         $status->setData('status', 'nav_preparing_for_shipment')->setData('label', 'Preparing for Shipment')->save();
         $status->assignState(\Magento\Sales\Model\Order::STATE_NEW, false, true);
+    }
+
+    protected function upgrade1_1_42(ModuleDataSetupInterface $setup)
+    {
+        /** @var \Magento\Customer\Setup\CustomerSetup $customerSetup */
+        $customerSetup = $this->customerSetupFactory->create(['setup' => $setup]);
+
+        $this->upgrade1_0_1($setup);
+        $this->upgrade1_1_6($setup);
+
+        $attributes = ['nav_id', 'nav_price_group', 'nav_payment_terms'];
+        foreach ($attributes as $attributeCode) {
+            $attribute = $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, $attributeCode);
+            $attribute->setData('used_in_forms', ['adminhtml_customer']);
+            $attribute->save();
+        }
     }
 }
