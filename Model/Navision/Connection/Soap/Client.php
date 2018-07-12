@@ -79,29 +79,33 @@ class Client extends SoapClient
         $logger->addWriter($writer);
 
         $request = [
-            'Time' => date('r'),
-            'Location' => $location,
-            'Action' => $action,
-            'Body' => is_array($request) ? print_r($request, true) : $request,
-            'Request XML'  => $this->_decodeBase64('/<ns1:requestXML>(.*)<\/ns1:requestXML>/', $request),
+            'Time'        => date('r'),
+            'Location'    => $location,
+            'PID'         => getmypid(),
+            'Action'      => $action,
+            'Body'        => is_array($request) ? print_r($request, true) : $request,
+            'Request XML' => $this->_decodeBase64('/<ns1:requestXML>(.*)<\/ns1:requestXML>/', $request),
         ];
         $response = [
-            'Code'     => $code,
-            'Headers'   => $header,
-            'Body'     => $body,
+            'Code'         => $code,
+            'Headers'      => $header,
+            'Body'         => $body,
             'Response XML' => $this->_decodeBase64('/<responseXML>(.*)<\/responseXML>/', $body)
         ];
         $logger->debug('Debug Data', array(
-            'Request' => $request,
+            'Request'  => $request,
             'Response' => $response
         ));
     }
 
     protected function _decodeBase64($pattern, $value)
     {
-        if (is_string($value) && preg_match($pattern, $value, $matches) && isset($matches[1]) && preg_match('%^[a-zA-Z0-9/+]*={0,2}$%', $matches[1])) {
+        if (is_string($value) && preg_match($pattern, $value,
+                $matches) && isset($matches[1]) && preg_match('%^[a-zA-Z0-9/+]*={0,2}$%', $matches[1])
+        ) {
             return base64_decode($matches[1]);
         }
+
         return false;
     }
 }

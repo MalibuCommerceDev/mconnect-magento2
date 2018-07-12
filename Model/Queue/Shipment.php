@@ -152,17 +152,21 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
 
             $navShipmentItems = array();
             foreach ($entity->shipment_item as $item) {
-                $navShipmentItems[(string)$item->nav_item_id] = (float)$item->quantity_shipped;
+                $sku = (string)$item->nav_item_id;
+                $sku = trim($sku);
+                $navShipmentItems[$sku] = (float)$item->quantity_shipped;
             }
 
             $isPartialShipment = false;
             $shipmentItems = [];
             foreach ($order->getAllItems() as $item) {
+                $sku = $item->getSku();
+                $sku = trim($sku);
                 if ($item->getQtyToShip() && !$item->getIsVirtual()
-                    && isset($navShipmentItems[$item->getSku()]) && $navShipmentItems[$item->getSku()] > 0
+                    && isset($navShipmentItems[$sku]) && $navShipmentItems[$sku] > 0
                 ) {
-                    $shipmentItems[$item->getId()] = $navShipmentItems[$item->getSku()];
-                    if ($item->getQtyToShip() > $navShipmentItems[$item->getSku()]) {
+                    $shipmentItems[$item->getId()] = $navShipmentItems[$sku];
+                    if ($item->getQtyToShip() > $navShipmentItems[$sku]) {
                         $isPartialShipment = true;
                     }
                 }

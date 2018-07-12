@@ -108,8 +108,10 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 
         $payment = $orderEntity->getPayment();
         $orderObject->payment_method = $payment !== false ? $payment->getMethod() : '';
+        $orderObject->po_number      = $payment !== false ? $payment->getPoNumber() : '';
 
         $orderObject->order_discount_amount = $orderEntity->getBaseDiscountAmount();
+        $orderObject->order_tax = $orderEntity->getBaseTaxAmount();
 
         $this->addAddresses($orderEntity, $orderObject);
         $this->addItems($orderEntity, $orderObject);
