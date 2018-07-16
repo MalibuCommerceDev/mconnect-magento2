@@ -96,24 +96,34 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
 
     public function updateInventory($data)
     {
-        if (empty($data->nav_item_id)) {
+        $sku = (string)$data->nav_item_id;
+        $sku = trim($sku);
+        if (empty($sku)) {
+            $this->messages .= 'SKU is missing' . PHP_EOL;
             return false;
         }
-        $sku = trim($data->nav_item_id);
 
         try {
-            $quantity = (int)$data->quantity;
+            if (isset($data->quantity)) {
+                $quantity = (int)$data->quantity;
+            } elseif (isset($data->item_qty_on_hand)) {
+                $quantity = (int)$data->item_qty_on_hand;
+            } else {
+                $this->messages .= $sku . ': ' . 'QTY is missing' . PHP_EOL;
+                return false;
+            }
+
             $stockItem = $this->_stockRegistry->getStockItemBySku($sku);
             if ((bool)$stockItem->getData('manage_stock')) {
                 $stockItem->setData('is_in_stock', ($quantity > 0));
                 $stockItem->setData('qty', $quantity);
                 $stockItem->save();
-                $this->messages .= $sku . ' qty changed to ' . $quantity;
+                $this->messages .= $sku . ': qty changed to ' . $quantity;
             } else {
                 $this->messages .= $sku . ': skipped';
             }
         } catch (\Exception $e) {
-            $this->messages .= $sku . ': ' . $e->getMessage();
+            $this->messages .= $sku . ': ' . $e->getMessage() . PHP_EOL;
 
             return false;
         }

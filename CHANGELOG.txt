@@ -1,0 +1,2 @@
+===== 2018-07-16 1.1.44 =====
+  * Added "item_qty_on_hand" QTY field support to Inventory import model. Fixed QTY reset to 0 issue
