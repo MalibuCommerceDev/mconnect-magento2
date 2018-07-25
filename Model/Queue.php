@@ -8,6 +8,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
     const STATUS_RUNNING = 'running';
     const STATUS_SUCCESS = 'success';
     const STATUS_ERROR   = 'error';
+    const STATUS_CANCELED = 'canceled';
 
     const REGISTRY_PREFIX = 'MALIBUECOMMERCE_MCONNECT_NAV_';
 
@@ -107,6 +108,11 @@ class Queue extends \Magento\Framework\Model\AbstractModel
     public function removePendingItemsByEntityId($entityId, $message = null)
     {
         return $this->getResource()->removePendingItemsByEntityId($entityId, $message);
+    }
+
+    public function wasTheItemEverSuccessfullyExported($entityId)
+    {
+        return $this->getResource()->wasTheItemEverSuccessfullyExported($entityId);
     }
 
     public function process()

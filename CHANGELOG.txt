@@ -1,0 +1,4 @@
+===== 2018-07-24 1.1.5 =====
+  * Added ability to choose which order statuses can be exported to NAV. Implemented forced order export delay when Signifyd Integration is activated
+===== 2018-07-16 1.1.44 =====
+  * Added "item_qty_on_hand" QTY field support to Inventory import model. Fixed QTY reset to 0 issue

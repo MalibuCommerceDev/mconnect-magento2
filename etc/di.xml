@@ -24,4 +24,7 @@
             </argument>
         </arguments>
     </type>
+    <type name="Magento\Sales\Model\Order">
+        <plugin name="orderStatesPlugin" type="MalibuCommerce\MConnect\Plugin\OrderPlugin" />
+    </type>
 </config>

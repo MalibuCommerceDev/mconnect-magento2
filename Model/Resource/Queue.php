@@ -14,7 +14,7 @@ class Queue extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         return $adapter->update(
             $this->getMainTable(),
             [
-                'status' => \MalibuCommerce\MConnect\Model\Queue::STATUS_SUCCESS,
+                'status' => \MalibuCommerce\MConnect\Model\Queue::STATUS_CANCELED,
                 'message' => $message
             ],
             [
@@ -22,5 +22,18 @@ class Queue extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
                 'status = ?' => \MalibuCommerce\MConnect\Model\Queue::STATUS_PENDING
             ]
         );
+    }
+
+    public function wasTheItemEverSuccessfullyExported($entityId)
+    {
+        $adapter = $this->getConnection();
+        $select = $adapter->select()
+            ->from($this->getMainTable(), ['id'])
+            ->where('entity_id = ?', $entityId)
+            ->where('status = ?', \MalibuCommerce\MConnect\Model\Queue::STATUS_SUCCESS)
+            ->where('action = ?', 'export')
+            ->limit(1);
+
+        return (bool) $adapter->fetchOne($select);
     }
 }
