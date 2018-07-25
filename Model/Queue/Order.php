@@ -66,14 +66,20 @@ class Order extends \MalibuCommerce\MConnect\Model\Queue
             throw new LocalizedException(__('Order ID "' . $entityId . '" loading error: %s', $e->getMessage()));
         }
 
+        if (!in_array($orderEntity->getStatus(), $this->config->getOrderStatuesAllowedForExportToNav())) {
+            $this->messages .= sprintf('Order "%s" (ID: %s) was not exported because its status is: %s', $orderEntity->getIncrementId(), $entityId, $orderEntity->getStatus());
+
+            return false;
+        }
+
         $response = $this->navOrder->import($orderEntity);
         $status = (string) $response->result->status;
 
         if ($status === 'Processed') {
             $navId = (string) $response->result->Order->nav_record_id;
             if ($orderDataModel->getNavId() != $navId) {
-                if (!$orderDataModel->getNavId() && $this->config->get('order/hold_new_orders_export')) {
-                    $newStatus = $this->config->get('order/order_status_when_synced_to_nav');
+                if (!$orderDataModel->getNavId() && $this->config->getIsHoldNewOrdersExport()) {
+                    $newStatus = $this->config->getOrderStatusWhenSyncedToNav();
                     $orderState = \Magento\Sales\Model\Order::STATE_NEW;
                     $orderDataModel->setState($orderState)
                         ->setStatus($newStatus);
@@ -84,6 +90,7 @@ class Order extends \MalibuCommerce\MConnect\Model\Queue
                     ->save();
             }
             $this->messages .= sprintf('Order exported, NAV ID: %s', $navId);
+
             return true;
         }
 

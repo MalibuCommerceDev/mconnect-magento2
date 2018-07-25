@@ -35,13 +35,16 @@ class Status extends \Magento\Ui\Component\Listing\Columns\Column
                             $result = '<span style="' . $style . ' background: #9a9a9a;">' . $item['status'] . '</span>';
                             break;
                         case Queue::STATUS_RUNNING:
-                            $result = '<span style="' . $style . ' background: #28dade;">' . $item['status'] . '</span>';
+                            $result = '<span style="' . $style . ' background: #de890a;">' . $item['status'] . '</span>';
                             break;
                         case Queue::STATUS_SUCCESS:
                             $result = '<span style="' . $style . ' background: #00c500;">' . $item['status'] . '</span>';
                             break;
                         case Queue::STATUS_ERROR:
                             $result = '<span style="' . $style . ' background: #ff0000;">' . $item['status'] . '</span>';
+                            break;
+                        case Queue::STATUS_CANCELED:
+                            $result = '<span style="' . $style . ' background: #00a9ff;">' . $item['status'] . '</span>';
                             break;
                         default:
                             $result = $item['status'];

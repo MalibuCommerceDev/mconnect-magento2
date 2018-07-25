@@ -2,14 +2,14 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
         <section id="malibucommerce_mconnect" translate="label" sortOrder="500" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>M-Connect</label>
+            <label>\M-Connect</label>
             <tab>service</tab>
-            <resource>MalibuCommerce_MConnect::config</resource>
+            <resource>\MalibuCommerce_MConnect::config</resource>
 
             <group id="info" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
                 <label>Information</label>
                 <field id="version" sortOrder="10" type="label" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
-                    <label>M-Connect Version</label>
+                    <label>\M-Connect Version</label>
                     <frontend_model>\MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Version\Module</frontend_model>
                 </field>
             </group>
@@ -58,7 +58,7 @@
                 </field>
                 <field id="trigger_password" sortOrder="80" type="password" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Trigger Password</label>
-                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <backend_model>\Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                     <comment><![CDATA[Password used when clicking links in NAV to trigger syncs]]></comment>
                 </field>
                 <field id="reveal_trigger_password" translate="label comment" type="button" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
@@ -79,7 +79,7 @@
                     <comment>Number of days to keep historical queue data.  Leave empty to disable.</comment>
                 </field>
                 <field id="error_after" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Mark as errored after (minutes)</label>
+                    <label>\Mark as errored after (minutes)</label>
                     <comment>Number of minutes after which a running process will be marked as errored.</comment>
                 </field>
             </group>
@@ -124,7 +124,7 @@
                 </field>
                 <field id="new_email_template" sortOrder="80" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Password reset email template</label>
-                    <!--<source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>-->
+                    <!--<source_model>\Magento\Config\Model\Config\Source\Email\Template</source_model>-->
                 </field>
                 <field id="show_reports" sortOrder="90" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Show NAV Reports In Customer Account</label>
@@ -190,6 +190,7 @@
                 <field id="hold_new_orders_export" sortOrder="10" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Hold New Orders Export</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <frontend_model>\MalibuCommerce\MConnect\Block\Config\Frontend\Field\HoldNewExport</frontend_model>
                 </field>
                 <field id="hold_new_orders_delay" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>New Orders Sync Delay</label>
@@ -201,10 +202,14 @@
                 </field>
                 <field id="order_status_when_synced_to_nav" sortOrder="30" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Order Status When Synced to NAV</label>
-                    <source_model>Magento\Sales\Model\Config\Source\Order\Status\Newprocessing</source_model>
+                    <source_model>\Magento\Sales\Model\Config\Source\Order\Status\Newprocessing</source_model>
                     <depends>
                         <field id="hold_new_orders_export">1</field>
                     </depends>
+                </field>
+                <field id="allowed_order_statuses_to_export" sortOrder="40" type="multiselect" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Allowed Order Statuses to be Exported to NAV</label>
+                    <source_model>\Magento\Sales\Model\Config\Source\Order\Status\Newprocessing</source_model>
                 </field>
             </group>
 

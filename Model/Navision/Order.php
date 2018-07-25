@@ -37,7 +37,9 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
      */
     protected $serializer;
 
-
+    /**
+     * @var \Magento\Framework\Module\Manager
+     */
     protected $moduleManager;
 
     /**

@@ -2,7 +2,7 @@
 
 namespace MalibuCommerce\MConnect\Plugin;
 
-class Product
+class ProductPlugin
 {
     /**
      * @var \MalibuCommerce\MConnect\Model\Pricerule
