@@ -40,8 +40,12 @@ class ProductPlugin
         $finalPrice = null;
         try {
             $price = $this->rule->matchDiscountPrice($product, $product->getQty());
-            if ($price !== false && (!$product->hasFinalPrice() || $price < $product->getFinalPrice())) {
-                $finalPrice = min($product->getData('final_price'), $price);
+            if ($price !== false && (!$product->hasFinalPrice() || $price <= $product->getFinalPrice())) {
+                if (!$product->hasFinalPrice()) {
+                    $finalPrice = $price;
+                } else {
+                    $finalPrice = min($product->getData('final_price'), $price);
+                }
             }
         } catch (\Exception $e) {
             $this->logger->critical($e);
