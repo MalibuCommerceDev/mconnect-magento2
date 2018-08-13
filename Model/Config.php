@@ -24,11 +24,6 @@ class Config
     protected $encryptor;
 
     /**
-     * @var \Magento\Signifyd\Model\Config
-     */
-    protected $signifydIntegrationConfig;
-
-    /**
      * @var \Magento\Framework\Module\Manager
      */
     protected $moduleManager;
@@ -39,20 +34,17 @@ class Config
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Framework\Encryption\EncryptorInterface   $encryptor
      * @param \Magento\Framework\Registry                        $registry
-     * @param \Magento\Signifyd\Model\Config                     $signifydIntegrationConfig
      * @param \Magento\Framework\Module\Manager                  $moduleManager
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Magento\Framework\Registry $registry,
-        \Magento\Signifyd\Model\Config $signifydIntegrationConfig,
         \Magento\Framework\Module\Manager $moduleManager
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->encryptor = $encryptor;
         $this->registry = $registry;
-        $this->signifydIntegrationConfig = $signifydIntegrationConfig;
         $this->moduleManager = $moduleManager;
     }
 
@@ -147,22 +139,9 @@ class Config
         return $timeout;
     }
 
-    /**
-     * When Signifyd Integration is enabled, it will put any fraudulent orders on hold
-     * but that happens asynchronously to how order are being placed into the Mconnect queue for NAV export.
-     *
-     * Thus we need to delay orders export forcefully, so that until Magento_Signifyd puts new orders on hold
-     * they are not being accidentally exported to NAV yet.
-     *
-     * When forced order export delay is activated but Mconnect "Hold New Orders Export" is not enabled,
-     * there will be a corresponding message next to the config field "Hold New Orders Export" in Admin Panel.
-     *
-     * @return bool
-     */
     public function shouldNewOrdersBeForcefullyHolden()
     {
-        return $this->moduleManager->isEnabled('Magento_Signifyd')
-               && $this->signifydIntegrationConfig->isActive();
+        return false;
     }
 
     public function getIsHoldNewOrdersExport($store = null)
