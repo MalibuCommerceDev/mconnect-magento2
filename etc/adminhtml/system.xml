@@ -48,7 +48,7 @@
                 <field id="username" sortOrder="50" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Username</label>
                 </field>
-                <field id="password" sortOrder="60" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="password" sortOrder="60" type="password" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Password</label>
                     <backend_model>\Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                 </field>
