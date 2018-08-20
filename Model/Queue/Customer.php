@@ -314,7 +314,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
                 continue;
             }
 
-            $value = (string) $data->$navAttributeCode;
+            $value = (string)$data->$navAttributeCode;
             $attribute = $customerDataModel->getResource()->getAttribute($eavAttributeCode);
             if ($attribute->usesSource()) {
                 $value = $attribute->getSource()->getOptionId($value);

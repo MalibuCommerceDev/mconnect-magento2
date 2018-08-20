@@ -1,6 +1,6 @@
 <?php
 
-namespace MalibuCommerce\MConnect\Model\Config\Backend;
+namespace MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend;
 
 class Cron extends \Magento\Framework\App\Config\Value
 {

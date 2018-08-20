@@ -94,10 +94,13 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 
         $orderObject = $root->addChild('Order');
 
+        $defaultNavId = $this->config->get('customer/default_nav_id_magento_guest', $orderEntity->getStoreId());
         $customerDataModel = $this->customerFactory->create()->load($orderEntity->getCustomerId());
+        if ($customerDataModel && $customerDataModel->getId()) {
+            $defaultNavId = $this->config->get('customer/default_nav_id_magento_registered', $orderEntity->getStoreId());
+        }
 
-        $defaultNavId = $this->config->get('customer/default_nav_id', $orderEntity->getStoreId());
-        $orderObject->nav_customer_id = $customerDataModel && $customerDataModel->getId()
+        $orderObject->nav_customer_id = $customerDataModel && !empty($customerDataModel->getNavId())
             ? $customerDataModel->getNavId()
             : $defaultNavId;
         $orderObject->mag_order_id = $orderEntity->getIncrementId();
@@ -112,8 +115,8 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         $orderObject->payment_method = $payment !== false ? $payment->getMethod() : '';
         $orderObject->po_number      = $payment !== false ? $payment->getPoNumber() : '';
 
-        $orderObject->order_discount_amount = $orderEntity->getBaseDiscountAmount();
-        $orderObject->order_tax = $orderEntity->getBaseTaxAmount();
+        $orderObject->order_discount_amount = number_format((float) $orderEntity->getBaseDiscountAmount(), 2, '.', '');
+        $orderObject->order_tax = number_format((float) $orderEntity->getBaseTaxAmount(), 2, '.', '');
 
         $this->addAddresses($orderEntity, $orderObject);
         $this->addItems($orderEntity, $orderObject);

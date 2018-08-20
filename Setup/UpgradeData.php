@@ -10,6 +10,8 @@ use Magento\Eav\Setup\EavSetup;
 use Magento\Eav\Setup\EavSetupFactory;
 use Magento\Customer\Model\Customer;
 use Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface;
+use Magento\Framework\App\Config\Storage\WriterInterface;
+use Magento\Framework\Encryption\EncryptorInterface;
 
 class UpgradeData implements UpgradeDataInterface
 {
@@ -19,6 +21,11 @@ class UpgradeData implements UpgradeDataInterface
     protected $customerSetupFactory;
 
     /**
+     * @var WriterInterface
+     */
+    protected $configWriter;
+
+    /**
      * EAV setup factory
      *
      * @var EavSetupFactory
@@ -26,17 +33,28 @@ class UpgradeData implements UpgradeDataInterface
     protected $eavSetupFactory;
 
     /**
+     * @var \Magento\Framework\Encryption\EncryptorInterface
+     */
+    protected $encryptor;
+
+    /**
      * UpgradeData constructor.
      *
      * @param CustomerSetupFactory $customerSetupFactory
      * @param EavSetupFactory      $eavSetupFactory
+     * @param WriterInterface      $configWriter
+     * @param EncryptorInterface   $encryptor
      */
     public function __construct(
         CustomerSetupFactory $customerSetupFactory,
-        EavSetupFactory $eavSetupFactory
+        EavSetupFactory $eavSetupFactory,
+        WriterInterface $configWriter,
+        EncryptorInterface $encryptor
     ) {
         $this->customerSetupFactory = $customerSetupFactory;
         $this->eavSetupFactory = $eavSetupFactory;
+        $this->configWriter = $configWriter;
+        $this->encryptor = $encryptor;
     }
 
     public function upgrade(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
@@ -61,6 +79,10 @@ class UpgradeData implements UpgradeDataInterface
 
         if (version_compare($context->getVersion(), '1.1.42', '<')) {
             $this->upgrade1_1_42($setup);
+        }
+
+        if (version_compare($context->getVersion(), '1.1.55', '<')) {
+            $this->upgrade1_1_55($setup);
         }
 
         $setup->endSetup();
@@ -300,5 +322,31 @@ class UpgradeData implements UpgradeDataInterface
             $attribute->setData('used_in_forms', ['adminhtml_customer']);
             $attribute->save();
         }
+    }
+
+    protected function upgrade1_1_55(ModuleDataSetupInterface $setup)
+    {
+        /**
+         * Update config path
+         */
+        $oldPath = 'malibucommerce_mconnect/customer/default_nav_id';
+        $newPath = 'malibucommerce_mconnect/customer/default_nav_id_magento_registered';
+        $setup->getConnection()->update('core_config_data', ['path' => $newPath], ['path = ?' => $oldPath]);
+
+        /**
+         * Encrypt NAV connection password
+         */
+        $select = $setup->getConnection()
+            ->select()
+            ->from('core_config_data', 'value')
+            ->where('path = ?', 'malibucommerce_mconnect/nav_connection/password');
+
+        $password = $setup->getConnection()->fetchOne($select);
+        // Don't save value, if an obscured value was received
+        if (!preg_match('/^\*+$/', $password) && !empty($password)) {
+            $password = $this->encryptor->encrypt($password);
+        }
+
+        $this->configWriter->save('malibucommerce_mconnect/nav_connection/password', $password);
     }
 }

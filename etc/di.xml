@@ -27,4 +27,7 @@
     <type name="Magento\Sales\Model\Order">
         <plugin name="orderStatesPlugin" type="MalibuCommerce\MConnect\Plugin\OrderPlugin" />
     </type>
+    <type name="Magento\Framework\View\Layout\Reader\Visibility\Condition">
+        <plugin name="orderStatesPlugin" type="MalibuCommerce\MConnect\Plugin\Framework\View\Layout\Reader\Visibility\ConditionPlugin" />
+    </type>
 </config>

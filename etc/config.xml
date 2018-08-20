@@ -15,18 +15,23 @@
                 <allow_insecure_connection>0</allow_insecure_connection>
                 <connection_timeout>300</connection_timeout>
                 <ntlm>1</ntlm>
+                <password backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
+                <trigger_password backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
             </nav_connection>
             <customer>
                 <import_enabled>1</import_enabled>
                 <cron_expr>0 * * * *</cron_expr>
                 <max_rows>50</max_rows>
-                <default_nav_id></default_nav_id>
+                <default_nav_id_magento_registered></default_nav_id_magento_registered>
+                <default_nav_id_magento_guest></default_nav_id_magento_guest>
                 <default_website>1</default_website>
                 <default_group_taxable>1</default_group_taxable>
                 <default_group_nontaxable>3</default_group_nontaxable>
                 <new_email_enabled>0</new_email_enabled>
                 <new_email_identity>general</new_email_identity>
                 <new_email_template>malibucommerce_mconnect_customer_new</new_email_template>
+                <show_reports>0</show_reports>
+                <nav_reports_allowed_customer_groups></nav_reports_allowed_customer_groups>
             </customer>
             <product>
                 <import_enabled>1</import_enabled>

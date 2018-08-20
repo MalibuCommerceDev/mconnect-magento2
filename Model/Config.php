@@ -19,16 +19,6 @@ class Config
     protected $registry;
 
     /**
-     * @var \Magento\Framework\Encryption\EncryptorInterface
-     */
-    protected $encryptor;
-
-    /**
-     * @var \Magento\Signifyd\Model\Config
-     */
-    protected $signifydIntegrationConfig;
-
-    /**
      * @var \Magento\Framework\Module\Manager
      */
     protected $moduleManager;
@@ -37,22 +27,16 @@ class Config
      * Config constructor.
      *
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
-     * @param \Magento\Framework\Encryption\EncryptorInterface   $encryptor
      * @param \Magento\Framework\Registry                        $registry
-     * @param \Magento\Signifyd\Model\Config                     $signifydIntegrationConfig
      * @param \Magento\Framework\Module\Manager                  $moduleManager
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Magento\Framework\Registry $registry,
-        \Magento\Signifyd\Model\Config $signifydIntegrationConfig,
         \Magento\Framework\Module\Manager $moduleManager
     ) {
         $this->scopeConfig = $scopeConfig;
-        $this->encryptor = $encryptor;
         $this->registry = $registry;
-        $this->signifydIntegrationConfig = $signifydIntegrationConfig;
         $this->moduleManager = $moduleManager;
     }
 
@@ -122,14 +106,11 @@ class Config
      */
     public function getTriggerPassword($store = null)
     {
-        $password = $this->scopeConfig->getValue(
+        return $this->scopeConfig->getValue(
             self::XML_PATH_CONFIG_SECTION . '/' . 'nav_connection/trigger_password',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
             $store
         );
-        $decryptedPassword = $this->encryptor->decrypt($password);
-
-        return $decryptedPassword;
     }
 
     public function getIsInsecureConnectionAllowed($store = null)
@@ -157,12 +138,22 @@ class Config
      * When forced order export delay is activated but Mconnect "Hold New Orders Export" is not enabled,
      * there will be a corresponding message next to the config field "Hold New Orders Export" in Admin Panel.
      *
+     * Note: older Magento versions are not shipped with Magento_Signifyd
+     *
      * @return bool
      */
     public function shouldNewOrdersBeForcefullyHolden()
     {
-        return $this->moduleManager->isEnabled('Magento_Signifyd')
-               && $this->signifydIntegrationConfig->isActive();
+        if ($this->moduleManager->isEnabled('Magento_Signifyd')) {
+            $enabled = $this->scopeConfig->isSetFlag(
+                'fraud_protection/signifyd/active',
+                \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+            );
+
+            return $enabled;
+        }
+
+        return false;
     }
 
     public function getIsHoldNewOrdersExport($store = null)
@@ -189,5 +180,10 @@ class Config
     public function getOrderStatuesAllowedForExportToNav($store = null)
     {
         return explode(',', $this->get('order/allowed_order_statuses_to_export', $store));
+    }
+
+    public function getNAVReportsCustomerGroups($store = null)
+    {
+        return explode(',', $this->get('customer/nav_reports_allowed_customer_groups', $store));
     }
 }

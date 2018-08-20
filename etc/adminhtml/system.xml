@@ -50,6 +50,7 @@
                 </field>
                 <field id="password" sortOrder="60" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Password</label>
+                    <backend_model>\Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                 </field>
                 <field id="test_connection" translate="label comment" type="button" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
                     <frontend_model>\MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Connection\Test</frontend_model>
@@ -71,7 +72,7 @@
                 <label>Synchronization Queue</label>
                 <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Schedule (cron syntax)</label>
-                    <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
                 </field>
                 <field id="delete_after" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
@@ -93,42 +94,53 @@
                 <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
-                    <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
                 </field>
                 <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
                 </field>
-                <field id="default_nav_id" sortOrder="25" type="text" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
-                    <label>Default NAV ID For New Customers</label>
+                <field id="default_nav_id_magento_guest" sortOrder="30" type="text" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
+                    <label>Default NAV ID For Magento Guest Customers</label>
                     <comment><![CDATA[Leave blank to disable]]></comment>
                 </field>
-                <field id="default_group_taxable" sortOrder="30" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="default_nav_id_magento_registered" sortOrder="40" type="text" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
+                    <label>Default NAV ID For Magento Newly Registered Customers</label>
+                    <comment><![CDATA[Leave blank to disable]]></comment>
+                </field>
+                <field id="default_group_taxable" sortOrder="60" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Default group for new customers (taxable)</label>
                     <source_model>\Magento\Customer\Model\Config\Source\Group</source_model>
                 </field>
-                <field id="default_group_nontaxable" sortOrder="40" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="default_group_nontaxable" sortOrder="70" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Default group for new customers (non-taxable)</label>
                     <source_model>\Magento\Customer\Model\Config\Source\Group</source_model>
                 </field>
-                <field id="default_website" sortOrder="50" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="default_website" sortOrder="80" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Default website for new customers</label>
                     <source_model>\Magento\Config\Model\Config\Source\Website</source_model>
                 </field>
-                <field id="new_email_enabled" sortOrder="60" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="new_email_enabled" sortOrder="90" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Send password reset email to new customers</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="new_email_identity" sortOrder="70" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="new_email_identity" sortOrder="100" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Password reset email sender</label>
                     <source_model>\Magento\Config\Model\Config\Source\Email\Identity</source_model>
                 </field>
-                <field id="new_email_template" sortOrder="80" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="new_email_template" sortOrder="110" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Password reset email template</label>
                     <!--<source_model>\Magento\Config\Model\Config\Source\Email\Template</source_model>-->
                 </field>
-                <field id="show_reports" sortOrder="90" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                    <label>Show NAV Reports In Customer Account</label>
+                <field id="show_reports" sortOrder="120" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Enable NAV Reports In Customer Account</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="nav_reports_allowed_customer_groups" sortOrder="130" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>NAV Reports Allowed Customer Groups</label>
+                    <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Source\CustomerGroups</source_model>
+                    <depends>
+                        <field id="show_reports">1</field>
+                    </depends>
                 </field>
             </group>
 
@@ -141,7 +153,7 @@
                 <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
-                    <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
                 </field>
                 <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
@@ -174,7 +186,7 @@
                 <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
-                    <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
                 </field>
                 <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
@@ -222,7 +234,7 @@
                 <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
-                    <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
                 </field>
                 <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
@@ -246,7 +258,7 @@
                 <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
-                    <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
                 </field>
                 <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
@@ -276,7 +288,7 @@
                 <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
-                    <backend_model>\MalibuCommerce\MConnect\Model\Config\Backend\Cron</backend_model>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
                 </field>
                 <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>

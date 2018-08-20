@@ -1,11 +1,11 @@
 <?php
+
 namespace MalibuCommerce\MConnect\Helper;
 
 use \Magento\Framework\App\Filesystem\DirectoryList;
 
 class Data
 {
-
     /**
      * @var \MalibuCommerce\MConnect\Model\Config
      */
