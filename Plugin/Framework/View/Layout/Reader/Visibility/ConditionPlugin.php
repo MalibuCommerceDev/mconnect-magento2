@@ -17,12 +17,16 @@ class ConditionPlugin
      */
     public function afterParseConditions(Subject $condition, $result, Element $element)
     {
-        $helper = (string)$element->getAttribute('ifhelper');
-        if (!empty($helper)) {
-            $result['ifhelper'] = [
+        $configPath = (string)$element->getAttribute('ifconfig');
+        if (empty($configPath)) {
+            return $result;
+        }
+
+        if (preg_match(HelperCondition::REGEX_ACTION_HELPER, $configPath)) {
+            $result['ifconfig'] = [
                 'name' => HelperCondition::class,
                 'arguments' => [
-                    'helper' => $helper,
+                    'configPath' => $configPath,
                 ],
             ];
         }

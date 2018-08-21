@@ -12,7 +12,7 @@ class HelperCondition implements VisibilityConditionInterface
     /**
      * Unique name.
      */
-    const NAME = 'ifhelper';
+    const NAME = 'ifconfig';
 
     /**
      * Layout action "ifhelper" param regexp
@@ -51,7 +51,7 @@ class HelperCondition implements VisibilityConditionInterface
     public function isVisible(array $arguments)
     {
         $run = null;
-        if (!preg_match(self::REGEX_ACTION_HELPER, $arguments['helper'], $run)) {
+        if (!preg_match(self::REGEX_ACTION_HELPER, $arguments['configPath'], $run)) {
             throw new \Magento\Framework\Exception\InputException(__('Invalid helper/method definition, expecting "\\className::method".'));
         }
 

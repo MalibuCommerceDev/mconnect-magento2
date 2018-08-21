@@ -2,26 +2,26 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="2columns-left" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd" label="Customer My Account (All Pages)" design_abstraction="custom">
     <body>
         <referenceBlock name="customer_account_navigation">
-            <block class="Magento\Customer\Block\Account\Delimiter" name="customer-account-navigation-delimiter-3" template="Magento_Customer::account/navigation-delimiter.phtml" ifhelper="\MalibuCommerce\MConnect\Helper\NavReports::areNavReportsEnabled">
+            <block class="Magento\Customer\Block\Account\Delimiter" name="customer-account-navigation-delimiter-3" template="Magento_Customer::account/navigation-delimiter.phtml" ifconfig="\MalibuCommerce\MConnect\Helper\NavReports::areNavReportsEnabled">
                 <arguments>
                     <argument name="sortOrder" xsi:type="number">25</argument>
                 </arguments>
             </block>
-            <block class="Magento\Customer\Block\Account\SortLinkInterface" name="customer-account-navigation-order-history-link" ifhelper="\MalibuCommerce\MConnect\Helper\NavReports::areNavReportsEnabled">
+            <block class="Magento\Customer\Block\Account\SortLinkInterface" name="customer-account-navigation-order-history-link" ifconfig="\MalibuCommerce\MConnect\Helper\NavReports::areNavReportsEnabled">
                 <arguments>
                     <argument name="path" xsi:type="string">mconnect/navision/orderhistory</argument>
                     <argument name="label" xsi:type="string" translate="true">Orders History</argument>
                     <argument name="sortOrder" xsi:type="number">20</argument>
                 </arguments>
             </block>
-            <block class="Magento\Customer\Block\Account\SortLinkInterface" name="customer-account-navigation-customers-statement-link" ifhelper="\MalibuCommerce\MConnect\Helper\NavReports::areNavReportsEnabled">
+            <block class="Magento\Customer\Block\Account\SortLinkInterface" name="customer-account-navigation-customers-statement-link" ifconfig="\MalibuCommerce\MConnect\Helper\NavReports::areNavReportsEnabled">
                 <arguments>
                     <argument name="path" xsi:type="string">mconnect/navision/statement</argument>
                     <argument name="label" xsi:type="string" translate="true">Customer Statement</argument>
                     <argument name="sortOrder" xsi:type="number">15</argument>
                 </arguments>
             </block>
-            <block class="Magento\Customer\Block\Account\SortLinkInterface" name="customer-account-navigation-customer-invoice-link" ifhelper="\MalibuCommerce\MConnect\Helper\NavReports::areNavReportsEnabled">
+            <block class="Magento\Customer\Block\Account\SortLinkInterface" name="customer-account-navigation-customer-invoice-link" ifconfig="\MalibuCommerce\MConnect\Helper\NavReports::areNavReportsEnabled">
                 <arguments>
                     <argument name="path" xsi:type="string">mconnect/navision/invoice</argument>
                     <argument name="label" xsi:type="string" translate="true">Customer Invoices</argument>
