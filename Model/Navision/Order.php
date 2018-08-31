@@ -278,7 +278,7 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
          * Add only simple products to NAV
          */
         if ($item->getProductType() != ProductType::TYPE_SIMPLE
-            && ($this->moduleManager->isEnabled('Magento_GiftCard') && $item->getProductType() != \Magento\GiftCard\Model\Catalog\Product\Type\Giftcard::TYPE_GIFTCARD)
+            || ($this->moduleManager->isEnabled('Magento_GiftCard') && $item->getProductType() != \Magento\GiftCard\Model\Catalog\Product\Type\Giftcard::TYPE_GIFTCARD)
         ) {
             return $this;
         }
