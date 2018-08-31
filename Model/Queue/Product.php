@@ -6,6 +6,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\UrlRewrite\Model\Exception\UrlAlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Catalog\Model\Product\Visibility;
 use Magento\Catalog\Model\Product\Attribute\Source\Status as ProductStatus;
 
 class Product extends \MalibuCommerce\MConnect\Model\Queue
@@ -196,6 +197,14 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
 
             if (!empty($data->item_name)) {
                 $product->setName((string) $data->item_name);
+            }
+
+            if (!empty($data->item_visibility)) {
+                $visibilities = array_keys(Visibility::getOptionArray());
+                $inputVisibility = (int) $data->item_visibility;
+                if (in_array($inputVisibility, $visibilities)) {
+                    $product->setVisibility($inputVisibility);
+                }
             }
         }
 
