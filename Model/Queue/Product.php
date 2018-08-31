@@ -200,9 +200,10 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             }
 
             if (!empty($data->item_visibility)) {
-                $allowVisibilityValues = Visibility::getOptionArray();
-                if (isset($allowVisibilityValues[$data->item_visibility])) {
-                    $product->setVisibility($data->item_visibility);
+                $visibilities = array_keys(Visibility::getOptionArray());
+                $inputVisibility = (int) $data->item_visibility;
+                if (in_array($inputVisibility, $visibilities)) {
+                    $product->setVisibility($inputVisibility);
                 }
             }
         }
