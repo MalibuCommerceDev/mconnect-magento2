@@ -24,33 +24,28 @@
 
             <group id="nav_connection" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>NAV Connection</label>
-                <field id="log" sortOrder="10" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Log Requests</label>
-                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[May consume a large amount of disk space.]]></comment>
+                <field id="url" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>NAV SOAP API URL</label>
                 </field>
-                <field id="allow_insecure_connection" sortOrder="20" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="username" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Username</label>
+                </field>
+                <field id="password" sortOrder="30" type="password" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Password</label>
+                    <backend_model>\Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+                <field id="allow_insecure_connection" sortOrder="40" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Allow Insecure Connection</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Allows MConnect SOAP API client to connect to NAV server w/o SSL/TLS certificate verification]]></comment>
                 </field>
-                <field id="connection_timeout" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="connection_timeout" sortOrder="50" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Connection Timeout</label>
                     <comment><![CDATA[Connection Timeout to NAV server in seconds. If set to 0, default value will be used: 10 seconds]]></comment>
                 </field>
-                <field id="ntlm" sortOrder="35" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="ntlm" sortOrder="60" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Use NTLM Authentication</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="url" sortOrder="40" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>NAV SOAP API URL</label>
-                </field>
-                <field id="username" sortOrder="50" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Username</label>
-                </field>
-                <field id="password" sortOrder="60" type="password" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Password</label>
-                    <backend_model>\Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                 </field>
                 <field id="test_connection" translate="label comment" type="button" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
                     <frontend_model>\MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Connection\Test</frontend_model>
@@ -65,6 +60,38 @@
                 <field id="reveal_trigger_password" translate="label comment" type="button" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
                     <frontend_model>\MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Connection\TriggerPassword</frontend_model>
                     <label />
+                </field>
+                <field id="log" sortOrder="90" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Log Requests</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[May consume a large amount of disk space.]]></comment>
+                </field>
+                <field id="send_error_emails" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Send Error Emails</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="error_email_sender" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Error Email Sender</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
+                    <depends>
+                        <field id="send_error_emails">1</field>
+                    </depends>
+                </field>
+                <field id="error_email_recipient" translate="label" type="text" sortOrder="120" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Error Email Recipient</label>
+                    <validate>validate-email</validate>
+                    <comment><![CDATA[Coma separated emails]]></comment>
+                    <depends>
+                        <field id="send_error_emails">1</field>
+                    </depends>
+                </field>
+                <field id="error_email_template" translate="label comment" type="select" sortOrder="130" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Error Email Template</label>
+                    <comment>Email template chosen based on theme fallback when "Default" option is selected.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                    <depends>
+                        <field id="send_error_emails">1</field>
+                    </depends>
                 </field>
             </group>
 
@@ -119,17 +146,24 @@
                     <label>Default website for new customers</label>
                     <source_model>\Magento\Config\Model\Config\Source\Website</source_model>
                 </field>
-                <field id="new_email_enabled" sortOrder="90" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Send password reset email to new customers</label>
-                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                <field id="send_new_customer_emails" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Send Password Reset Email to a New Customers Imported from NAV</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="new_email_identity" sortOrder="100" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Password reset email sender</label>
-                    <source_model>\Magento\Config\Model\Config\Source\Email\Identity</source_model>
+                <field id="new_customer_email_sender" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Password Reset Email Sender</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
+                    <depends>
+                        <field id="send_new_customer_emails">1</field>
+                    </depends>
                 </field>
-                <field id="new_email_template" sortOrder="110" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Password reset email template</label>
-                    <!--<source_model>\Magento\Config\Model\Config\Source\Email\Template</source_model>-->
+                <field id="new_customer_email_template" translate="label comment" type="select" sortOrder="110" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Password Res Email Template</label>
+                    <comment>Email template chosen based on theme fallback when "Default" option is selected.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                    <depends>
+                        <field id="send_new_customer_emails">1</field>
+                    </depends>
                 </field>
                 <field id="show_reports" sortOrder="120" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Enable NAV Reports In Customer Account</label>

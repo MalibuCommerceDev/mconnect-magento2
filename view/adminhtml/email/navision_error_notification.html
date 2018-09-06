@@ -1,0 +1,21 @@
+<!--@subject M-Connect: Error with Navision @-->
+<!--@vars
+"var title":"Title of email",
+"var request":"Navision request",
+"var response":"Navision response"
+@-->
+
+{{template config_path="design/email/header_template"}}
+
+<table cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td class="action-content">
+            <h1>{{var title}}</h1>
+            <pre class="highlighted-text">{{var request|escape}}</pre>
+            <pre class="highlighted-text">{{var response|escape}}</pre>
+            <p>You can disable this notification in <strong>Admin Panel</strong> > <strong>Stores</strong> > <strong>Configuration</strong> > <strong>Services</strong> > <strong>M-Connect</strong> > <strong>NAV Connection</strong>.</p>
+        </td>
+    </tr>
+</table>
+
+{{template config_path="design/email/footer_template"}}

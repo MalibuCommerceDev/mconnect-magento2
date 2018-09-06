@@ -28,9 +28,9 @@ class Soap
     protected $mConnectNavisionConnectionSoapClient;
 
     /**
-     * @var \MalibuCommerce\MConnect\Helper\Data
+     * @var \MalibuCommerce\MConnect\Helper\Mail
      */
-    protected $mConnectHelper;
+    protected $mConnectMailer;
 
     /**
      * @var \MalibuCommerce\MConnect\Model\Navision\Connection\Stream
@@ -39,13 +39,13 @@ class Soap
 
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
-        \MalibuCommerce\MConnect\Helper\Data $mConnectHelper,
+        \MalibuCommerce\MConnect\Helper\Mail $mConnectMailer,
         \MalibuCommerce\MConnect\Model\Navision\Connection\Stream $stream,
         \Psr\Log\LoggerInterface $logger,
         \Magento\Framework\App\Filesystem\DirectoryList $directoryList
     ) {
         $this->mConnectConfig = $mConnectConfig;
-        $this->mConnectHelper = $mConnectHelper;
+        $this->mConnectMailer = $mConnectMailer;
         $this->stream = $stream;
     }
 
@@ -60,11 +60,20 @@ class Soap
             if ($this->mConnectConfig->get('nav_connection/log')) {
                 $this->_client->logRequest($arguments, null, $method, null, null, $e->getMessage());
             }
-            $this->mConnectHelper->sendErrorEmail(array(
-                'title'    => 'An unknown error occurred when connecting to Navision.',
-                'body'     => 'Action: ' . $method,
+
+            $request = [
+                'Time'        => date('r'),
+                'Location'    => '',
+                'PID'         => getmypid(),
+                'Action'      => $method,
+                'Body'        => is_array($arguments) ? print_r($arguments, true) : $arguments,
+                'Request XML' => $this->_client->decodeRequest('/<ns1:requestXML>(.*)<\/ns1:requestXML>/', $arguments),
+            ];
+            $this->mConnectMailer->sendErrorEmail([
+                'title'    => 'An error occurred when connecting to Navision.',
+                'request'  => $request,
                 'response' => $e->getMessage(),
-            ));
+            ]);
 
             throw $e;
         }
@@ -75,7 +84,6 @@ class Soap
 
     protected function _streamRegister()
     {
-
         if ($this->_isStreamRegistered) {
             return;
         }

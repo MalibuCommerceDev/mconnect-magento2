@@ -11,12 +11,15 @@
                 <error_after>30</error_after>
             </queue>
             <nav_connection>
-                <log>1</log>
+                <password backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <allow_insecure_connection>0</allow_insecure_connection>
                 <connection_timeout>300</connection_timeout>
                 <ntlm>1</ntlm>
-                <password backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <trigger_password backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
+                <log>1</log>
+                <send_error_emails>0</send_error_emails>
+                <error_email_sender>general</error_email_sender>
+                <error_email_template>malibucommerce_mconnect_nav_connection_error_email_template</error_email_template>
             </nav_connection>
             <customer>
                 <import_enabled>1</import_enabled>
@@ -27,9 +30,9 @@
                 <default_website>1</default_website>
                 <default_group_taxable>1</default_group_taxable>
                 <default_group_nontaxable>3</default_group_nontaxable>
-                <new_email_enabled>0</new_email_enabled>
-                <new_email_identity>general</new_email_identity>
-                <new_email_template>malibucommerce_mconnect_customer_new</new_email_template>
+                <send_new_customer_emails>0</send_new_customer_emails>
+                <new_customer_email_sender>general</new_customer_email_sender>
+                <new_customer_email_template>malibucommerce_mconnect_customer_new_customer_email_template</new_customer_email_template>
                 <show_reports>0</show_reports>
                 <nav_reports_allowed_customer_groups></nav_reports_allowed_customer_groups>
             </customer>

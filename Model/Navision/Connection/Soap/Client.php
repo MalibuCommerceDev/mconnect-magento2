@@ -11,7 +11,7 @@ class Client extends SoapClient
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
 
         $mConnectConfig = $objectManager->create('\MalibuCommerce\MConnect\Model\Config');
-        $mConnectHelper = $objectManager->create('\MalibuCommerce\MConnect\Helper\Data');
+        $mConnectMailer = $objectManager->create('\MalibuCommerce\MConnect\Helper\Mail');
 
         $username = $mConnectConfig->getNavConnectionUsername();
         $password = $mConnectConfig->getNavConnectionPassword();
@@ -47,11 +47,21 @@ class Client extends SoapClient
             if ($mConnectConfig->get('nav_connection/log')) {
                 $this->logRequest($request, $location, $action, 500, null, 'Error: ' . $e->getMessage());
             }
-            $mConnectHelper->sendErrorEmail(array(
-                'title'    => 'An unknown error occurred when connecting to Navision.',
-                'body'     => 'Action: ' . $action,
+
+            $request = [
+                'Time'        => date('r'),
+                'Location'    => $location,
+                'PID'         => getmypid(),
+                'Action'      => $action,
+                'Body'        => is_array($request) ? print_r($request, true) : $request,
+                'Request XML' => $this->decodeRequest('/<ns1:requestXML>(.*)<\/ns1:requestXML>/', $request),
+            ];
+            $mConnectMailer->sendErrorEmail([
+                'title'    => 'An error occurred when connecting to Navision.',
+                'request'  => $request,
                 'response' => $e->getMessage(),
-            ));
+            ]);
+
             throw $e;
         }
         $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
@@ -84,13 +94,13 @@ class Client extends SoapClient
             'PID'         => getmypid(),
             'Action'      => $action,
             'Body'        => is_array($request) ? print_r($request, true) : $request,
-            'Request XML' => $this->_decodeBase64('/<ns1:requestXML>(.*)<\/ns1:requestXML>/', $request),
+            'Request XML' => $this->decodeRequest('/<ns1:requestXML>(.*)<\/ns1:requestXML>/', $request),
         ];
         $response = [
             'Code'         => $code,
             'Headers'      => $header,
             'Body'         => $body,
-            'Response XML' => $this->_decodeBase64('/<responseXML>(.*)<\/responseXML>/', $body)
+            'Response XML' => $this->decodeRequest('/<responseXML>(.*)<\/responseXML>/', $body)
         ];
         $logger->debug('Debug Data', array(
             'Request'  => $request,
@@ -98,10 +108,10 @@ class Client extends SoapClient
         ));
     }
 
-    protected function _decodeBase64($pattern, $value)
+    public function decodeRequest($pattern, $value)
     {
-        if (is_string($value) && preg_match($pattern, $value,
-                $matches) && isset($matches[1]) && preg_match('%^[a-zA-Z0-9/+]*={0,2}$%', $matches[1])
+        if (is_string($value) && preg_match($pattern, $value, $matches)
+            && isset($matches[1]) && preg_match('%^[a-zA-Z0-9/+]*={0,2}$%', $matches[1])
         ) {
             return base64_decode($matches[1]);
         }

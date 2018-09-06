@@ -38,9 +38,9 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
     protected $config;
 
     /**
-     * @var \MalibuCommerce\MConnect\Helper\Data
+     * @var \MalibuCommerce\MConnect\Helper\Mail
      */
-    protected $helper;
+    protected $mailer;
 
     /**
      * @var \MalibuCommerce\MConnect\Model\Queue\FlagFactory
@@ -80,7 +80,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
         \Magento\Directory\Model\RegionFactory $regionFactory,
         \MalibuCommerce\MConnect\Model\Navision\Customer $navCustomer,
         \MalibuCommerce\MConnect\Model\Config $config,
-        \MalibuCommerce\MConnect\Helper\Data $helper,
+        \MalibuCommerce\MConnect\Helper\Mail $mailer,
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
         \Magento\Customer\Model\CustomerFactory $customerFactory,
         \Magento\Customer\Model\AddressFactory $addressFactory,
@@ -92,7 +92,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
         $this->regionFactory = $regionFactory;
         $this->navCustomer = $navCustomer;
         $this->config = $config;
-        $this->helper = $helper;
+        $this->mailer = $mailer;
         $this->queueFlagFactory = $queueFlagFactory;
         $this->customerFactory = $customerFactory;
         $this->addressFactory = $addressFactory;
@@ -282,7 +282,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
                 } else {
                     $this->messages .= $email . ': created';
 
-                    if ($this->helper->sendNewCustomerEmail($customer)) {
+                    if ($this->mailer->resetPasswordForNewCustomer($customer)) {
                         $this->messages .= $email . ': new customer email sent';
                     }
                 }
