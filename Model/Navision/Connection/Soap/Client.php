@@ -56,11 +56,7 @@ class Client extends SoapClient
                 'Body'        => is_array($request) ? print_r($request, true) : $request,
                 'Request XML' => $this->decodeRequest('/<ns1:requestXML>(.*)<\/ns1:requestXML>/', $request),
             ];
-            $mConnectMailer->sendErrorEmail([
-                'title'    => 'An error occurred when connecting to Navision.',
-                'request'  => $request,
-                'response' => $e->getMessage(),
-            ]);
+            $mConnectMailer->sendErrorEmail('An error occurred when connecting to Navision.', $request, $e->getMessage());
 
             throw $e;
         }

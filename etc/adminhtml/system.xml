@@ -66,11 +66,11 @@
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[May consume a large amount of disk space.]]></comment>
                 </field>
-                <field id="send_error_emails" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="send_error_emails" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Send Error Emails</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="error_email_sender" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="error_email_sender" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Error Email Sender</label>
                     <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
                     <depends>
@@ -85,7 +85,7 @@
                         <field id="send_error_emails">1</field>
                     </depends>
                 </field>
-                <field id="error_email_template" translate="label comment" type="select" sortOrder="130" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="error_email_template" translate="label comment" type="select" sortOrder="130" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Error Email Template</label>
                     <comment>Email template chosen based on theme fallback when "Default" option is selected.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
@@ -146,18 +146,18 @@
                     <label>Default website for new customers</label>
                     <source_model>\Magento\Config\Model\Config\Source\Website</source_model>
                 </field>
-                <field id="send_new_customer_emails" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="send_new_customer_emails" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Send Password Reset Email to a New Customers Imported from NAV</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="new_customer_email_sender" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="new_customer_email_sender" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Password Reset Email Sender</label>
                     <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
                     <depends>
                         <field id="send_new_customer_emails">1</field>
                     </depends>
                 </field>
-                <field id="new_customer_email_template" translate="label comment" type="select" sortOrder="110" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="new_customer_email_template" translate="label comment" type="select" sortOrder="110" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Password Res Email Template</label>
                     <comment>Email template chosen based on theme fallback when "Default" option is selected.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>

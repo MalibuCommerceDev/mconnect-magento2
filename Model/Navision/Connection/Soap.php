@@ -69,11 +69,7 @@ class Soap
                 'Body'        => is_array($arguments) ? print_r($arguments, true) : $arguments,
                 'Request XML' => $this->_client->decodeRequest('/<ns1:requestXML>(.*)<\/ns1:requestXML>/', $arguments),
             ];
-            $this->mConnectMailer->sendErrorEmail([
-                'title'    => 'An error occurred when connecting to Navision.',
-                'request'  => $request,
-                'response' => $e->getMessage(),
-            ]);
+            $this->mConnectMailer->sendErrorEmail('An error occurred when connecting to Navision.', $request, $e->getMessage());
 
             throw $e;
         }

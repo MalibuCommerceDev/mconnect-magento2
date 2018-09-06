@@ -82,24 +82,34 @@ class Mail extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param array $variables
+     * @param $errorTitle
+     * @param $request
+     * @param $response
      *
      * @return bool|null
      */
-    public function sendErrorEmail(array $variables)
+    public function sendErrorEmail($errorTitle, $request, $response)
     {
         if (!$this->config->isErrorEmailingEnabled()) {
             return null;
         }
 
-        return $this->sendTemplateEmail(
-            null,
-            null,
-            $this->config->getErrorEmailTemplate(),
-            $this->config->getErrorEmailSender(),
-            $variables,
-            $this->config->getErrorRecipients()
-        );
+        try {
+            return $this->sendTemplateEmail(
+                null,
+                null,
+                $this->config->getErrorEmailTemplate(),
+                $this->config->getErrorEmailSender(),
+                [
+                    'title' => $errorTitle,
+                    'request' => is_array($request) ? print_r($request, true) : $request,
+                    'response' => is_array($response) ? print_r($response, true) : $response
+                ],
+                $this->config->getErrorRecipients()
+            );
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     /**
