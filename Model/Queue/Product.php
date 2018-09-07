@@ -57,6 +57,11 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
     protected $resource;
 
     /**
+     * @var array
+     */
+    protected $customAttributesMap = [];
+
+    /**
      * Product constructor.
      *
      * @param \Magento\Catalog\Api\ProductRepositoryInterface $productRepository
@@ -88,8 +93,22 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         $this->resource = $resource;
     }
 
+    public function initImport()
+    {
+        return $this;
+    }
+
+    public function mapEavToNavCustomProductAttribute($eavAttributeCode, $navAttributeCode)
+    {
+        $this->customAttributesMap[$eavAttributeCode] = $navAttributeCode;
+
+        return $this->customAttributesMap;
+    }
+
     public function importAction()
     {
+        $this->initImport();
+
         $this->setCurrentStore();
 
         $count       = 0;
@@ -258,8 +277,11 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             ->setStatus((string) $status);
 
         try {
-            if ($product->hasDataChanges()) {
+            if ($product->hasDataChanges() || !empty($this->customAttributesMap)) {
+                $this->saveCustomProductAttributes($product, $data);
+
                 $this->productRepository->save($product);
+
                 if (!empty($data->item_webshop_list)) {
                     $this->updateProductWebsites($sku, explode(',', $ids));
                 }
@@ -297,6 +319,25 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         }
 
         return true;
+    }
+
+    public function saveCustomProductAttributes(
+        \Magento\Catalog\Api\Data\ProductInterface $product,
+        \simpleXMLElement $data
+    ) {
+        foreach ($this->customAttributesMap as $eavAttributeCode => $navAttributeCode) {
+            if (!isset($data->$navAttributeCode)) {
+                continue;
+            }
+
+            $value = (string) $data->$navAttributeCode;
+            $attribute = $product->getResource()->getAttribute($eavAttributeCode);
+            if ($attribute->usesSource()) {
+                $value = $attribute->getSource()->getOptionId($value);
+            }
+
+            $product->setData($eavAttributeCode, $value);
+        }
     }
 
     public function updateProductWebsites($sku, array $websiteIds)
