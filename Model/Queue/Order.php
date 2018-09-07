@@ -63,13 +63,12 @@ class Order extends \MalibuCommerce\MConnect\Model\Queue
         } catch (NoSuchEntityException $e) {
             throw new LocalizedException(__('Order ID "%1" does not exist', $entityId));
         } catch (\Exception $e) {
-            throw new LocalizedException(__('Order ID "' . $entityId . '" loading error: %s', $e->getMessage()));
+            throw new LocalizedException(__('Order ID "' . $entityId . '" loading error: %1', $e->getMessage()));
         }
 
         if (!in_array($orderEntity->getStatus(), $this->config->getOrderStatuesAllowedForExportToNav())) {
-            $this->messages .= sprintf('Order "%s" (ID: %s) was not exported because its status is: %s', $orderEntity->getIncrementId(), $entityId, $orderEntity->getStatus());
-
-            return false;
+            $message = sprintf('Order "%s" (ID: %s) was not exported because its status is: %s', $orderEntity->getIncrementId(), $entityId, $orderEntity->getStatus());
+            throw new \LogicException($message);
         }
 
         $response = $this->navOrder->import($orderEntity);

@@ -143,78 +143,14 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
             if (!$order || !$order->getId()) {
                 throw new LocalizedException(__('The order #%1 no longer exists.', $incrementId));
             }
+            $saveTransaction = $this->transactionFactory->create();
 
-            if (!$order->canShip()) {
-                throw new LocalizedException(
-                    __('The order #%1 does not allow a shipment to be created.', $incrementId)
-                );
-            }
-
-            $navShipmentItems = array();
-            foreach ($entity->shipment_item as $item) {
-                $sku = (string)$item->nav_item_id;
-                $sku = trim($sku);
-                $navShipmentItems[$sku] = (float)$item->quantity_shipped;
-            }
-
-            $isPartialShipment = false;
-            $shipmentItems = [];
-            foreach ($order->getAllItems() as $item) {
-                $sku = $item->getSku();
-                $sku = trim($sku);
-                if ($item->getQtyToShip() && !$item->getIsVirtual()
-                    && isset($navShipmentItems[$sku]) && $navShipmentItems[$sku] > 0
-                ) {
-                    $shipmentItems[$item->getId()] = $navShipmentItems[$sku];
-                    if ($item->getQtyToShip() > $navShipmentItems[$sku]) {
-                        $isPartialShipment = true;
-                    }
-                }
-            }
-
-            $tracks = array();
-            if (isset($entity->package_tracking)) {
-                $systemCarriers = $this->getCarriers();
-
-                foreach ($entity->package_tracking as $tracking) {
-                    $carrier = strtolower((string)$tracking->shipping_carrier);
-                    if (array_key_exists($carrier, $systemCarriers)) {
-                        $tracks[] = [
-                            'number'       => (string)$tracking->tracking_number,
-                            'carrier_code' => $carrier,
-                            'title'        => $systemCarriers[$carrier],
-                        ];
-                    } else {
-                        $title = (string)$tracking->shipping_carrier . ' ' . (string)$tracking->shipping_method;
-                        $title = ucwords($title);
-                        $tracks[] = [
-                            'number'       => (string)$tracking->tracking_number,
-                            'carrier_code' => 'custom',
-                            'title'        => $title,
-                        ];
-                    }
-                }
-            }
-
-            /** @var \Magento\Sales\Model\Order\Shipment $shipment */
-            $shipment = $this->shipmentFactory->create($order, $shipmentItems, $tracks);
-            if (!$shipment) {
-                throw new LocalizedException(__('Can\'t save the shipment for order #%1 right now.', $incrementId));
-            }
-
-            $validationResult = $this->shipmentValidator->validate($shipment, [QuantityValidator::class]);
-            if ($validationResult->hasMessages()) {
-                throw new LocalizedException(
-                    __('Order #%1 - Shipment Document Validation Error(s):' . "\n" . implode("\n", $validationResult->getMessages()), $incrementId)
-                );
-
-            }
-
-            $shipment->register();
+            $isShipmentPartial = $this->isShipmentPartial($order, $entity);
+            $shipment = $this->initShipment($order, $entity);
 
             if ($this->config->get('shipment/create_invoice_with_shipment')) {
                 try {
-                    $invoice = $this->malibuInvoice->createInvoice($order, $shipmentItems);
+                    $invoice = $this->initInvoice($order, $entity);
                 } catch (\LogicException $e) {
                     // Ignore logical exceptions when attempting to create an invoice.
                     // This is needed when for ex. an invoice already exists and "Create Invoice With Shipment" is ON.
@@ -223,22 +159,35 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
                 }
             }
 
-            $shipment->getOrder()->setIsInProcess(true);
-            $shipment->getOrder()->setSkipMconnect(true);
-
-            $saveTransaction = $this->transactionFactory->create();
+            if ($shipment) {
+                $shipment->getOrder()->setIsInProcess(true);
+                $shipment->getOrder()->setSkipMconnect(true);
+            } elseif (isset($invoice)) {
+                $invoice->getOrder()->setIsInProcess(true);
+                $invoice->getOrder()->setSkipMconnect(true);
+            }
 
             if (isset($invoice)) {
                 $saveTransaction->addObject($invoice);
             }
-            $saveTransaction->addObject($shipment);
-            $saveTransaction->addObject($shipment->getOrder());
-            $saveTransaction->save();
+            if ($shipment) {
+                $saveTransaction->addObject($shipment);
+            }
+            if ($shipment) {
+                $saveTransaction->addObject($shipment->getOrder());
+            } elseif (isset($invoice)) {
+                $saveTransaction->addObject($invoice->getOrder());
+            }
+            if ($shipment || isset($invoice)) {
+                $saveTransaction->save();
+            }
 
             if (isset($invoice)) {
                 $this->messages .= 'Order #' . $incrementId . ' invoiced, invoice #' . $invoice->getIncrementId() . "\n";
             }
-            $this->messages .= 'Order #' . $incrementId . ' shipped, shipment #' . $shipment->getIncrementId() . "\n";
+            if ($shipment) {
+                $this->messages .= 'Order #' . $incrementId . ' shipped, shipment #' . $shipment->getIncrementId() . "\n";
+            }
 
             // send invoice email
             try {
@@ -251,7 +200,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
 
             // send shipment email
             try {
-                if ($this->config->get('shipment/send_email_enabled')) {
+                if ($shipment && $this->config->get('shipment/send_email_enabled')) {
                     $this->shipmentSender->send($shipment);
                 }
             } catch (\Exception $e) {
@@ -260,7 +209,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
 
             // cancel remaining order items and complete the order
             try {
-                if ($shipment && $isPartialShipment
+                if ($shipment && $isShipmentPartial
                     && $this->config->get('shipment/cancel_remaining_not_shipped_items')
                 ) {
                     if ($order->canCancel()) {
@@ -279,6 +228,172 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
         return true;
     }
 
+    /**
+     * @param \Magento\Sales\Model\Order $order
+     * @param \SimpleXMLElement $navEntity
+     *
+     * @return \Magento\Sales\Model\Order\Shipment|null
+     * @throws LocalizedException.
+     */
+    protected function initShipment($order, $navEntity)
+    {
+        if ($order->getIsVirtual() && $this->config->get('shipment/create_invoice_with_shipment')
+            && $this->config->get('shipment/skip_shipment_but_invoice_for_virtual_orders')
+        ) {
+            return null;
+        }
+
+        if (!$order->canShip()) {
+            throw new LocalizedException(
+                __('The order #%1 does not allow a shipment to be created.', $order->getIncrementId())
+            );
+        }
+
+        $shipmentItems = $this->getShippingItems($order, $navEntity);
+
+        $tracks = array();
+        if (isset($navEntity->package_tracking)) {
+            $systemCarriers = $this->getCarriers();
+
+            foreach ($navEntity->package_tracking as $tracking) {
+                $carrier = strtolower((string)$tracking->shipping_carrier);
+                if (array_key_exists($carrier, $systemCarriers)) {
+                    $tracks[] = [
+                        'number'       => (string)$tracking->tracking_number,
+                        'carrier_code' => $carrier,
+                        'title'        => $systemCarriers[$carrier],
+                    ];
+                } else {
+                    $title = (string)$tracking->shipping_carrier . ' ' . (string)$tracking->shipping_method;
+                    $title = ucwords($title);
+                    $tracks[] = [
+                        'number'       => (string)$tracking->tracking_number,
+                        'carrier_code' => 'custom',
+                        'title'        => $title,
+                    ];
+                }
+            }
+        }
+
+        /** @var \Magento\Sales\Model\Order\Shipment $shipment */
+        $shipment = $this->shipmentFactory->create($order, $shipmentItems, $tracks);
+        if (!$shipment) {
+            throw new LocalizedException(__('Can\'t save the shipment for order #%1 right now.', $order->getIncrementId()));
+        }
+
+        $validationResult = $this->shipmentValidator->validate($shipment, [QuantityValidator::class]);
+        if ($validationResult->hasMessages()) {
+            throw new LocalizedException(
+                __('Order #%1 - Shipment Document Validation Error(s):' . "\n" . implode("\n", $validationResult->getMessages()), $order->getIncrementId())
+            );
+
+        }
+
+        $shipment->register();
+
+        return $shipment;
+    }
+
+    /**
+     * @param \Magento\Sales\Model\Order $order
+     * @param \SimpleXMLElement $navEntity
+     *
+     * @return array
+     */
+    protected function getShippingItems($order, $navEntity)
+    {
+        $navShipmentItems = array();
+        foreach ($navEntity->shipment_item as $item) {
+            $sku = (string)$item->nav_item_id;
+            $sku = trim($sku);
+            $navShipmentItems[$sku] = (float)$item->quantity_shipped;
+        }
+
+        $shipmentItems = [];
+        foreach ($order->getAllItems() as $item) {
+            $sku = $item->getSku();
+            $sku = trim($sku);
+            if ($item->getQtyToShip() && !$item->getIsVirtual()
+                && isset($navShipmentItems[$sku]) && $navShipmentItems[$sku] > 0
+            ) {
+                $shipmentItems[$item->getId()] = $navShipmentItems[$sku];
+            }
+        }
+
+        return $shipmentItems;
+    }
+
+    /**
+     * @param \Magento\Sales\Model\Order $order
+     * @param \SimpleXMLElement $navEntity
+     *
+     * @return bool
+     */
+    protected function isShipmentPartial($order, $navEntity)
+    {
+        $navShipmentItems = array();
+        foreach ($navEntity->shipment_item as $item) {
+            $sku = (string)$item->nav_item_id;
+            $sku = trim($sku);
+            $navShipmentItems[$sku] = (float)$item->quantity_shipped;
+        }
+
+        foreach ($order->getAllItems() as $item) {
+            $sku = $item->getSku();
+            $sku = trim($sku);
+            if (isset($navShipmentItems[$sku]) && !$item->getIsVirtual()
+                && $item->getQtyToShip() > $navShipmentItems[$sku]
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param \Magento\Sales\Model\Order $order
+     * @param \SimpleXMLElement $navEntity
+     *
+     * @return \Magento\Sales\Model\Order\Invoice
+     */
+    protected function initInvoice($order, $navEntity)
+    {
+        return $this->malibuInvoice->createInvoice($order, $this->getInvoiceItems($order, $navEntity));
+    }
+
+    /**
+     * @param \Magento\Sales\Model\Order $order
+     * @param \SimpleXMLElement $navEntity
+     *
+     * @return array
+     */
+    protected function getInvoiceItems($order, $navEntity)
+    {
+        $navInvoiceItems = array();
+        foreach ($navEntity->shipment_item as $item) {
+            $sku = (string)$item->nav_item_id;
+            $sku = trim($sku);
+            $navInvoiceItems[$sku] = (float)$item->quantity_shipped;
+        }
+
+        $invoiceItems = [];
+        foreach ($order->getAllItems() as $item) {
+            $sku = $item->getSku();
+            $sku = trim($sku);
+            if ($item->getQtyToInvoice() && isset($navInvoiceItems[$sku]) && $navInvoiceItems[$sku] > 0) {
+                $invoiceItems[$item->getId()] = $navInvoiceItems[$sku];
+            }
+        }
+
+        return $invoiceItems;
+    }
+
+    /**
+     * @param string $incrementId
+     *
+     * @return bool|\Magento\Sales\Model\Order
+     */
     protected function getOrder($incrementId)
     {
         try {

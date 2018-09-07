@@ -306,7 +306,14 @@
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Refer to "Invoice" configuration section on this page for invoicing settings.]]></comment>
                 </field>
-                <field id="cancel_remaining_not_shipped_items" sortOrder="50" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="skip_shipment_but_invoice_for_virtual_orders" sortOrder="50" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Skip Shipment and still Create Invoice for Virtual Orders</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="create_invoice_with_shipment">1</field>
+                    </depends>
+                </field>
+                <field id="cancel_remaining_not_shipped_items" sortOrder="60" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Cancel Remaining Order Items For Partial Shipments</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[If set to "Yes" then for any partial shipment remaining not shipped order items will be canceled and order status will changed to Complete.]]></comment>

@@ -70,6 +70,7 @@
                 <max_rows>50</max_rows>
                 <send_email_enabled>1</send_email_enabled>
                 <create_invoice_with_shipment>0</create_invoice_with_shipment>
+                <skip_shipment_but_invoice_for_virtual_orders>0</skip_shipment_but_invoice_for_virtual_orders>
                 <cancel_remaining_not_shipped_items>0</cancel_remaining_not_shipped_items>
             </shipment>
             <price_rule>
