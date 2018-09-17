@@ -17,6 +17,8 @@
                 <ntlm>1</ntlm>
                 <trigger_password backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <log>1</log>
+                <retry_on_failure>1</retry_on_failure>
+                <retry_max_count>5</retry_max_count>
                 <send_error_emails>0</send_error_emails>
                 <error_email_sender>general</error_email_sender>
                 <error_email_template>malibucommerce_mconnect_nav_connection_error_email_template</error_email_template>

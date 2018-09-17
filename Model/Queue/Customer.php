@@ -167,16 +167,20 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
         do {
             $result = $this->navCustomer->export($page++, $lastUpdated);
             foreach ($result->customer as $data) {
-                $importResult = $this->importCustomer($data);
-                if ($importResult) {
-                    $count++;
+                try {
+                    $importResult = $this->importCustomer($data);
+                    if ($importResult) {
+                        $count++;
+                    }
+                } catch (\Exception $e) {
+                    $this->messages .= $e->getMessage() . PHP_EOL;
                 }
                 $this->messages .= PHP_EOL;
             }
             if (!$lastSync) {
                 $lastSync = $result->status->current_date_time;
             }
-        } while (isset($result->status->end_of_records) && (string)$result->status->end_of_records === 'false');
+        } while ($this->hasRecords($result));
         if ($count > 0) {
             $this->setLastSyncTime(Flag::FLAG_CODE_LAST_CUSTOMER_SYNC_TIME, $lastSync);
             $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';

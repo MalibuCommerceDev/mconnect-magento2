@@ -65,11 +65,10 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
         $page = 0;
         $lastSync = false;
         $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_INVENTORY_SYNC_TIME);
-        $result = false;
         do {
-            try {
-                $result = $this->navInventory->export($page++, $lastUpdated);
-                foreach ($result->item_inventory as $data) {
+            $result = $this->navInventory->export($page++, $lastUpdated);
+            foreach ($result->item_inventory as $data) {
+                try {
                     $importResult = $this->updateInventory($data);
                     if ($importResult) {
                         $count++;
@@ -77,15 +76,15 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
                     if ($importResult === false) {
                         $this->messages .= 'Unable to import NAV inventory data' . PHP_EOL;
                     }
-                    $this->messages .= PHP_EOL;
+                } catch (\Exception $e) {
+                    $this->messages .= $e->getMessage() . PHP_EOL;
                 }
-                if (!$lastSync) {
-                    $lastSync = $result->status->current_date_time;
-                }
-            } catch (\Exception $e) {
-                $this->messages .= $e->getMessage() . PHP_EOL;
+                $this->messages .= PHP_EOL;
             }
-        } while ($result && isset($result->status->end_of_records) && (string)$result->status->end_of_records === 'false');
+            if (!$lastSync) {
+                $lastSync = $result->status->current_date_time;
+            }
+        } while ($this->hasRecords($result));
         if ($count > 0) {
             $this->setLastSyncTime(Flag::FLAG_CODE_LAST_INVENTORY_SYNC_TIME, $lastSync);
             $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';

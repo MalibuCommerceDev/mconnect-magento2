@@ -115,11 +115,10 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         $page        = 0;
         $lastSync    = false;
         $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_PRODUCT_SYNC_TIME);
-        $result = false;
         do {
-            try {
-                $result = $this->navProduct->export($page++, $lastUpdated);
-                foreach ($result->item as $data) {
+            $result = $this->navProduct->export($page++, $lastUpdated);
+            foreach ($result->item as $data) {
+                try {
                     $importResult = $this->addProduct($data);
                     if ($importResult) {
                         $count++;
@@ -127,15 +126,15 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
                     if ($importResult === false) {
                         $this->messages .= 'Unable to import NAV product' . PHP_EOL;
                     }
-                    $this->messages .= PHP_EOL;
+                } catch (\Exception $e) {
+                    $this->messages .= $e->getMessage() . PHP_EOL;
                 }
-                if (!$lastSync) {
-                    $lastSync = $result->status->current_date_time;
-                }
-            } catch (\Exception $e) {
-                $this->messages .= $e->getMessage() . PHP_EOL;
+                $this->messages .= PHP_EOL;
             }
-        } while ($result && isset($result->status->end_of_records) && (string) $result->status->end_of_records === 'false');
+            if (!$lastSync) {
+                $lastSync = $result->status->current_date_time;
+            }
+        } while ($this->hasRecords($result));
         if ($count > 0) {
             $this->setLastSyncTime(Flag::FLAG_CODE_LAST_PRODUCT_SYNC_TIME, $lastSync);
             $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';
@@ -220,13 +219,13 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             if (!empty($data->item_name)) {
                 $product->setName((string) $data->item_name);
             }
+        }
 
-            if (!empty($data->item_visibility)) {
-                $visibilities = array_keys(Visibility::getOptionArray());
-                $inputVisibility = (int) $data->item_visibility;
-                if (in_array($inputVisibility, $visibilities)) {
-                    $product->setVisibility($inputVisibility);
-                }
+        if (!isset($data->item_visibility)) {
+            $visibilities = array_keys(Visibility::getOptionArray());
+            $inputVisibility = (int) $data->item_visibility;
+            if (in_array($inputVisibility, $visibilities)) {
+                $product->setVisibility($inputVisibility);
             }
         }
 
@@ -330,14 +329,20 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
                 continue;
             }
 
-            $value = (string) $data->$navAttributeCode;
-            $attribute = $product->getResource()->getAttribute($eavAttributeCode);
-            if ($attribute->usesSource()) {
-                $value = $attribute->getSource()->getOptionId($value);
-            }
-
+            $value = $this->getCustomProductNavAttributeValue($product, $data, $navAttributeCode, $eavAttributeCode);
             $product->setData($eavAttributeCode, $value);
         }
+    }
+
+    public function getCustomProductNavAttributeValue($product, $data, $navAttributeCode, $eavAttributeCode)
+    {
+        $value = (string) $data->$navAttributeCode;
+        $attribute = $product->getResource()->getAttribute($eavAttributeCode);
+        if ($attribute->usesSource()) {
+            $value = $attribute->getSource()->getOptionId($value);
+        }
+
+        return $value;
     }
 
     public function updateProductWebsites($sku, array $websiteIds)

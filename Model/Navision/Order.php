@@ -242,13 +242,18 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         $child->first_name = $address->getFirstname();
         $child->last_name = $address->getLastname();
         $child->company_name = $address->getCompany();
-        $child->street = implode(' ', $address->getStreet());
         $child->city = $address->getCity();
         $child->state = $this->directoryRegion->load($address->getRegionId())->getCode();
         $child->post_code = $address->getPostcode();
         $child->country = $address->getCountryId();
         $child->telephone = $address->getTelephone();
         $child->fax = $address->getFax();
+        $this->setAddressStreet($address, $child);
+    }
+
+    public function setAddressStreet(\Magento\Sales\Api\Data\OrderAddressInterface $address, $childElement)
+    {
+        $childElement->street = implode(' ', $address->getStreet());
     }
 
     /**

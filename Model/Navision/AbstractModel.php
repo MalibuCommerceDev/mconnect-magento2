@@ -50,12 +50,32 @@ class AbstractModel extends \Magento\Framework\DataObject
 
     protected function _export($action, $parameters = array())
     {
-        return $this->prepareResponseXml(
-            $this->_doRequest(
-                'export',
-                $this->prepareRequestXml($action, $parameters)
-            )
-        );
+        static $attempts = 1;
+        try {
+            $responseXml = $this->_doRequest('export', $this->prepareRequestXml($action, $parameters));
+        } catch (\Exception $e) {
+            if (!$this->config->get('nav_connection/retry_on_failure')) {
+                $attempts = 1;
+                throw $e;
+            }
+
+            $maxAttempts = (int)$this->config->get('nav_connection/retry_max_count');
+            if ($attempts <= $maxAttempts) {
+                sleep(pow(2, $attempts));
+                $attempts++;
+
+                return $this->_export($action, $parameters);
+            }
+
+            $attempts = 1;
+            throw $e;
+        }
+
+        if (!empty($responseXml)) {
+            return $this->prepareResponseXml($responseXml);
+        }
+
+        throw new \RuntimeException('Empty Response from NAV');
     }
 
     protected function _import($action, $parameters = array())

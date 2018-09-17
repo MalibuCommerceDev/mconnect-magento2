@@ -87,8 +87,8 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue
             'qty_min'              => (int) $entity->min_quantity,
             'price'                => (float) $entity->unit_price,
             'customer_price_group' => (string) $entity->cust_price_group,
-            'date_start'           => ((string) $entity->start_date) ? $this->date->gmtDate('Y:m:d H:i:s', $this->date->timestamp((string) $entity->start_date)) : null,
-            'date_end'             => ((string) $entity->end_date) ? $this->date->gmtDate('Y:m:d H:i:s', $this->date->timestamp((string) $entity->end_date)) : null,
+            'date_start'           => ((string) $entity->start_date) ? date('Y:m:d H:i:s', strtotime((string) $entity->start_date)) : null,
+            'date_end'             => ((string) $entity->end_date) ? date('Y:m:d H:i:s', strtotime((string) $entity->end_date)) : null,
         ];
 
         $model = $this->rule->load((int) $entity->unique_id, 'nav_id');

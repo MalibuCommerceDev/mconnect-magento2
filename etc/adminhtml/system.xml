@@ -66,26 +66,39 @@
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[May consume a large amount of disk space.]]></comment>
                 </field>
-                <field id="send_error_emails" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="retry_on_failure" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Retry NAV Requests On Failure When Exporting Data from NAV</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Each consequent retry request will be delayed by certain amount of seconds that will increase with each attempt. Delay in seconds formula is: 2<sup>n</sup>, where n = CURRENT_RETRY_ATTEMPT_NUMBER]]></comment>
+                </field>
+                <field id="retry_max_count" sortOrder="110" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Maximum NAV Requests Retry Attempts On Failure</label>
+                    <comment><![CDATA[Maximum Retry Attempts before interrupting NAV requests. The more attempts allowed, the longer delay will be between further attempts.]]></comment>
+                    <depends>
+                        <field id="retry_on_failure">1</field>
+                    </depends>
+                </field>
+
+                <field id="send_error_emails" translate="label" type="select" sortOrder="120" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Send Error Emails</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="error_email_sender" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="error_email_sender" translate="label" type="select" sortOrder="130" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Error Email Sender</label>
                     <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
                     <depends>
                         <field id="send_error_emails">1</field>
                     </depends>
                 </field>
-                <field id="error_email_recipient" translate="label" type="text" sortOrder="120" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="error_email_recipient" translate="label" type="text" sortOrder="140" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Error Email Recipient</label>
-                    <validate>validate-email</validate>
-                    <comment><![CDATA[Coma separated emails]]></comment>
+                    <validate>validate-emails</validate>
+                    <comment><![CDATA[Comma-separated emails]]></comment>
                     <depends>
                         <field id="send_error_emails">1</field>
                     </depends>
                 </field>
-                <field id="error_email_template" translate="label comment" type="select" sortOrder="130" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="error_email_template" translate="label comment" type="select" sortOrder="150" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Error Email Template</label>
                     <comment>Email template chosen based on theme fallback when "Default" option is selected.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
