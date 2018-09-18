@@ -23,11 +23,17 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     protected $customerRegistry;
 
     /**
+     * @var \Magento\Customer\Api\GroupRepositoryInterface
+     */
+    protected $groupRepository;
+
+    /**
      * Collection constructor.
      *
      * @param \Magento\Framework\Data\Collection\EntityFactoryInterface    $entityFactory
      * @param \Psr\Log\LoggerInterface                                     $logger
      * @param \Magento\Customer\Model\CustomerRegistry                     $customerRegistry
+     * @param \Magento\Customer\Api\GroupRepositoryInterface               $groupRepository
      * @param \Magento\Framework\Data\Collection\Db\FetchStrategyInterface $fetchStrategy
      * @param \Magento\Framework\Event\ManagerInterface                    $eventManager
      * @param Session                                                      $customerSession
@@ -38,6 +44,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
         \Magento\Framework\Data\Collection\EntityFactoryInterface $entityFactory,
         \Psr\Log\LoggerInterface $logger,
         \Magento\Customer\Model\CustomerRegistry $customerRegistry,
+        \Magento\Customer\Api\GroupRepositoryInterface $groupRepository,
         \Magento\Framework\Data\Collection\Db\FetchStrategyInterface $fetchStrategy,
         \Magento\Framework\Event\ManagerInterface $eventManager,
         Session $customerSession,
@@ -46,6 +53,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     ) {
         $this->customerRegistry = $customerRegistry;
         $this->customerSession = $customerSession;
+        $this->groupRepository = $groupRepository;
         parent::__construct($entityFactory, $logger, $fetchStrategy, $eventManager, $connection, $resource);
     }
 
@@ -209,7 +217,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      *
      * @return \Magento\Customer\Model\Customer|null
      */
-    protected function getCustomer()
+    public function getCustomer()
     {
         if (!$this->customer) {
             if ($this->customerSession->isLoggedIn()) {
@@ -221,5 +229,24 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
         }
 
         return $this->customer;
+    }
+
+    /**
+     * Retrieve current customer group code
+     *
+     * @return null|string
+     */
+    public function getCustomerGroup()
+    {
+        $groupCode = null;
+        $groupId = $this->customerSession->getCustomerGroupId();
+
+        try {
+            $groupCode = $this->groupRepository->getById($groupId)->getCode();
+        } catch (\Exception $e) {
+
+        }
+
+        return $groupCode;
     }
 }
