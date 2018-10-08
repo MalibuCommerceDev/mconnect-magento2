@@ -2,20 +2,15 @@
 
 namespace MalibuCommerce\MConnect\Model\Navision\Connection;
 
-use SoapClient;
-use SoapFault;
-
 class Soap
 {
-    const STREAM = '\MalibuCommerce\MConnect\Model\Navision\Connection\Stream';
-
     /**
      * @var \MalibuCommerce\MConnect\Model\Navision\Connection\Soap\Client
      */
-    protected $_client;
-    protected $_isStreamRegistered = false;
-    protected $_restoreStream      = false;
-    protected $_scheme;
+    protected $soapClient;
+    protected $isStreamRegistered = false;
+    protected $restoreStream      = false;
+    protected $protocol;
 
     /**
      * @var \MalibuCommerce\MConnect\Model\Config
@@ -33,6 +28,11 @@ class Soap
     protected $mConnectMailer;
 
     /**
+     * @var \MalibuCommerce\MConnect\Helper\Data
+     */
+    protected $mConnectHelper;
+
+    /**
      * @var \MalibuCommerce\MConnect\Model\Navision\Connection\Stream
      */
     protected $stream;
@@ -40,100 +40,93 @@ class Soap
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
         \MalibuCommerce\MConnect\Helper\Mail $mConnectMailer,
+        \MalibuCommerce\MConnect\Helper\Data $mConnectHelper,
         \MalibuCommerce\MConnect\Model\Navision\Connection\Stream $stream,
         \Psr\Log\LoggerInterface $logger,
         \Magento\Framework\App\Filesystem\DirectoryList $directoryList
     ) {
         $this->mConnectConfig = $mConnectConfig;
         $this->mConnectMailer = $mConnectMailer;
+        $this->mConnectHelper = $mConnectHelper;
         $this->stream = $stream;
     }
 
     public function __call($method, $arguments)
     {
-        $this->_streamRegister();
-        $this->_clientRegister();
-
         try {
-            $result = call_user_func_array(array($this->_client, $method), $arguments);
-        } catch (SoapFault $e) {
-            if ($this->mConnectConfig->get('nav_connection/log')) {
-                $this->_client->logRequest($arguments, null, $method, null, null, $e->getMessage());
-            }
+            $this->registerStream();
+            $this->registerClient();
 
-            $request = [
-                'Time'        => date('r'),
-                'Location'    => '',
-                'PID'         => getmypid(),
-                'Action'      => $method,
-                'Body'        => is_array($arguments) ? print_r($arguments, true) : $arguments,
-                'Request XML' => $this->_client->decodeRequest('/<ns1:requestXML>(.*)<\/ns1:requestXML>/', $arguments),
-            ];
-            $this->mConnectMailer->sendErrorEmail('An error occurred when connecting to Navision.', $request, $e->getMessage());
+            $result = call_user_func_array(array($this->soapClient, $method), $arguments);
+        } catch (\Throwable $e) {
+            $this->mConnectHelper->logRequestError($arguments, null, $method, $e);
 
             throw $e;
         }
-        $this->_streamUnregister();
+        $this->unregisterStream();
 
         return $result;
     }
 
-    protected function _streamRegister()
+    protected function registerStream()
     {
-        if ($this->_isStreamRegistered) {
+        if ($this->isStreamRegistered) {
             return;
         }
-        $scheme = $this->_getScheme();
-        if (in_array($scheme, stream_get_wrappers())) {
-            $this->_restoreStream = true;
-            if (!stream_wrapper_unregister($scheme)) {
-                throw new \LogicException(sprintf('Failed to unregister "%s" stream when connecting to Navision.', $scheme));
+        $protocol = $this->getProtocol();
+        if (in_array($protocol, stream_get_wrappers())) {
+            $this->restoreStream = true;
+            if (!stream_wrapper_unregister($protocol)) {
+                throw new \LogicException(sprintf('Failed to unregister "%s" stream when connecting to Navision.', $protocol));
             }
         }
-        if (!stream_wrapper_register($scheme, self::STREAM)) {
-            throw new \LogicException(sprintf('Failed to register "%s" stream when connecting to Navision.', $scheme));
+        if (!stream_wrapper_register($protocol, \MalibuCommerce\MConnect\Model\Navision\Connection\Stream::class)) {
+            throw new \LogicException(sprintf('Failed to register "%s" stream when connecting to Navision.', $protocol));
         }
-        $this->_isStreamRegistered = true;
+        $this->isStreamRegistered = true;
     }
 
-    protected function _clientRegister()
+    protected function registerClient()
     {
-
-        if ($this->_client === null) {
-            $this->_client = new \MalibuCommerce\MConnect\Model\Navision\Connection\Soap\Client(
-                $this->stream->stream_open($this->mConnectConfig->getNavConnectionUrl(), null, null, $this->mConnectConfig),
-                array(
+        if ($this->soapClient === null) {
+            $this->soapClient = new \MalibuCommerce\MConnect\Model\Navision\Connection\Soap\Client(
+                $this->mConnectConfig,
+                $this->mConnectHelper,
+                $this->stream->stream_open($this->mConnectConfig->getNavConnectionUrl()),
+                [
                     'cache_wsdl'         => 0,
                     'connection_timeout' => $this->mConnectConfig->getConnectionTimeout(),
                     'trace'              => 1,
-                )
+                    'exceptions'         => true,
+                ]
             );
         }
+
         return $this;
     }
 
-    protected function _streamUnregister()
+    protected function unregisterStream()
     {
-        if (!$this->_isStreamRegistered) {
+        if (!$this->isStreamRegistered) {
             return;
         }
-        if ($this->_restoreStream) {
-            stream_wrapper_restore($this->_getScheme());
+        if ($this->restoreStream) {
+            stream_wrapper_restore($this->getProtocol());
         }
-        $this->_isStreamRegistered = false;
+        $this->isStreamRegistered = false;
     }
 
-    protected function _getScheme()
+    protected function getProtocol()
     {
-        if ($this->_scheme === null) {
+        if ($this->protocol === null) {
             $config = $this->mConnectConfig;
             $components = parse_url($config->getNavConnectionUrl());
             if (!isset($components['scheme'])) {
                 throw new \LogicException('Failed to parse scheme from Navision URL. Please check your system configuration.');
             }
-            $this->_scheme = $components['scheme'];
+            $this->protocol = $components['scheme'];
         }
 
-        return $this->_scheme;
+        return $this->protocol;
     }
 }

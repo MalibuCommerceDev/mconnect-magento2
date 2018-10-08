@@ -6,6 +6,41 @@ use \Magento\Framework\App\Filesystem\DirectoryList;
 
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
 {
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Config
+     */
+    protected $mConnectConfig;
+
+    /**
+     * @var \MalibuCommerce\MConnect\Helper\Mail
+     */
+    protected $mConnectMailer;
+
+    /**
+     * @var \Magento\Framework\Registry
+     */
+    protected $registry;
+
+    public function __construct(
+        \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
+        \MalibuCommerce\MConnect\Helper\Mail $mConnectMailer,
+        \Magento\Framework\Registry $registry,
+        \Magento\Framework\App\Helper\Context $context
+    ) {
+        $this->mConnectMailer = $mConnectMailer;
+        $this->mConnectConfig = $mConnectConfig;
+        $this->registry = $registry;
+
+        parent::__construct($context);
+    }
+
+    /**
+     * @param int $id
+     * @param bool $absolute
+     * @param bool $nameOnly
+     *
+     * @return bool|string
+     */
     public function getLogFile($id, $absolute = true, $nameOnly = false)
     {
         $directoryList = new DirectoryList(BP);
@@ -24,6 +59,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
 
         $file = ($absolute ? $logDir : $dir) . DIRECTORY_SEPARATOR . $file;
+
         return !file_exists($file) && !$nameOnly ? false : $file;
     }
 
@@ -38,12 +74,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
         $pow = min($pow, count($units) - 1);
         $bytes /= (1 << (10 * $pow));
+
         return number_format($bytes, 2) . ' ' . $units[$pow];
     }
 
-    public function getLogFileContents($queueId, $asString = true)
+    public function getLogFileContents($queueItemId, $asString = true)
     {
-        if ($file = $this->getLogFile($queueId, true, true)) {
+        if ($file = $this->getLogFile($queueItemId, true, true)) {
             $contents = file_get_contents($file);
             $results = [];
             if (preg_match_all('~({.+})~', $contents, $matches)) {
@@ -61,7 +98,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             }
 
             if (count($results)) {
-              return $asString ? print_r($results, true) : $results;
+                return $asString ? print_r($results, true) : $results;
             }
 
             return $contents;
@@ -112,5 +149,109 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
 
         return $result;
+    }
+
+    /**
+     * @param $request
+     * @param $location
+     * @param $action
+     * @param \Throwable $e
+     *
+     * @return bool
+     */
+    public function logRequestError($request, $location, $action, \Throwable $e)
+    {
+        if (!$this->mConnectConfig->get('nav_connection/log')) {
+            return false;
+        }
+
+        $this->logRequest(
+            $request,
+            $location,
+            $action,
+            500,
+            null,
+            'Error: ' . $e->getMessage() . "\n\n" . $e->getTraceAsString()
+        );
+
+        $request = $this->prepareLogRequest($request, $location, $action);
+        $this->mConnectMailer->sendErrorEmail('An error occurred when connecting to Navision.', $request, $e->getMessage());
+
+        return true;
+    }
+
+    /**
+     * @param string|array $request
+     * @param string $location
+     * @param string $action
+     * @param string|int $code
+     * @param string $header
+     * @param string $body
+     *
+     * @return bool
+     */
+    public function logRequest($request, $location, $action, $code, $header, $body)
+    {
+        if (!$this->mConnectConfig->get('nav_connection/log')) {
+            return false;
+        }
+
+        $queueItemId = $this->registry->registry('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM_ID');
+
+        $logFile = $this->getLogFile($queueItemId, true, true);
+        $writer = new \Zend\Log\Writer\Stream($logFile);
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+
+        $request = $this->prepareLogRequest($request, $location, $action);
+        $response = [
+            'Code'         => $code,
+            'Headers'      => $header,
+            'Body'         => $body,
+            'Response XML' => $this->decodeRequest('/<responseXML>(.*)<\/responseXML>/', $body)
+        ];
+
+        $logger->debug('Debug Data', array(
+            'Request'  => $request,
+            'Response' => $response
+        ));
+
+        return true;
+    }
+
+    /**
+     * @param string|array $request
+     * @param string $location
+     * @param string $action
+     *
+     * @return array
+     */
+    public function prepareLogRequest($request, $location, $action)
+    {
+        return [
+            'Time'        => date('r'),
+            'Location'    => $location,
+            'PID'         => getmypid(),
+            'Action'      => $action,
+            'Body'        => is_array($request) ? print_r($request, true) : $request,
+            'Request XML' => $this->decodeRequest('/<ns1:requestXML>(.*)<\/ns1:requestXML>/', $request),
+        ];
+    }
+
+    /**
+     * @param string $pattern
+     * @param string $value
+     *
+     * @return bool|string
+     */
+    public function decodeRequest($pattern, $value)
+    {
+        if (is_string($value) && preg_match($pattern, $value, $matches)
+            && isset($matches[1]) && preg_match('%^[a-zA-Z0-9/+]*={0,2}$%', $matches[1])
+        ) {
+            return base64_decode($matches[1]);
+        }
+
+        return false;
     }
 }

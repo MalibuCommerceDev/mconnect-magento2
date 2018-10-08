@@ -135,7 +135,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
             $this->endProcess(self::STATUS_ERROR, sprintf('M-Connect error: The action "%s" is not recognized and cannot be processed.  You may need to update the M-Connect module or clear the Magento cache.', $action));
             return $this;
         }
-        $this->registry->register('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE', $this->getId());
+        $this->registry->register('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM_ID', $this->getId());
 
         try {
             $this->initConnection();
@@ -157,7 +157,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
             $this->_logger->critical($e);
             $this->endProcess(self::STATUS_ERROR, $e->getMessage());
         }
-        $this->registry->unregister('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE', $this->getId());
+        $this->registry->unregister('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM_ID', $this->getId());
 
         return $this;
     }

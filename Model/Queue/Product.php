@@ -163,6 +163,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
     {
         if (empty($data->item_nav_id)) {
             $this->messages .= 'No valid NAV ID found in response XML' . PHP_EOL;
+
             return false;
         }
         $sku = trim($data->item_nav_id);
@@ -176,6 +177,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             $product = $this->productFactory->create();
         } catch (\Exception $e) {
             $this->messages .= $sku . ': ' . $e->getMessage();
+
             return false;
         }
 
@@ -184,8 +186,8 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
                 $stockItem = $product->getExtensionAttributes()->getStockItem();
                 if ($stockItem && $stockItem->getId() && $stockItem->getManageStock()) {
                     $stockItem
-                        ->setQty((int) $data->item_qty_on_hand)
-                        ->setIsInStock((int)(bool) $data->item_qty_on_hand);
+                        ->setQty((int)$data->item_qty_on_hand)
+                        ->setIsInStock((int)(bool)$data->item_qty_on_hand);
                 }
             }
         } else {
@@ -199,42 +201,47 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             if (isset($data->item_qty_on_hand)) {
                 $product->setStockData(array(
                     'use_config_manage_stock' => 1,
-                    'qty'                     => (int) $data->item_qty_on_hand,
-                    'is_in_stock'             => (int)(bool) $data->item_qty_on_hand
+                    'qty'                     => (int)$data->item_qty_on_hand,
+                    'is_in_stock'             => (int)(bool)$data->item_qty_on_hand
                 ));
             }
 
             if (!empty($data->item_meta_title)) {
-                $product->setMetaTitle((string) $data->item_meta_title);
+                $product->setMetaTitle((string)$data->item_meta_title);
             }
 
             if (!empty($data->item_meta_desc)) {
-                $product->setMetaDescription((string) $data->item_meta_desc);
+                $product->setMetaDescription((string)$data->item_meta_desc);
             }
 
             if (!empty($data->item_desc)) {
-                $product->setDescription((string) $data->item_desc);
+                $product->setDescription((string)$data->item_desc);
             }
 
             if (!empty($data->item_name)) {
-                $product->setName((string) $data->item_name);
+                $product->setName((string)$data->item_name);
             }
         }
 
         if (!isset($data->item_visibility)) {
-            $visibilities = array_keys(Visibility::getOptionArray());
-            $inputVisibility = (int) $data->item_visibility;
-            if (in_array($inputVisibility, $visibilities)) {
+            $visibilities = ($this->getVisibilityOptions());
+            $inputVisibility = (int)$data->item_visibility;
+            if (array_key_exists($inputVisibility, $visibilities)) {
                 $product->setVisibility($inputVisibility);
+            } else {
+                $visibilities = array_flip($visibilities);
+                if (array_key_exists($inputVisibility, $visibilities)) {
+                    $product->setVisibility($visibilities[$inputVisibility]);
+                }
             }
         }
 
         if (!empty($data->item_net_weight)) {
-            $product->setWeight(number_format((float) $data->item_net_weight, 4, '.', ''));
+            $product->setWeight(number_format((float)$data->item_net_weight, 4, '.', ''));
         }
 
         if (!empty($data->item_webshop_list)) {
-            $ids = (string) $data->item_webshop_list;
+            $ids = (string)$data->item_webshop_list;
             $product->setWebsiteIds(explode(',', $ids));
         }
 
@@ -268,7 +275,6 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             }
             $product->setDataUsingMethod($attribute->getAttributeCode(), $value);
         }
-
 
         $product
             ->setOptions([])
@@ -307,12 +313,14 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
                     } else {
                         $this->messages .= $sku . ': created';
                     }
-                }  catch (\Exception $e) {
+                } catch (\Exception $e) {
                     $this->messages .= $sku . ': ' . $e->getMessage();
+
                     return false;
                 }
             } else {
                 $this->messages .= $sku . ': ' . $e->getMessage();
+
                 return false;
             }
         }
@@ -336,7 +344,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
 
     public function getCustomProductNavAttributeValue($product, $data, $navAttributeCode, $eavAttributeCode)
     {
-        $value = (string) $data->$navAttributeCode;
+        $value = (string)$data->$navAttributeCode;
         $attribute = $product->getResource()->getAttribute($eavAttributeCode);
         if ($attribute->usesSource()) {
             $value = $attribute->getSource()->getOptionId($value);
@@ -368,6 +376,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         if (!$this->hasDefaultAttributeSetId()) {
             $this->setDefaultAttributeSetId($this->config->get('product/import_attribute_set'));
         }
+
         return parent::getDefaultAttributeSetId();
     }
 
@@ -376,6 +385,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         if (!$this->hasDefaultTypeId()) {
             $this->setDefaultTypeId($this->config->get('product/import_type'));
         }
+
         return parent::getDefaultTypeId();
     }
 
@@ -384,7 +394,21 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         if (!$this->hasDefaultVisibility()) {
             $this->setDefaultVisibility($this->config->get('product/import_visibility'));
         }
+
         return parent::getDefaultVisibility();
+    }
+
+    /**
+     * @return array
+     */
+    public function getVisibilityOptions()
+    {
+        return [
+            Visibility::VISIBILITY_NOT_VISIBLE => 'Not Visible Individually',
+            Visibility::VISIBILITY_IN_CATALOG  => 'Catalog',
+            Visibility::VISIBILITY_IN_SEARCH   => 'Search',
+            Visibility::VISIBILITY_BOTH        => 'Catalog, Search'
+        ];
     }
 
     public function getDefaultTaxClass()
@@ -392,6 +416,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         if (!$this->hasDefaultTaxClass()) {
             $this->setDefaultTaxClass($this->config->get('product/import_tax_class'));
         }
+
         return parent::getDefaultTaxClass();
     }
 

@@ -23,12 +23,12 @@ class Common extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
     protected $config;
 
     /**
-     * AbstractModel constructor.
+     * Common constructor.
      *
-     * @param \MalibuCommerce\MConnect\Model\Config $config
-     * @param Connection                            $mConnectNavisionConnection
-     * @param \Psr\Log\LoggerInterface              $logger
-     * @param array                                 $data
+     * @param \MalibuCommerce\MConnect\Model\Config              $config
+     * @param \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection
+     * @param \Psr\Log\LoggerInterface                           $logger
+     * @param array                                              $data
      */
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $config,
@@ -48,6 +48,7 @@ class Common extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
      * Make request to Nav system and return entities
      *
      * @param $options
+     *
      * @return array|bool
      * @throws \Exception
      */
@@ -76,12 +77,13 @@ class Common extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
                 foreach ($pieces as &$piece) {
                     $piece = strtolower($piece);
                 }
-                $data[implode('_', $pieces)] = (string) $value;
+                $data[implode('_', $pieces)] = (string)$value;
             }
             $dataObject = new \Magento\Framework\DataObject();
             $dataObject->setData($data);
             $entities[] = $dataObject;
         }
+
         return $entities;
     }
 }

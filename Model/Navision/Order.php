@@ -222,7 +222,7 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
     protected function addAddresses(\Magento\Sales\Api\Data\OrderInterface $orderEntity, &$root)
     {
         foreach ($orderEntity->getAddresses() as $address) {
-            $this->addAddress($address, $root);
+            $this->addAddress($address, $orderEntity, $root);
         }
     }
 
@@ -230,9 +230,10 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
      * Construct NAV address XML and set address data
      *
      * @param \Magento\Sales\Api\Data\OrderAddressInterface $address
+     * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
      * @param \simpleXMLElement $root
      */
-    protected function addAddress(\Magento\Sales\Api\Data\OrderAddressInterface $address, &$root)
+    protected function addAddress(\Magento\Sales\Api\Data\OrderAddressInterface $address, $orderEntity, &$root)
     {
         $child = $root->addChild('order_address');
         $navId = $address->getNavId();
@@ -248,12 +249,21 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         $child->country = $address->getCountryId();
         $child->telephone = $address->getTelephone();
         $child->fax = $address->getFax();
-        $this->setAddressStreet($address, $child);
+        $this->setAdditionalAddressData($address, $orderEntity, $child);
     }
 
-    public function setAddressStreet(\Magento\Sales\Api\Data\OrderAddressInterface $address, $childElement)
+    /**
+     * @param \Magento\Sales\Api\Data\OrderAddressInterface $address
+     * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
+     * @param \simpleXMLElement $childElement
+     *
+     * @return \simpleXMLElement
+     */
+    public function setAdditionalAddressData(\Magento\Sales\Api\Data\OrderAddressInterface $address, $orderEntity, $childElement)
     {
         $childElement->street = implode(' ', $address->getStreet());
+
+        return $childElement;
     }
 
     /**

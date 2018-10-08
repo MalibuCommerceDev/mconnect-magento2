@@ -69,11 +69,11 @@
                 <field id="retry_on_failure" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Retry NAV Requests On Failure When Exporting Data from NAV</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[Each consequent retry request will be delayed by certain amount of seconds that will increase with each attempt. Delay in seconds formula is: 2<sup>n</sup>, where n = CURRENT_RETRY_ATTEMPT_NUMBER]]></comment>
+                    <comment><![CDATA[Each consequent retry <strong>Export</strong> request will be delayed by certain amount of seconds that will increase with each attempt. Delay in seconds formula is: 2<sup>n</sup>, where n = CURRENT_RETRY_ATTEMPT_NUMBER]]></comment>
                 </field>
                 <field id="retry_max_count" sortOrder="110" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Maximum NAV Requests Retry Attempts On Failure</label>
-                    <comment><![CDATA[Maximum Retry Attempts before interrupting NAV requests. The more attempts allowed, the longer delay will be between further attempts.]]></comment>
+                    <label>Maximum NAV Export Requests Retry Attempts On Failure</label>
+                    <comment><![CDATA[Maximum Retry Attempts before interrupting NAV <strong>Export</strong> requests. The more attempts allowed, the longer delay will be between further attempts.]]></comment>
                     <depends>
                         <field id="retry_on_failure">1</field>
                     </depends>

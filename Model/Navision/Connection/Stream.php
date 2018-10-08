@@ -1,114 +1,156 @@
 <?php
+
 namespace MalibuCommerce\MConnect\Model\Navision\Connection;
 
+use Magento\Framework\App\Filesystem\DirectoryList;
 
 class Stream
 {
-    protected $_path;
-    protected $_stream;
-    protected $_pointer;
-    protected $_ch;
+    const NAV_WSDL_FILE = 'nav.wsdl';
+
+    /**
+     * @var string
+     */
+    protected $streamUri;
+
+    /**
+     * @var string
+     */
+    protected $streamData;
+
+    /**
+     * @var int
+     */
+    protected $streamDataPointer;
+
+    /**
+     * @var resource
+     */
+    protected $streamCurlHandle;
 
     /**
      * @var \MalibuCommerce\MConnect\Model\Config
      */
     protected $mConnectConfig;
 
+    /**
+     * @var \Magento\Framework\App\Filesystem\DirectoryList
+     */
     protected $directoryList;
+
+    /**
+     * @var \Magento\Framework\Filesystem
+     */
+    protected $filesystem;
 
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
-        \Magento\Framework\App\Filesystem\DirectoryList $directoryList
+        \Magento\Framework\Filesystem $filesystem,
+        DirectoryList $directoryList
     ) {
-        $this->directoryList = $directoryList;
         $this->mConnectConfig = $mConnectConfig;
-        $this->stream_open($this->mConnectConfig->getNavConnectionUrl(), null, null, $mConnectConfig);
+        $this->filesystem = $filesystem;
+        $this->directoryList = $directoryList;
     }
-    public function stream_open($path, $mode, $options, &$opened_path)
+
+    public function stream_open($streamUri)
     {
-        $this->_path = $path;
-        $this->_initialize();
+        $this->streamUri = $streamUri;
+        $this->initStream();
+        if (empty($this->streamData)) {
+            throw new \RuntimeException('SOAP-ERROR: Couldn\'t load WSDL');
+        }
 
-        $filename    = 'nav.wsdl';
-        $destination = $this->directoryList->getPath('tmp') . "{$filename}";
+        $tmpDir = $this->filesystem->getDirectoryWrite(DirectoryList::TMP);
+        $tmpDir->writeFile(self::NAV_WSDL_FILE, $this->streamData);
 
-        file_put_contents($destination, $this->_stream);
-
-        return $destination;
+        return $tmpDir->getAbsolutePath(self::NAV_WSDL_FILE);
     }
 
     public function stream_close()
     {
-        curl_close($this->_ch);
+        curl_close($this->streamCurlHandle);
     }
 
     public function stream_read($count)
     {
-        if ($this->_stream === null || strlen($this->_stream) === 0) {
+        if ($this->streamData === null || strlen($this->streamData) === 0) {
             return false;
         }
-        $data = substr($this->_stream, $this->_pointer, $count);
-        $this->_pointer += strlen($data);
+        $data = substr($this->streamData, $this->streamDataPointer, $count);
+        $this->streamDataPointer += strlen($data);
+
         return $data;
     }
 
     public function stream_write($data)
     {
-        if ($this->_stream === null || strlen($this->_stream) === 0) {
+        if ($this->streamData === null || strlen($this->streamData) === 0) {
             return false;
         }
+
         return true;
     }
 
     public function stream_eof()
     {
-        return $this->_pointer > strlen($this->_stream);
+        return $this->streamDataPointer > strlen($this->streamData);
     }
 
     public function stream_tell()
     {
-        return $this->_pointer;
+        return $this->streamDataPointer;
     }
 
     public function stream_flush()
     {
-        $this->_stream = null;
-        $this->_pointer = null;
+        $this->streamData = null;
+        $this->streamDataPointer = null;
     }
 
     public function stream_stat()
     {
-        $this->_initialize();
+        $this->initStream();
+
         return array(
-            'size' => strlen($this->_stream),
+            'size' => strlen($this->streamData),
         );
     }
 
-    public function url_stat($path, $flags)
+    public function url_stat($streamUri, $flags)
     {
         return $this->stream_stat();
     }
 
-    protected function _initialize()
+    protected function initStream()
     {
-        if ($this->_stream !== null) {
+        if ($this->streamData !== null) {
             return;
         }
         $config = $this->mConnectConfig;
-        $this->_ch = curl_init($this->_path);
-        curl_setopt($this->_ch, CURLOPT_RETURNTRANSFER, true);
+        $this->streamCurlHandle = curl_init($this->streamUri);
+        curl_setopt($this->streamCurlHandle, CURLOPT_RETURNTRANSFER, true);
 
         if ($config->getIsInsecureConnectionAllowed()) {
-            curl_setopt($this->_ch, CURLOPT_SSL_VERIFYHOST, 0);
-            curl_setopt($this->_ch, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($this->streamCurlHandle, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($this->streamCurlHandle, CURLOPT_SSL_VERIFYPEER, 0);
         }
 
-        curl_setopt($this->_ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+        curl_setopt($this->streamCurlHandle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         if ($config->getUseNtlmAuthentication()) {
-            curl_setopt($this->_ch, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
+            curl_setopt($this->streamCurlHandle, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
         }
-        curl_setopt($this->_ch, CURLOPT_USERPWD, $config->getNavConnectionUsername() . ':' . $config->getNavConnectionPassword());
-        $this->_stream = trim(curl_exec($this->_ch));
-        $this->_pointer = 0;
+        curl_setopt(
+            $this->streamCurlHandle,
+            CURLOPT_USERPWD,
+            $config->getNavConnectionUsername() . ':' . $config->getNavConnectionPassword()
+        );
+        $this->streamData = trim(curl_exec($this->streamCurlHandle));
+
+        $httpCode = curl_getinfo($this->streamCurlHandle, CURLINFO_HTTP_CODE);
+        if ($httpCode != 200) {
+            throw new \RuntimeException('SOAP-ERROR: Couldn\'t not connect to the server');
+        }
+        $this->streamDataPointer = 0;
     }
 }

@@ -51,9 +51,10 @@ class AbstractModel extends \Magento\Framework\DataObject
     protected function _export($action, $parameters = array())
     {
         static $attempts = 1;
+
         try {
-            $responseXml = $this->_doRequest('export', $this->prepareRequestXml($action, $parameters));
-        } catch (\Exception $e) {
+            $responseXml = $this->doRequest('export', $this->prepareRequestXml($action, $parameters));
+        } catch (\Throwable $e) {
             if (!$this->config->get('nav_connection/retry_on_failure')) {
                 $attempts = 1;
                 throw $e;
@@ -72,16 +73,18 @@ class AbstractModel extends \Magento\Framework\DataObject
         }
 
         if (!empty($responseXml)) {
+            $attempts = 1;
+
             return $this->prepareResponseXml($responseXml);
         }
 
-        throw new \RuntimeException('Empty Response from NAV');
+        throw new \RuntimeException('Empty Response from NAV server');
     }
 
     protected function _import($action, $parameters = array())
     {
         return $this->prepareResponseXml(
-            $this->_doRequest(
+            $this->doRequest(
                 'import',
                 $this->prepareRequestXml($action, $parameters)
             )
@@ -109,14 +112,14 @@ class AbstractModel extends \Magento\Framework\DataObject
     {
         if (!isset($response->responseXML)) {
             $this->logger->critical('Mconnect NAV error - Server response is invalid', ['response' => $response]);
-            throw new \Magento\Framework\Exception\LocalizedException(__('Server response is invalid'));
+            throw new \RuntimeException('Server response is invalid');
         }
         $xml = base64_decode($response->responseXML);
 
         return new \simpleXMLElement($xml);
     }
 
-    protected function _doRequest($type, $xml)
+    protected function doRequest($type, $xml)
     {
         switch ($type) {
             case 'export':
@@ -126,13 +129,13 @@ class AbstractModel extends \Magento\Framework\DataObject
                 $method = 'ImportToNAV';
                 break;
             default:
-                throw new \Magento\Framework\Exception\LocalizedException(__(sprintf('Unsupported request type "%s"', $type)));
+                throw new \RuntimeException(sprintf('Unsupported request type "%s"', $type));
         }
 
-        return $this->getConnection()->$method(array(
+        return $this->getConnection()->$method([
             'requestXML'  => $xml,
             'responseXML' => false,
-        ));
+        ]);
     }
 
     /**
@@ -150,7 +153,7 @@ class AbstractModel extends \Magento\Framework\DataObject
                 foreach ($xml->Error as $error) {
                     $errors[] = (string) $error;
                 }
-                throw new \Exception(implode(',', $errors));
+                throw new \LogicException(implode(',', $errors));
             }
         }
     }
