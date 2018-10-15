@@ -29,6 +29,7 @@ class Pricerule extends \Magento\Framework\Model\AbstractModel
 
         $cacheId = md5($sku . $qty);
         if (array_key_exists($cacheId, $this->matchedPrices)) {
+
             return $this->matchedPrices[$cacheId];
         }
 

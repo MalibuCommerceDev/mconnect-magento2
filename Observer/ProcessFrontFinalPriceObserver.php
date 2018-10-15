@@ -30,19 +30,30 @@ class ProcessFrontFinalPriceObserver implements \Magento\Framework\Event\Observe
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
+        $finalPrice = null;
         try {
             /** @var \Magento\Catalog\Model\Product $product */
             $product = $observer->getProduct();
+            $mconnectPrice = $this->rule->matchDiscountPrice($product, $observer->getQty());
 
-            $price = $this->rule->matchDiscountPrice($product, $observer->getQty());
+            if ($mconnectPrice === false) {
 
-            if ($price !== false && (!$product->hasFinalPrice() || $price < $product->getFinalPrice())) {
-                $finalPrice = min($product->getData('final_price'), $price);
-                $product->setPrice($finalPrice);
-                $product->setFinalPrice($finalPrice);
+                return $this;
             }
-        } catch (\Exception $e) {
+
+            if (!$product->hasData('final_price') || $mconnectPrice <= $product->getData('final_price')) {
+                $finalPrice = $mconnectPrice;
+            }
+        } catch (\Throwable $e) {
             $this->logger->critical($e);
+        }
+
+        if ($finalPrice === null) {
+
+            return $this;
+        } else {
+            $product->setPrice($finalPrice);
+            $product->setFinalPrice($finalPrice);
         }
 
         return $this;

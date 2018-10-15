@@ -39,21 +39,26 @@ class ProductPlugin
     {
         $finalPrice = null;
         try {
-            $price = $this->rule->matchDiscountPrice($product, $product->getQty());
-            if ($price !== false && (!$product->hasFinalPrice() || $price <= $product->getFinalPrice())) {
-                if (!$product->hasFinalPrice()) {
-                    $finalPrice = $price;
-                } else {
-                    $finalPrice = min($product->getData('final_price'), $price);
-                }
+            $mconnectPrice = $this->rule->matchDiscountPrice($product, $product->getQty());
+            if ($mconnectPrice === false) {
+
+                return $originalFinalPrice;
             }
-        } catch (\Exception $e) {
+
+            if (!$product->hasData('final_price') || $mconnectPrice < $product->getData('final_price')) {
+                $finalPrice = $mconnectPrice;
+            }
+        } catch (\Throwable $e) {
             $this->logger->critical($e);
+
             return $originalFinalPrice;
         }
+
         if (is_null($finalPrice)) {
+
             return $originalFinalPrice;
         }
+
         return $finalPrice;
     }
 }
