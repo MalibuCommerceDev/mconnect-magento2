@@ -196,8 +196,8 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
                     $root->gift_card_amt_used = number_format((float) $baseAmount, 4, '.', '');
                 }
             }
-        } catch (\Exception $e) {
-            // Ignore exceptions
+        } catch (\Throwable $e) {
+            $this->logger->warning($e);
         }
 
         return $this;
@@ -282,6 +282,8 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
     /**
      * Construct NAV item XML and set item data
      *
+     * @todo currently only simple and giftcard products are supported
+     *
      * @param \Magento\Sales\Api\Data\OrderItemInterface $item
      * @param \simpleXMLElement $root
      *
@@ -289,22 +291,19 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
      */
     protected function addItem(\Magento\Sales\Api\Data\OrderItemInterface $item, &$root)
     {
-        /**
-         * Add only simple products to NAV
-         */
-        if ($item->getProductType() != ProductType::TYPE_SIMPLE
-            || ($this->moduleManager->isEnabled('Magento_GiftCard') && $item->getProductType() != \Magento\GiftCard\Model\Catalog\Product\Type\Giftcard::TYPE_GIFTCARD)
+        if ($item->getProductType() == ProductType::TYPE_SIMPLE
+            || ($this->moduleManager->isEnabled('Magento_GiftCard')
+                && $item->getProductType() == \Magento\GiftCard\Model\Catalog\Product\Type\Giftcard::TYPE_GIFTCARD
+            )
         ) {
-            return $this;
+            $child = $root->addChild('order_item');
+
+            $child->mag_item_id = $item->getSku();
+            $child->name = $item->getName();
+            $child->quantity = $item->getQtyOrdered();
+            $child->unit_price = $item->getParentItem() ? $item->getParentItem()->getBasePrice() : $item->getBasePrice();
+            $child->line_discount_amount = $item->getParentItem() ? $item->getParentItem()->getBaseDiscountAmount() : $item->getBaseDiscountAmount();
         }
-
-        $child = $root->addChild('order_item');
-
-        $child->mag_item_id = $item->getSku();
-        $child->name = $item->getName();
-        $child->quantity = $item->getQtyOrdered();
-        $child->unit_price = $item->getParentItem() ? $item->getParentItem()->getBasePrice() : $item->getBasePrice();
-        $child->line_discount_amount = $item->getParentItem() ? $item->getParentItem()->getBaseDiscountAmount() : $item->getBaseDiscountAmount();
 
         return $this;
     }
