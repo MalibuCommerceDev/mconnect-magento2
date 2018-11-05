@@ -19,6 +19,11 @@ class Triggerpassword extends Action
     protected $mConnectConfig;
 
     /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storeManager;
+
+    /**
      * @param Context $context
      * @param JsonFactory $resultJsonFactory
      * @param \MalibuCommerce\MConnect\Model\Config $mConnectConfig
@@ -26,9 +31,10 @@ class Triggerpassword extends Action
     public function __construct(
         Context $context,
         JsonFactory $resultJsonFactory,
-        \MalibuCommerce\MConnect\Model\Config $mConnectConfig
-    )
-    {
+        \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
+    ) {
+        $this->storeManager = $storeManager;
         $this->resultJsonFactory = $resultJsonFactory;
         $this->mConnectConfig = $mConnectConfig;
         parent::__construct($context);
@@ -46,7 +52,15 @@ class Triggerpassword extends Action
         /** @var \Magento\Framework\Controller\Result\Json $result */
         $result = $this->resultJsonFactory->create();
 
-        $password = $this->mConnectConfig->getTriggerPassword();
+        $websiteId = $this->getRequest()->getParam('website', 0);
+        $storeId = $this->getRequest()->getParam('store', 0);
+        if ($storeId) {
+            $websiteId = $this->storeManager->getStore($storeId)->getId();
+        }
+        if (empty($websiteId)) {
+            $websiteId = null;
+        }
+        $password = $this->mConnectConfig->getTriggerPassword($websiteId);
         $this->getResponse()->setHeader('Content-type', 'application/json');
         if ($password) {
             $success = true;

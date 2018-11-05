@@ -72,7 +72,7 @@ class Website extends \Magento\Ui\Component\Listing\Columns\Column
             if (empty($item['website_id'])) {
                 $item['website_id'] = 'Default';
             } else {
-                if (!array_keys($item['website_id'], $this->websites)) {
+                if (!array_key_exists($item['website_id'], $this->websites)) {
                     $website = $this->websiteFactory->create()->load($item['website_id']);
                     if ($website && $website->getId()) {
                         $this->websites[$item['website_id']] = $website;

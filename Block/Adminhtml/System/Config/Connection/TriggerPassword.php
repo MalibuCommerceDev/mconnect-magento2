@@ -54,7 +54,7 @@ class TriggerPassword extends Field
      */
     public function getAjaxUrl()
     {
-        return $this->getUrl('mconnect/system_config_connection/triggerpassword');
+        return $this->getUrl('mconnect/system_config_connection/triggerpassword', $this->getRequest()->getParams());
     }
 
     /**
