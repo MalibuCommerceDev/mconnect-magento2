@@ -59,7 +59,7 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
         $this->queueFlagFactory = $queueFlagFactory;
     }
 
-    public function importAction()
+    public function importAction($websiteId)
     {
         $count = 0;
         $page = 0;
@@ -69,14 +69,14 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
             $result = $this->navInventory->export($page++, $lastUpdated);
             foreach ($result->item_inventory as $data) {
                 try {
-                    $importResult = $this->updateInventory($data);
+                    $importResult = $this->updateInventory($data, $websiteId);
                     if ($importResult) {
                         $count++;
                     }
                     if ($importResult === false) {
                         $this->messages .= 'Unable to import NAV inventory data' . PHP_EOL;
                     }
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     $this->messages .= $e->getMessage() . PHP_EOL;
                 }
                 $this->messages .= PHP_EOL;
@@ -93,7 +93,13 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
         }
     }
 
-    public function updateInventory($data)
+    /**
+     * @param $data
+     * @param int $websiteId
+     *
+     * @return bool
+     */
+    public function updateInventory($data, $websiteId)
     {
         $sku = (string)$data->nav_item_id;
         $sku = trim($sku);
@@ -121,7 +127,7 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
             } else {
                 $this->messages .= $sku . ': skipped';
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->messages .= $sku . ': ' . $e->getMessage() . PHP_EOL;
 
             return false;

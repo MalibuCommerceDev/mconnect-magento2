@@ -46,7 +46,7 @@ class Queue
         }
 
         /**
-         * Make sure to process only those queue items with where action and code not matching any running queue items
+         * Make sure to process only those queue items with where action and code not matching any running queue items per website
          */
         $queues = $this->queueCollectionFactory->create();
         $queues->getSelect()->reset();
@@ -54,7 +54,7 @@ class Queue
             ->from(['q1' => 'malibucommerce_mconnect_queue'], '*')
             ->joinLeft(
                 ['q2' => 'malibucommerce_mconnect_queue'],
-                $queues->getConnection()->quoteInto('q1.code = q2.code AND q1.action = q2.action AND q2.status = ?', QueueModel::STATUS_RUNNING),
+                $queues->getConnection()->quoteInto('q1.code = q2.code AND q1.action = q2.action AND q1.website_id = q2.website_id AND q2.status = ?', QueueModel::STATUS_RUNNING),
                 []
             )
             ->where('q1.status = ?', QueueModel::STATUS_PENDING)

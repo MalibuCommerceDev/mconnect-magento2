@@ -57,7 +57,7 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
         $this->queueFlagFactory = $queueFlagFactory;
     }
 
-    public function importAction()
+    public function importAction($websiteId)
     {
         $count = 0;
         $page = 0;
@@ -67,7 +67,7 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
             $result = $this->navInvoice->export($page++, $lastUpdated);
             foreach ($result->invoice as $data) {
                 try {
-                    $importResult = $this->importInvoice($data);
+                    $importResult = $this->importInvoice($data, $websiteId);
                     if ($importResult) {
                         $count++;
                     }
@@ -128,11 +128,12 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
      * Import invoice from NAV to Magento
      *
      * @param \SimpleXMLElement $entity
+     * @param int $websiteId
      *
      * @return bool
-     * @throws \Exception
+     * @throws \Throwable
      */
-    protected function importInvoice(\SimpleXMLElement $entity)
+    protected function importInvoice(\SimpleXMLElement $entity, $websiteId)
     {
         if ($this->config->get('shipment/create_invoice_with_shipment')) {
 
@@ -167,12 +168,12 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
                 if ($this->config->get('invoice/send_email_enabled')) {
                     $this->invoiceSender->send($invoice);
                 }
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->messages .= $e->getMessage();
             }
 
             return true;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             throw $e;
         }
     }
@@ -192,7 +193,7 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
 
                 return $order;
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->messages .= 'Cannot load order #' . $incrementId . ': ' . $e->getMessage();
         }
 

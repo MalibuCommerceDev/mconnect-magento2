@@ -16,34 +16,34 @@
 
             <group id="general" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>General</label>
-                <field id="enabled" sortOrder="10" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="enabled" sortOrder="10" type="select" showInDefault="0" showInWebsite="0" showInStore="0" translate="label">
                     <label>Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
 
-            <group id="nav_connection" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+            <group id="nav_connection" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>NAV Connection</label>
-                <field id="url" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="url" sortOrder="10" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>NAV SOAP API URL</label>
                 </field>
-                <field id="username" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="username" sortOrder="20" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Username</label>
                 </field>
-                <field id="password" sortOrder="30" type="password" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="password" sortOrder="30" type="password" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Password</label>
                     <backend_model>\Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                 </field>
-                <field id="allow_insecure_connection" sortOrder="40" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="allow_insecure_connection" sortOrder="40" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Allow Insecure Connection</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Allows MConnect SOAP API client to connect to NAV server w/o SSL/TLS certificate verification]]></comment>
                 </field>
-                <field id="connection_timeout" sortOrder="50" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="connection_timeout" sortOrder="50" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Connection Timeout</label>
                     <comment><![CDATA[Connection Timeout to NAV server in seconds. If set to 0, default value will be used: 10 seconds]]></comment>
                 </field>
-                <field id="ntlm" sortOrder="60" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="ntlm" sortOrder="60" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Use NTLM Authentication</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
@@ -52,7 +52,7 @@
                     <label />
                     <comment><![CDATA[Save credentials before testing!]]></comment>
                 </field>
-                <field id="trigger_password" sortOrder="80" type="password" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="trigger_password" sortOrder="80" type="password" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Trigger Password</label>
                     <backend_model>\Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                     <comment><![CDATA[Password used when clicking links in NAV to trigger syncs]]></comment>
@@ -61,17 +61,17 @@
                     <frontend_model>\MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Connection\TriggerPassword</frontend_model>
                     <label />
                 </field>
-                <field id="log" sortOrder="90" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="log" sortOrder="90" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Log Requests</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[May consume a large amount of disk space.]]></comment>
                 </field>
-                <field id="retry_on_failure" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="retry_on_failure" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Retry NAV Requests On Failure When Exporting Data from NAV</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Each consequent retry <strong>Export</strong> request will be delayed by certain amount of seconds that will increase with each attempt. Delay in seconds formula is: 2<sup>n</sup>, where n = CURRENT_RETRY_ATTEMPT_NUMBER]]></comment>
                 </field>
-                <field id="retry_max_count" sortOrder="110" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="retry_max_count" sortOrder="110" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Maximum NAV Export Requests Retry Attempts On Failure</label>
                     <comment><![CDATA[Maximum Retry Attempts before interrupting NAV <strong>Export</strong> requests. The more attempts allowed, the longer delay will be between further attempts.]]></comment>
                     <depends>
@@ -79,18 +79,18 @@
                     </depends>
                 </field>
 
-                <field id="send_error_emails" translate="label" type="select" sortOrder="120" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="send_error_emails" translate="label" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Send Error Emails</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="error_email_sender" translate="label" type="select" sortOrder="130" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="error_email_sender" translate="label" type="select" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Error Email Sender</label>
                     <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
                     <depends>
                         <field id="send_error_emails">1</field>
                     </depends>
                 </field>
-                <field id="error_email_recipient" translate="label" type="text" sortOrder="140" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="error_email_recipient" translate="label" type="text" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Error Email Recipient</label>
                     <validate>validate-emails</validate>
                     <comment><![CDATA[Comma-separated emails]]></comment>
@@ -98,7 +98,7 @@
                         <field id="send_error_emails">1</field>
                     </depends>
                 </field>
-                <field id="error_email_template" translate="label comment" type="select" sortOrder="150" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="error_email_template" translate="label comment" type="select" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Error Email Template</label>
                     <comment>Email template chosen based on theme fallback when "Default" option is selected.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
@@ -125,33 +125,33 @@
                 </field>
             </group>
 
-            <group id="customer" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
+            <group id="customer" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>Customer</label>
-                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
                     <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
                 </field>
-                <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
                 </field>
-                <field id="default_nav_id_magento_guest" sortOrder="30" type="text" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
+                <field id="default_nav_id_magento_guest" sortOrder="30" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default NAV ID For Magento Guest Customers</label>
                     <comment><![CDATA[Leave blank to disable]]></comment>
                 </field>
-                <field id="default_nav_id_magento_registered" sortOrder="40" type="text" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
+                <field id="default_nav_id_magento_registered" sortOrder="40" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default NAV ID For Magento Newly Registered Customers</label>
                     <comment><![CDATA[Leave blank to disable]]></comment>
                 </field>
-                <field id="default_group_taxable" sortOrder="60" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="default_group_taxable" sortOrder="60" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default group for new customers (taxable)</label>
                     <source_model>\Magento\Customer\Model\Config\Source\Group</source_model>
                 </field>
-                <field id="default_group_nontaxable" sortOrder="70" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="default_group_nontaxable" sortOrder="70" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default group for new customers (non-taxable)</label>
                     <source_model>\Magento\Customer\Model\Config\Source\Group</source_model>
                 </field>
@@ -159,18 +159,18 @@
                     <label>Default website for new customers</label>
                     <source_model>\Magento\Config\Model\Config\Source\Website</source_model>
                 </field>
-                <field id="send_new_customer_emails" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="send_new_customer_emails" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Send Password Reset Email to a New Customers Imported from NAV</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="new_customer_email_sender" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="new_customer_email_sender" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Password Reset Email Sender</label>
                     <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
                     <depends>
                         <field id="send_new_customer_emails">1</field>
                     </depends>
                 </field>
-                <field id="new_customer_email_template" translate="label comment" type="select" sortOrder="110" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="new_customer_email_template" translate="label comment" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Password Res Email Template</label>
                     <comment>Email template chosen based on theme fallback when "Default" option is selected.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
@@ -191,33 +191,29 @@
                 </field>
             </group>
 
-            <group id="product" type="text" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+            <group id="product" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>Product</label>
-                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
                     <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
                 </field>
-                <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
                 </field>
-                <field id="import_attribute_set" sortOrder="30" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="import_attribute_set" sortOrder="30" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default attribute set for new products</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\System\Config\Product\Attribute\Set</source_model>
                 </field>
-                <field id="import_type" sortOrder="40" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Default type for new products</label>
-                    <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\System\Config\Product\Type</source_model>
-                </field>
-                <field id="import_visibility" sortOrder="50" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="import_visibility" sortOrder="50" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default visibility for new products</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\System\Config\Product\Visibility</source_model>
                 </field>
-                <field id="import_tax_class" sortOrder="60" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="import_tax_class" sortOrder="60" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default tax class for new products</label>
                     <source_model>\Magento\Tax\Model\TaxClass\Source\Product</source_model>
                     <backend_model>\Magento\Tax\Model\Config\TaxClass</backend_model>
@@ -240,18 +236,18 @@
                 </field>
             </group>
 
-            <group id="order" type="text" sortOrder="75" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+            <group id="order" type="text" sortOrder="75" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>Order</label>
-                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="hold_new_orders_export" sortOrder="10" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="hold_new_orders_export" sortOrder="10" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Hold New Orders Export</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <frontend_model>\MalibuCommerce\MConnect\Block\Config\Frontend\Field\HoldNewExport</frontend_model>
                 </field>
-                <field id="hold_new_orders_delay" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="hold_new_orders_delay" sortOrder="20" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>New Orders Sync Delay</label>
                     <validate>validate-number validate-zero-or-greater</validate>
                     <comment><![CDATA[In minutes]]></comment>
@@ -259,14 +255,14 @@
                         <field id="hold_new_orders_export">1</field>
                     </depends>
                 </field>
-                <field id="order_status_when_synced_to_nav" sortOrder="30" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="order_status_when_synced_to_nav" sortOrder="30" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Order Status When Synced to NAV</label>
                     <source_model>\Magento\Sales\Model\Config\Source\Order\Status\Newprocessing</source_model>
                     <depends>
                         <field id="hold_new_orders_export">1</field>
                     </depends>
                 </field>
-                <field id="allowed_order_statuses_to_export" sortOrder="40" type="multiselect" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="allowed_order_statuses_to_export" sortOrder="40" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Allowed Order Statuses to be Exported to NAV</label>
                     <source_model>\Magento\Sales\Model\Config\Source\Order\Status\Newprocessing</source_model>
                 </field>
@@ -333,18 +329,18 @@
                 </field>
             </group>
 
-            <group id="price_rule" type="text" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+            <group id="price_rule" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>Price Rule</label>
-                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
                     <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
                 </field>
-                <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
                 </field>
             </group>

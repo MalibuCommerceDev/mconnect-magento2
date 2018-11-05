@@ -85,19 +85,20 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
      * Export order to NAV (or if from NAV side - this is actually an order import from Magento)
      *
      * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
+     * @param int $websiteId
      *
      * @return \simpleXMLElement
      */
-    public function import(\Magento\Sales\Api\Data\OrderInterface $orderEntity)
+    public function import(\Magento\Sales\Api\Data\OrderInterface $orderEntity, $websiteId = 0)
     {
         $root = new \simpleXMLElement('<sales_order_import />');
 
         $orderObject = $root->addChild('Order');
 
-        $defaultNavId = $this->config->get('customer/default_nav_id_magento_guest', $orderEntity->getStoreId());
+        $defaultNavId = $this->config->getWebsiteData('customer/default_nav_id_magento_guest', $websiteId);
         $customerDataModel = $this->customerFactory->create()->load($orderEntity->getCustomerId());
         if ($customerDataModel && $customerDataModel->getId()) {
-            $defaultNavId = $this->config->get('customer/default_nav_id_magento_registered', $orderEntity->getStoreId());
+            $defaultNavId = $this->config->getWebsiteData('customer/default_nav_id_magento_registered', $websiteId);
         }
 
         $orderObject->nav_customer_id = $customerDataModel && !empty($customerDataModel->getNavId())
@@ -121,7 +122,7 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         $this->addAddresses($orderEntity, $orderObject);
         $this->addItems($orderEntity, $orderObject);
 
-        return $this->_import('order_import', $root);
+        return $this->_import('order_import', $root, $websiteId);
     }
 
     /**

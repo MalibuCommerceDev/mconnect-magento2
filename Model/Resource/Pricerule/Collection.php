@@ -67,12 +67,13 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      *
      * @param string $sku
      * @param int $qty
+     * @param int $websiteId
      *
      * @return string|bool
      */
-    public function matchDiscountPrice($sku, $qty)
+    public function matchDiscountPrice($sku, $qty, $websiteId = 0)
     {
-        $this->applyAllFilters($sku, $qty);
+        $this->applyAllFilters($sku, $qty, $websiteId);
         $select = clone $this->getSelect();
         $select->reset(\Magento\Framework\DB\Select::COLUMNS);
         $select->columns('price', 'main_table');
@@ -88,15 +89,30 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      *
      * @return $this
      */
-    public function applyAllFilters($sku, $qty)
+    public function applyAllFilters($sku, $qty, $websiteId = 0)
     {
         $this->applySkuFilter($sku)
             ->applyQtyFilter($qty)
+            ->applyWebsiteFilter($websiteId)
             ->applyCustomerFilter()
             ->applyFromToDateFilter()
             ->setOrder('price', self::SORT_ORDER_ASC)
             ->setPageSize(1)
             ->setCurPage(1);
+
+        return $this;
+    }
+
+    /**
+     * Apply product SKU filter
+     *
+     * @param string $value
+     *
+     * @return $this
+     */
+    public function applyWebsiteFilter($value)
+    {
+        $this->addFieldToFilter('website_id', ['eq' => $value]);
 
         return $this;
     }

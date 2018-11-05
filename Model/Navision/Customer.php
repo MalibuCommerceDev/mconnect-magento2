@@ -32,7 +32,8 @@ class Customer extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 
     public function import(
         \Magento\Customer\Api\Data\CustomerInterface $customer,
-        \Magento\Customer\Model\Customer $customerDataModel
+        \Magento\Customer\Model\Customer $customerDataModel,
+        $websiteId
     ) {
         $root = new \simpleXMLElement('<customer_import />');
         $exportXml = $root->addChild('Customer');
@@ -54,7 +55,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
             $this->addAddress($address, $exportXml);
         }
 
-        return $this->_import('customer_import', $root);
+        return $this->_import('customer_import', $root, $websiteId);
     }
 
     public function setCustomCustomerAttributes(
@@ -88,9 +89,9 @@ class Customer extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         $child->fax                 = $address->getFax();
     }
 
-    public function export($page = 0, $lastUpdated = false)
+    public function export($page = 0, $lastUpdated = false, $websiteId = 0)
     {
-        $max = $this->config->get('customer/max_rows');
+        $max = $this->config->getWebsiteData('customer/max_rows', $websiteId);
         $parameters = array(
             'skip'     => $page * $max,
             'max_rows' => $max,
@@ -99,6 +100,6 @@ class Customer extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
             $parameters['last_updated'] = $lastUpdated;
         }
 
-        return $this->_export('customer_export', $parameters);
+        return $this->_export('customer_export', $parameters, $websiteId);
     }
 }

@@ -16,6 +16,11 @@ class Client extends SoapClient
      */
     protected $mConnectHelper;
 
+    /**
+     * @var int
+     */
+    protected $websiteId = 0;
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
         \MalibuCommerce\MConnect\Helper\Data $mConnectHelper,
@@ -26,6 +31,16 @@ class Client extends SoapClient
         $this->mConnectHelper = $mConnectHelper;
 
         parent::__construct($wsdl, $options);
+    }
+
+    public function setWebsiteId($websiteId)
+    {
+        $this->websiteId = $websiteId;
+    }
+
+    public function getWebsiteId()
+    {
+        return $this->websiteId;
     }
 
     /**
@@ -40,8 +55,8 @@ class Client extends SoapClient
      */
     public function __doRequest($request, $location, $action, $version, $one_way = 0)
     {
-        $username = $this->mConnectConfig->getNavConnectionUsername();
-        $password = $this->mConnectConfig->getNavConnectionPassword();
+        $username = $this->mConnectConfig->getNavConnectionUsername($this->getWebsiteId());
+        $password = $this->mConnectConfig->getNavConnectionPassword($this->getWebsiteId());
         $ch = curl_init($location);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
             'Method: POST',
@@ -54,18 +69,18 @@ class Client extends SoapClient
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_HEADER, true);
 
-        if ($this->mConnectConfig->getIsInsecureConnectionAllowed()) {
+        if ($this->mConnectConfig->getIsInsecureConnectionAllowed($this->getWebsiteId())) {
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
         }
 
         curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-        if ($this->mConnectConfig->getUseNtlmAuthentication()) {
+        if ($this->mConnectConfig->getUseNtlmAuthentication($this->getWebsiteId())) {
             curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
         }
         curl_setopt($ch, CURLOPT_USERPWD, $username . ':' . $password);
-        curl_setopt($ch, CURLOPT_TIMEOUT, $this->mConnectConfig->getConnectionTimeout());
+        curl_setopt($ch, CURLOPT_TIMEOUT, $this->mConnectConfig->getConnectionTimeout($this->getWebsiteId()));
 
         try {
             $response = curl_exec($ch);

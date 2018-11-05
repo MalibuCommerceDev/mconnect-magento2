@@ -9,12 +9,13 @@ class Product extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
      *
      * @param int  $page
      * @param bool $lastUpdated
+     * @param int $websiteId
      *
      * @return \simpleXMLElement
      */
-    public function export($page = 0, $lastUpdated = false)
+    public function export($page = 0, $lastUpdated = false, $websiteId = 0)
     {
-        $max = $this->config->get('product/max_rows');
+        $max = $this->config->getWebsiteData('product/max_rows', $websiteId);
         $parameters = array(
             'skip'     => $page * $max,
             'max_rows' => $max,
@@ -23,18 +24,19 @@ class Product extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
             $parameters['last_updated'] = $lastUpdated;
         }
 
-        return $this->_export('item_export', $parameters);
+        return $this->_export('item_export', $parameters, $websiteId);
     }
 
     /**
      * Navision export product
      *
-     * @param $navId
+     * @param string $navId
+     * @param int $websiteId
      *
      * @return \simpleXMLElement
      */
-    public function exportSingle($navId)
+    public function exportSingle($navId, $websiteId = 0)
     {
-        return $this->_export('item_export', array('item_nav_id' => $navId));
+        return $this->_export('item_export', array('item_nav_id' => $navId), $websiteId);
     }
 }

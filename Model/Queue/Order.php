@@ -32,30 +32,27 @@ class Order extends \MalibuCommerce\MConnect\Model\Queue
     protected $config;
 
     /**
-     * Order constructor.
-     *
-     * @param \Magento\Sales\Api\OrderRepositoryInterface   $orderRepository
-     * @param \MalibuCommerce\MConnect\Model\Navision\Order $navOrder
-     * @param \Magento\Sales\Model\OrderFactory             $orderFactory
-     * @param FlagFactory                                   $queueFlagFactory
-     * @param \MalibuCommerce\MConnect\Model\Config         $config
+     * @var \Magento\Store\Model\StoreManagerInterface
      */
+    protected $storeManager;
+
     public function __construct(
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \MalibuCommerce\MConnect\Model\Navision\Order $navOrder,
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
-        \MalibuCommerce\MConnect\Model\Config $config
-
+        \MalibuCommerce\MConnect\Model\Config $config,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->orderRepository = $orderRepository;
         $this->navOrder = $navOrder;
         $this->orderFactory = $orderFactory;
         $this->queueFlagFactory = $queueFlagFactory;
         $this->config = $config;
+        $this->storeManager = $storeManager;
     }
 
-    public function exportAction($entityId = null)
+    public function exportAction($entityId)
     {
         try {
             $orderEntity = $this->orderRepository->get($entityId);
@@ -66,19 +63,20 @@ class Order extends \MalibuCommerce\MConnect\Model\Queue
             throw new LocalizedException(__('Order ID "' . $entityId . '" loading error: %1', $e->getMessage()));
         }
 
-        if (!in_array($orderEntity->getStatus(), $this->config->getOrderStatuesAllowedForExportToNav())) {
+        $websiteId = $this->storeManager->getStore($orderEntity->getStoreId())->getWebsiteId();
+        if (!in_array($orderEntity->getStatus(), $this->config->getOrderStatuesAllowedForExportToNav($websiteId))) {
             $message = sprintf('Order "%s" (ID: %s) was not exported because its status is: %s', $orderEntity->getIncrementId(), $entityId, $orderEntity->getStatus());
             throw new \LogicException($message);
         }
 
-        $response = $this->navOrder->import($orderEntity);
+        $response = $this->navOrder->import($orderEntity, $websiteId);
         $status = (string) $response->result->status;
 
         if ($status === 'Processed') {
             $navId = (string) $response->result->Order->nav_record_id;
             if ($orderDataModel->getNavId() != $navId) {
-                if (!$orderDataModel->getNavId() && $this->config->getIsHoldNewOrdersExport()) {
-                    $newStatus = $this->config->getOrderStatusWhenSyncedToNav();
+                if (!$orderDataModel->getNavId() && $this->config->getIsHoldNewOrdersExport($websiteId)) {
+                    $newStatus = $this->config->getOrderStatusWhenSyncedToNav($websiteId);
                     $orderState = \Magento\Sales\Model\Order::STATE_NEW;
                     $orderDataModel->setState($orderState)
                         ->setStatus($newStatus);

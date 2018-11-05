@@ -105,21 +105,21 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         return $this->customAttributesMap;
     }
 
-    public function importAction()
+    public function importAction($websiteId)
     {
         $this->initImport();
 
-        $this->setCurrentStore();
+        $this->setCurrentStore($websiteId);
 
         $count       = 0;
         $page        = 0;
         $lastSync    = false;
-        $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_PRODUCT_SYNC_TIME);
+        $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_PRODUCT_SYNC_TIME, $websiteId);
         do {
-            $result = $this->navProduct->export($page++, $lastUpdated);
+            $result = $this->navProduct->export($page++, $lastUpdated, $websiteId);
             foreach ($result->item as $data) {
                 try {
-                    $importResult = $this->addProduct($data);
+                    $importResult = $this->addProduct($data, $websiteId);
                     if ($importResult) {
                         $count++;
                     }
@@ -143,23 +143,23 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         }
     }
 
-    public function importSingleAction()
+    public function importSingleAction($websiteId)
     {
-        $this->setCurrentStore();
+        $this->setCurrentStore($websiteId);
 
         $details = json_decode($this->getDetails());
         if (!$details || !isset($details->nav_id) || !$details->nav_id) {
             throw new LocalizedException(__('No NAV ID specified'));
         }
-        $result = $this->navProduct->exportSingle($details->nav_id);
+        $result = $this->navProduct->exportSingle($details->nav_id, $websiteId);
         $this->captureEntityId = true;
-        $result = $this->addProduct($result->item);
+        $result = $this->addProduct($result->item, $websiteId);
         if ($result === false) {
             throw new LocalizedException(sprintf('Unable to import NAV product "%s"', $details->nav_id));
         }
     }
 
-    public function addProduct($data)
+    public function addProduct($data, $websiteId = 0)
     {
         if (empty($data->item_nav_id)) {
             $this->messages .= 'No valid NAV ID found in response XML' . PHP_EOL;
@@ -193,7 +193,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         } else {
             $product->setAttributeSetId($this->getDefaultAttributeSetId())
                 ->setStoreId($this->storeManager->getStore()->getId())
-                ->setTypeId($this->getDefaultTypeId())
+                ->setTypeId(\Magento\Catalog\Model\Product\Type::TYPE_SIMPLE)
                 ->setSku($sku)
                 ->setVisibility($this->getDefaultVisibility())
                 ->setTaxClassId($this->getDefaultTaxClass());
@@ -240,9 +240,15 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             $product->setWeight(number_format((float)$data->item_net_weight, 4, '.', ''));
         }
 
-        if (!empty($data->item_webshop_list)) {
-            $ids = (string)$data->item_webshop_list;
-            $product->setWebsiteIds(explode(',', $ids));
+        $websiteIds = [];
+        if (!empty($websiteId)) {
+            $websiteIds = [$websiteId];
+        }
+        if (!empty($data->item_webshop_list) && empty($websiteId)) {
+            $websiteIds = (string)$data->item_webshop_list;
+        }
+        if (!empty($websiteId)) {
+            $product->setWebsiteIds(explode(',', $websiteIds));
         }
 
         $status = $data->item_blocked == 'true'
@@ -288,7 +294,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
                 $this->productRepository->save($product);
 
                 if (!empty($data->item_webshop_list)) {
-                    $this->updateProductWebsites($sku, explode(',', $ids));
+                    $this->updateProductWebsites($sku, explode(',', $websiteIds));
                 }
                 if ($productExists) {
                     $this->messages .= $sku . ': updated';
@@ -355,6 +361,10 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
 
     public function updateProductWebsites($sku, array $websiteIds)
     {
+        if (empty($websiteIds)) {
+
+            return false;
+        }
         $connection = $this->resource->getConnection();
         $tableName = $this->resource->getTableName('catalog_product_website');
         try {
@@ -363,6 +373,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         } catch (\Exception $e) {
             return false;
         }
+
         $productId = $product->getId();
         $connection->query('DELETE FROM ' . $tableName . ' WHERE product_id = ' . $productId);
         foreach ($websiteIds as $id) {
@@ -378,15 +389,6 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         }
 
         return parent::getDefaultAttributeSetId();
-    }
-
-    public function getDefaultTypeId()
-    {
-        if (!$this->hasDefaultTypeId()) {
-            $this->setDefaultTypeId($this->config->get('product/import_type'));
-        }
-
-        return parent::getDefaultTypeId();
     }
 
     public function getDefaultVisibility()
@@ -420,7 +422,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         return parent::getDefaultTaxClass();
     }
 
-    protected function setCurrentStore()
+    protected function setCurrentStore($websiteId = 0)
     {
         /**
          * Currently a module-catalog\Model\ProductRepository.php is utilized to add/update product in Magento.
@@ -431,7 +433,19 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
          * before saving product.
          */
         if (!$this->storeManager->hasSingleStore()) {
-            $this->storeManager->setCurrentStore($this->storeManager->getDefaultStoreView()->getCode());
+            $storeIsSet = false;
+            if (!empty($websiteId)) {
+                $website = $this->storeManager->getWebsite($websiteId);
+                if ($website && $website->getId()) {
+                    $storeId = $this->storeManager->getGroup($website->getDefaultGroupId())->getDefaultStoreId();
+                    $this->storeManager->setCurrentStore($this->storeManager->getStore($storeId)->getCode());
+                    $storeIsSet = true;
+                }
+            }
+
+            if (!$storeIsSet) {
+                $this->storeManager->setCurrentStore($this->storeManager->getDefaultStoreView()->getCode());
+            }
         } else {
             $this->storeManager->setCurrentStore(\Magento\Store\Model\Store::ADMIN_CODE);
         }

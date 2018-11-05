@@ -8,7 +8,8 @@ class Connection
      */
     protected $soapConnection;
 
-    public function __construct(Connection\Soap $soapConnection) {
+    public function __construct(Connection\Soap $soapConnection)
+    {
         $this->soapConnection = $soapConnection;
     }
 

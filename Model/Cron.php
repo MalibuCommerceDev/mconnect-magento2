@@ -58,18 +58,42 @@ class Cron
             return 'M-Connect is disabled.';
         }
 
-        if (!$this->config->getFlag($code . '/import_enabled')) {
-            return 'Import functionality is disabled for ' . $code;
+        $activeWebsites = $this->getMultiCompanyActiveWebsites();
+        $messages = '';
+
+        foreach ($activeWebsites as $websiteId) {
+            if (!(bool)$this->config->getWebsiteData($code . '/import_enabled', $websiteId)) {
+                $messages .= sprintf('Import functionality is disabled for %s at Website ID %s', $code, $websiteId);
+                continue;
+            }
+
+            $queue = $this->queue->create()->add(
+                $code,
+                'import',
+                $websiteId
+            );
+            if ($queue->getId()) {
+                $messages .= sprintf('New %s item added to queue for Website ID %s', $code, $websiteId);
+            } else {
+                $messages .= sprintf('Failed to add new %s item added to queue for Website ID %s', $code, $websiteId);
+            }
         }
 
-        $queue = $this->queue->create()->add(
-            $code,
-            'import'
-        );
-        if ($queue->getId()) {
-            return 'Item added to queue.';
+        return $messages;
+    }
+
+    protected function getMultiCompanyActiveWebsites()
+    {
+        $connection = $this->queue->getResource()->getConnection();
+        $select = $connection->select()
+            ->from('core_config_data', ['scope_id'])
+            ->where('scope = \'website\'');
+        $websiteIds = $connection->fetchCol($select);
+        if (!empty($websiteIds)) {
+
+            return $websiteIds;
         }
 
-        return 'Failed to add item to queue.';
+        return [0];
     }
 }

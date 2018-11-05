@@ -39,7 +39,7 @@ class ProductPlugin
     {
         $finalPrice = null;
         try {
-            $mconnectPrice = $this->rule->matchDiscountPrice($product, $product->getQty());
+            $mconnectPrice = $this->rule->matchDiscountPrice($product, $product->getQty(), $product->getStore()->getWebsiteId());
             if ($mconnectPrice === false) {
 
                 return $originalFinalPrice;

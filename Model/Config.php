@@ -49,73 +49,63 @@ class Config
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Store $store
-     *
-     * @return int
-     */
-    public function getNavConnectionId($store = null)
-    {
-        return 1;
-    }
-
-    /**
-     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return string
      */
-    public function getNavConnectionUrl($store = null)
+    public function getNavConnectionUrl($websiteId = null)
     {
-        return $this->get('nav_connection/url', $store);
+        return $this->getWebsiteData('nav_connection/url', $websiteId);
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return string
      */
-    public function getNavConnectionUsername($store = null)
+    public function getNavConnectionUsername($websiteId = null)
     {
-        return $this->get('nav_connection/username', $store);
+        return $this->getWebsiteData('nav_connection/username', $websiteId);
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return string
      */
-    public function getNavConnectionPassword($store = null)
+    public function getNavConnectionPassword($websiteId = null)
     {
-        return $this->get('nav_connection/password', $store);
+        return $this->getWebsiteData('nav_connection/password', $websiteId);
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return bool
      */
-    public function getUseNtlmAuthentication($store = null)
+    public function getUseNtlmAuthentication($websiteId = null)
     {
-        return $this->getFlag('nav_connection/ntlm', $store);
+        return (bool)$this->getWebsiteData('nav_connection/ntlm', $websiteId);
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return bool
      */
-    public function getIsInsecureConnectionAllowed($store = null)
+    public function getIsInsecureConnectionAllowed($websiteId = null)
     {
-        return $this->getFlag('nav_connection/allow_insecure_connection', $store);
+        return (bool)$this->getWebsiteData('nav_connection/allow_insecure_connection', $websiteId);
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return int
      */
-    public function getConnectionTimeout($store = null)
+    public function getConnectionTimeout($websiteId = null)
     {
-        $timeout = (int)$this->get('nav_connection/connection_timeout', $store);
+        $timeout = (int)$this->getWebsiteData('nav_connection/connection_timeout', $websiteId);
         if ($timeout <= 0) {
             return self::DEFAULT_NAV_CONNECTION_TIMEOUT;
         }
@@ -126,13 +116,13 @@ class Config
     /**
      * Get decrypted trigger password
      *
-     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return string
      */
-    public function getTriggerPassword($store = null)
+    public function getTriggerPassword($websiteId = null)
     {
-        return $this->get('nav_connection/trigger_password', $store);
+        return $this->getWebsiteData('nav_connection/trigger_password', $websiteId);
     }
 
     /**
@@ -164,25 +154,25 @@ class Config
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return bool
      */
-    public function getIsHoldNewOrdersExport($store = null)
+    public function getIsHoldNewOrdersExport($websiteId = null)
     {
-        return $this->getFlag('order/hold_new_orders_export', $store);
+        return (bool)$this->getWebsiteData('order/hold_new_orders_export', $websiteId);
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return int
      */
-    public function getHoldNewOrdersDelay($store = null)
+    public function getHoldNewOrdersDelay($websiteId = null)
     {
-        $delay = (int)$this->get('order/hold_new_orders_delay', $store);
+        $delay = (int)$this->getWebsiteData('order/hold_new_orders_delay', $websiteId);
 
-        if (!$this->getIsHoldNewOrdersExport() && $this->shouldNewOrdersBeForcefullyHolden()) {
+        if (!$this->getIsHoldNewOrdersExport($websiteId) && $this->shouldNewOrdersBeForcefullyHolden()) {
             $delay = self::DEFAULT_NEW_ORDERS_DELAY;
         }
 
@@ -190,103 +180,103 @@ class Config
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return string
      */
-    public function getOrderStatusWhenSyncedToNav($store = null)
+    public function getOrderStatusWhenSyncedToNav($websiteId = null)
     {
-        return $this->get('order/order_status_when_synced_to_nav', $store);
+        return $this->getWebsiteData('order/order_status_when_synced_to_nav', $websiteId);
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return array
      */
-    public function getOrderStatuesAllowedForExportToNav($store = null)
+    public function getOrderStatuesAllowedForExportToNav($websiteId = null)
     {
-        return explode(',', $this->get('order/allowed_order_statuses_to_export', $store));
+        return explode(',', $this->getWebsiteData('order/allowed_order_statuses_to_export', $websiteId));
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return array
      */
-    public function getNAVReportsCustomerGroups($store = null)
+    public function getNAVReportsCustomerGroups($websiteId = null)
     {
-        return explode(',', $this->get('customer/nav_reports_allowed_customer_groups', $store));
+        return explode(',', $this->getWebsiteData('customer/nav_reports_allowed_customer_groups', $websiteId));
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return bool
      */
-    public function isErrorEmailingEnabled($store = null)
+    public function isErrorEmailingEnabled($websiteId = null)
     {
-        return $this->getFlag('nav_connection/send_error_emails', $store);
+        return (bool)$this->getWebsiteData('nav_connection/send_error_emails', $websiteId);
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return string
      */
-    public function getErrorEmailSender($store = null)
+    public function getErrorEmailSender($websiteId = null)
     {
-        return $this->get('nav_connection/error_email_sender', $store);
+        return $this->getWebsiteData('nav_connection/error_email_sender', $websiteId);
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return array
      */
-    public function getErrorRecipients($store = null)
+    public function getErrorRecipients($websiteId = null)
     {
-        return array_map('trim', explode(',', $this->get('nav_connection/error_email_recipient', $store)));
+        return array_map('trim', explode(',', $this->getWebsiteData('nav_connection/error_email_recipient', $websiteId)));
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return string
      */
-    public function getErrorEmailTemplate($store = null)
+    public function getErrorEmailTemplate($websiteId = null)
     {
-        return $this->get('nav_connection/error_email_template', $store);
+        return $this->getWebsiteData('nav_connection/error_email_template', $websiteId);
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return bool
      */
-    public function isNewCustomerPasswordResetEmailingEnabled($store = null)
+    public function isNewCustomerPasswordResetEmailingEnabled($websiteId = null)
     {
-        return $this->getFlag('customer/send_new_customer_emails', $store);
+        return (bool)$this->getWebsiteData('customer/send_new_customer_emails', $websiteId);
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return string
      */
-    public function getNewCustomerPasswordResetEmailSender($store = null)
+    public function getNewCustomerPasswordResetEmailSender($websiteId = null)
     {
-        return $this->get('customer/new_customer_email_sender', $store);
+        return $this->getWebsiteData('customer/new_customer_email_sender', $websiteId);
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Store $store
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return string
      */
-    public function getNewCustomerPasswordResetEmailTemplate($store = null)
+    public function getNewCustomerPasswordResetEmailTemplate($websiteId = null)
     {
-        return $this->get('customer/new_customer_email_template', $store);
+        return $this->getWebsiteData('customer/new_customer_email_template', $websiteId);
     }
 
     public function getFlag($path, $store = null)
@@ -304,6 +294,15 @@ class Config
             self::XML_PATH_CONFIG_SECTION . '/' . $path,
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
             $store
+        );
+    }
+
+    public function getWebsiteData($path, $website = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_CONFIG_SECTION . '/' . $path,
+            \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE,
+            $website
         );
     }
 }

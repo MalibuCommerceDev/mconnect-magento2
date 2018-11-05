@@ -28,6 +28,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->upgrade1_1_19($setup);
         }
 
+        if (version_compare($context->getVersion(), '2.0.0', '<=')) {
+            $this->upgrade2_0_0($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -74,37 +78,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ->addColumn('message', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, null, array(
                 'nullable' => true,
             ), 'Message');
-        $connection->createTable($table);
-
-        /**
-         * Create table 'malibucommerce_mconnect_connection'
-         */
-        $table = $connection
-            ->newTable($setup->getTable('malibucommerce_mconnect_connection'))
-            ->addColumn('id', \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER, null, array(
-                'identity' => true,
-                'unsigned' => true,
-                'nullable' => false,
-                'primary'  => true,
-            ), 'Connection ID')
-            ->addColumn('name', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
-                'nullable' => false,
-            ), 'Name')
-            ->addColumn('url', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
-                'nullable' => false,
-            ), 'URL')
-            ->addColumn('username', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
-                'nullable' => false,
-            ), 'Username')
-            ->addColumn('password', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, 255, array(
-                'nullable' => false,
-            ), 'Password')
-            ->addColumn('rules', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, null, array(
-                'nullable' => false,
-            ), 'Rules')
-            ->addColumn('sort_order', \Magento\Framework\DB\Ddl\Table::TYPE_TEXT, null, array(
-                'nullable' => false,
-            ), 'Sort Order');
         $connection->createTable($table);
 
         $table = $connection
@@ -196,5 +169,36 @@ class UpgradeSchema implements UpgradeSchemaInterface
             'malibucommerce_mconnect_queue',
             ['scheduled_at' => new \Zend_Db_Expr('created_at')]
         );
+    }
+
+    protected function upgrade2_0_0(SchemaSetupInterface $setup)
+    {
+        $setup->getConnection()->addColumn(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            'website_id',
+            [
+                'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+                'comment' => 'Website ID',
+                'after'   => 'entity_id',
+                'default' => 0
+            ]
+        );
+
+        $setup->getConnection()->dropColumn('malibucommerce_mconnect_queue', 'connection_id');
+
+        $setup->getConnection()->addColumn(
+            $setup->getTable('malibucommerce_mconnect_price_rule'),
+            'website_id',
+            [
+                'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+                'comment' => 'Website ID',
+                'after'   => 'nav_id',
+                'default' => 0
+            ]
+        );
+
+        if ($setup->getConnection()->isTableExists('malibucommerce_mconnect_connection')) {
+            $setup->getConnection()->dropTable('malibucommerce_mconnect_connection');
+        }
     }
 }

@@ -48,24 +48,24 @@ class AbstractModel extends \Magento\Framework\DataObject
         return $this->mConnectNavisionConnection;
     }
 
-    protected function _export($action, $parameters = array())
+    protected function _export($action, $parameters = array(), $websiteId = 0)
     {
         static $attempts = 1;
 
         try {
-            $responseXml = $this->doRequest('export', $this->prepareRequestXml($action, $parameters));
+            $responseXml = $this->doRequest('export', $this->prepareRequestXml($action, $parameters),  $websiteId);
         } catch (\Throwable $e) {
-            if (!$this->config->get('nav_connection/retry_on_failure')) {
+            if (!$this->config->getWebsiteData('nav_connection/retry_on_failure', $websiteId)) {
                 $attempts = 1;
                 throw $e;
             }
 
-            $maxAttempts = (int)$this->config->get('nav_connection/retry_max_count');
+            $maxAttempts = (int)$this->config->getWebsiteData('nav_connection/retry_max_count', $websiteId);
             if ($attempts <= $maxAttempts) {
                 sleep(pow(2, $attempts));
                 $attempts++;
 
-                return $this->_export($action, $parameters);
+                return $this->_export($action, $parameters, $websiteId);
             }
 
             $attempts = 1;
@@ -81,12 +81,13 @@ class AbstractModel extends \Magento\Framework\DataObject
         throw new \RuntimeException('Empty Response from NAV server');
     }
 
-    protected function _import($action, $parameters = array())
+    protected function _import($action, $parameters = array(), $websiteId = 0)
     {
         return $this->prepareResponseXml(
             $this->doRequest(
                 'import',
-                $this->prepareRequestXml($action, $parameters)
+                $this->prepareRequestXml($action, $parameters),
+                $websiteId
             )
         );
     }
@@ -119,7 +120,7 @@ class AbstractModel extends \Magento\Framework\DataObject
         return new \simpleXMLElement($xml);
     }
 
-    protected function doRequest($type, $xml)
+    protected function doRequest($type, $xml, $websiteId = 0)
     {
         switch ($type) {
             case 'export':
@@ -135,6 +136,7 @@ class AbstractModel extends \Magento\Framework\DataObject
         return $this->getConnection()->$method([
             'requestXML'  => $xml,
             'responseXML' => false,
+            'website_id'  => $websiteId
         ]);
     }
 

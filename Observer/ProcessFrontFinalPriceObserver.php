@@ -34,7 +34,7 @@ class ProcessFrontFinalPriceObserver implements \Magento\Framework\Event\Observe
         try {
             /** @var \Magento\Catalog\Model\Product $product */
             $product = $observer->getProduct();
-            $mconnectPrice = $this->rule->matchDiscountPrice($product, $observer->getQty());
+            $mconnectPrice = $this->rule->matchDiscountPrice($product, $observer->getQty(), $product->getStore()->getWebsiteId());
 
             if ($mconnectPrice === false) {
 

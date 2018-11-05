@@ -47,21 +47,21 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue
         $this->date = $date;
     }
 
-    public function importAction()
+    public function importAction($websiteId)
     {
         $count = 0;
         $page = 0;
         $lastSync = false;
-        $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_PRICERULE_SYNC_TIME);
+        $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_PRICERULE_SYNC_TIME, $websiteId);
         do {
-            $result = $this->navPriceRule->export($page++, $lastUpdated);
+            $result = $this->navPriceRule->export($page++, $lastUpdated, $websiteId);
             foreach ($result->sales_price as $data) {
                 try {
-                    $importResult = $this->importPriceRule($data);
+                    $importResult = $this->importPriceRule($data, $websiteId);
                     if ($importResult) {
                         $count++;
                     }
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     $this->messages .= $e->getMessage() . PHP_EOL;
                 }
                 $this->messages .= PHP_EOL;
@@ -78,10 +78,11 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue
         }
     }
 
-    protected function importPriceRule(\SimpleXMLElement $entity)
+    protected function importPriceRule(\SimpleXMLElement $entity, $websiteId)
     {
         $data = [
             'nav_id'               => (int) $entity->unique_id,
+            'website_id'           => (int) $websiteId,
             'sku'                  => (string) $entity->nav_item_id,
             'navision_customer_id' => (string) $entity->nav_customer_id,
             'qty_min'              => (int) $entity->min_quantity,
@@ -96,7 +97,7 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue
         try {
             $model->save();
             $this->messages .= 'Price Rule created: ID ' . $model->getId();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->messages .= $e->getMessage();
         }
         $this->rule->unsetData();

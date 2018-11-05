@@ -54,26 +54,32 @@ class Soap
     public function __call($method, $arguments)
     {
         try {
-            $this->registerStream();
-            $this->registerClient();
+            $websiteId = $arguments['website_id'] ?? 0;
 
+            $this->soapClient->setWebsiteId($websiteId);
+            $this->stream->setWebsiteId($websiteId);
+
+            $this->registerStream($websiteId);
+            $this->registerClient($websiteId);
+
+            unset($arguments['website_id']);
             $result = call_user_func_array(array($this->soapClient, $method), $arguments);
         } catch (\Throwable $e) {
             $this->mConnectHelper->logRequestError($arguments, null, $method, $e);
 
             throw $e;
         }
-        $this->unregisterStream();
+        $this->unregisterStream($websiteId);
 
         return $result;
     }
 
-    protected function registerStream()
+    protected function registerStream($websiteId = 0)
     {
         if ($this->isStreamRegistered) {
             return;
         }
-        $protocol = $this->getProtocol();
+        $protocol = $this->getProtocol($websiteId);
         if (in_array($protocol, stream_get_wrappers())) {
             $this->restoreStream = true;
             if (!stream_wrapper_unregister($protocol)) {
@@ -86,16 +92,16 @@ class Soap
         $this->isStreamRegistered = true;
     }
 
-    protected function registerClient()
+    protected function registerClient($websiteId = 0)
     {
         if ($this->soapClient === null) {
             $this->soapClient = new \MalibuCommerce\MConnect\Model\Navision\Connection\Soap\Client(
                 $this->mConnectConfig,
                 $this->mConnectHelper,
-                $this->stream->stream_open($this->mConnectConfig->getNavConnectionUrl()),
+                $this->stream->stream_open($this->mConnectConfig->getNavConnectionUrl($websiteId)),
                 [
                     'cache_wsdl'         => 0,
-                    'connection_timeout' => $this->mConnectConfig->getConnectionTimeout(),
+                    'connection_timeout' => $this->mConnectConfig->getConnectionTimeout($websiteId),
                     'trace'              => 1,
                     'exceptions'         => true,
                 ]
@@ -105,22 +111,22 @@ class Soap
         return $this;
     }
 
-    protected function unregisterStream()
+    protected function unregisterStream($websiteId = 0)
     {
         if (!$this->isStreamRegistered) {
             return;
         }
         if ($this->restoreStream) {
-            stream_wrapper_restore($this->getProtocol());
+            stream_wrapper_restore($this->getProtocol($websiteId));
         }
         $this->isStreamRegistered = false;
     }
 
-    protected function getProtocol()
+    protected function getProtocol($websiteId = 0)
     {
         if ($this->protocol === null) {
             $config = $this->mConnectConfig;
-            $components = parse_url($config->getNavConnectionUrl());
+            $components = parse_url($config->getNavConnectionUrl($websiteId));
             if (!isset($components['scheme'])) {
                 throw new \LogicException('Failed to parse scheme from Navision URL. Please check your system configuration.');
             }

@@ -113,7 +113,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
         return $this->customAttributesMap;
     }
 
-    public function exportAction($entityId = null)
+    public function exportAction($entityId)
     {
         try {
             $customerEntity = $this->customerRepository->getById($entityId);
@@ -124,7 +124,8 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
             throw new LocalizedException(__('Customer ID "' . $entityId . '" loading error: %s', $e->getMessage()));
         }
 
-        $response = $this->navCustomer->import($customerEntity, $customerDataModel);
+        $websiteId = $customerEntity->getWebsiteId();
+        $response = $this->navCustomer->import($customerEntity, $customerDataModel, $websiteId);
         $status = (string)$response->result->status;
         if ($status === 'Processed') {
             $navId = (string)$response->result->Customer->nav_record_id;
@@ -156,19 +157,19 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
         throw new LocalizedException(__('Unexpected status: "%1". Check log for details.', $status));
     }
 
-    public function importAction()
+    public function importAction($websiteId)
     {
         $this->initImport();
 
         $count = 0;
         $page = 0;
         $lastSync = false;
-        $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_CUSTOMER_SYNC_TIME);
+        $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_CUSTOMER_SYNC_TIME, $websiteId);
         do {
-            $result = $this->navCustomer->export($page++, $lastUpdated);
+            $result = $this->navCustomer->export($page++, $lastUpdated, $websiteId);
             foreach ($result->customer as $data) {
                 try {
-                    $importResult = $this->importCustomer($data);
+                    $importResult = $this->importCustomer($data, $websiteId);
                     if ($importResult) {
                         $count++;
                     }
@@ -189,7 +190,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
         }
     }
 
-    protected function importCustomer($data)
+    protected function importCustomer($data, $websiteId)
     {
         $email = (string)$data->cust_email;
         if (empty($email)) {
@@ -201,7 +202,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
         /**
          * Persist customer entity
          */
-        $websiteId = $this->config->get('customer/default_website');
+        $websiteId = $websiteId ?: $this->config->get('customer/default_website');
         $customerExists = false;
         try {
             $customer = $this->customerFactory->create()->setWebsiteId($websiteId)->loadByEmail($email);

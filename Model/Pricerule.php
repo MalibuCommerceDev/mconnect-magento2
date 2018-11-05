@@ -16,10 +16,11 @@ class Pricerule extends \Magento\Framework\Model\AbstractModel
      *
      * @param \Magento\Catalog\Model\Product|string $product
      * @param int $qty
+     * @param int $websiteId
      *
      * @return string|bool
      */
-    public function matchDiscountPrice($product, $qty)
+    public function matchDiscountPrice($product, $qty, $websiteId = 0)
     {
         $sku = $product;
         if ($product instanceof \Magento\Catalog\Model\Product) {
@@ -35,7 +36,7 @@ class Pricerule extends \Magento\Framework\Model\AbstractModel
 
         /** @var \MalibuCommerce\MConnect\Model\Resource\Pricerule\Collection $collection */
         $collection = $this->getResourceCollection();
-        $this->matchedPrices[$cacheId] = $collection->matchDiscountPrice($sku, $qty);
+        $this->matchedPrices[$cacheId] = $collection->matchDiscountPrice($sku, $qty, $websiteId);
 
         return $this->matchedPrices[$cacheId];
     }

@@ -18,18 +18,25 @@ class SalesEventQuoteSubmitSuccessObserver implements \Magento\Framework\Event\O
      */
     protected $logger;
 
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storeManager;
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\QueueFactory $queue,
         \MalibuCommerce\MConnect\Model\Config $config,
-        \Psr\Log\LoggerInterface $logger
+        \Psr\Log\LoggerInterface $logger,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->queue = $queue;
         $this->config = $config;
         $this->logger = $logger;
+        $this->storeManager = $storeManager;
     }
 
     /**
-     * Address after save event handler
+     * Add order to export queue
      *
      * @param \Magento\Framework\Event\Observer $observer
      * @return void
@@ -40,20 +47,28 @@ class SalesEventQuoteSubmitSuccessObserver implements \Magento\Framework\Event\O
         /** @var \Magento\Sales\Model\Order $order */
         $order = $observer->getOrder();
         if ($order && !$order->getSkipMconnect()) {
-            $this->queue('order', 'export', $order->getId());
+            $this->queue('order', 'export', $order);
         }
     }
 
-    protected function queue($code, $action, $id = null, $details = array())
+    /**
+     * @param $code
+     * @param $action
+     * @param \Magento\Sales\Model\Order $order
+     *
+     * @return bool|\MalibuCommerce\MConnect\Model\Queue
+     */
+    protected function queue($code, $action, $order)
     {
         try {
             $scheduledAt = null;
-            if ($this->config->getIsHoldNewOrdersExport() || $this->config->shouldNewOrdersBeForcefullyHolden()) {
-                $delayInMinutes =  $this->config->getHoldNewOrdersDelay();
+            $websiteId = $this->storeManager->getStore($order->getStoreId())->getWebsiteId();
+            if ($this->config->getIsHoldNewOrdersExport($websiteId) || $this->config->shouldNewOrdersBeForcefullyHolden()) {
+                $delayInMinutes =  $this->config->getHoldNewOrdersDelay($websiteId);
                 $scheduledAt = date('Y-m-d H:i:s', strtotime('+' . (int)$delayInMinutes . ' minutes'));
             }
 
-            return $this->queue->create()->add($code, $action, $id, $details, $scheduledAt);
+            return $this->queue->create()->add($code, $action, $order->getId(), [], $scheduledAt);
         } catch (\Exception $e) {
             $this->logger->critical($e);
         }

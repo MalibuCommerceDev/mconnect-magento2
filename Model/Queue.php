@@ -1,25 +1,33 @@
 <?php
-namespace MalibuCommerce\MConnect\Model;
 
+namespace MalibuCommerce\MConnect\Model;
 
 class Queue extends \Magento\Framework\Model\AbstractModel
 {
-    const STATUS_PENDING = 'pending';
-    const STATUS_RUNNING = 'running';
-    const STATUS_SUCCESS = 'success';
-    const STATUS_ERROR   = 'error';
+    const STATUS_PENDING  = 'pending';
+    const STATUS_RUNNING  = 'running';
+    const STATUS_SUCCESS  = 'success';
+    const STATUS_ERROR    = 'error';
     const STATUS_CANCELED = 'canceled';
 
-    const REGISTRY_PREFIX = 'MALIBUECOMMERCE_MCONNECT_NAV_';
-
-    protected $attributes = array('id', 'url', 'username', 'password');
-
+    /**
+     * @var string
+     */
     protected $_eventPrefix = 'malibucommerce_mconnect_queue';
 
+    /**
+     * @var string
+     */
     protected $_eventObject = 'queue';
 
+    /**
+     * @var bool
+     */
     protected $captureEntityId = false;
 
+    /**
+     * @var string
+     */
     protected $messages = '';
 
     /**
@@ -58,30 +66,33 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         parent::__construct($context, $registry);
     }
 
-
     public function _construct()
     {
         $this->_init('MalibuCommerce\MConnect\Model\Resource\Queue');
     }
 
-    public function add($code, $action, $id = null, $details = array(), $scheduledAt = null, $retrieveIfExists = false)
+    public function add($code, $action, $websiteId = 0, $id = null, $details = array(), $scheduledAt = null, $retrieveIfExists = false)
     {
-        if (!$this->getConfig()->getFlag('general/enabled')) {
+        if (!$this->getConfig()->isModuleEnabled()) {
+
             return $this;
         }
 
-        if ($action == 'import' && !$this->getConfig()->getFlag($code . '/import_enabled')) {
+        if ($action == 'import' && !(bool)$this->getConfig()->getWebsiteData($code . '/import_enabled', $websiteId)) {
+
             return $this;
         }
 
         $this->unsetData();
-        $id      = $id ? $id : null;
+        $id = $id ? $id : null;
         $scheduledAt = $scheduledAt ?? date('Y-m-d H:i:s');
         $details = is_array($details) ? (count($details) ? json_encode($details) : null) : $details;
-        $item = $this->getCollection()->findMatchingPending($code, $action, $id, $details);
+        $item = $this->getCollection()->findMatchingPending($code, $action, $websiteId, $id, $details);
+
         if (!$item->getSize()) {
             $this->setCode($code)
                 ->setAction($action)
+                ->setWebsiteId($websiteId)
                 ->setEntityId($id)
                 ->setDetails($details)
                 ->setScheduledAt($scheduledAt)
@@ -100,25 +111,17 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         return $this->add(
             $this->getCode(),
             $this->getAction(),
+            $this->getWebsiteId(),
             $this->getEntityId(),
             $this->getDetails()
         );
     }
 
-    public function removePendingItemsByEntityId($entityId, $message = null)
-    {
-        return $this->getResource()->removePendingItemsByEntityId($entityId, $message);
-    }
-
-    public function wasTheItemEverSuccessfullyExported($entityId)
-    {
-        return $this->getResource()->wasTheItemEverSuccessfullyExported($entityId);
-    }
-
     public function process()
     {
-        if (!$this->getConfig()->getFlag('general/enabled')) {
-            return false;
+        if (!$this->getConfig()->isModuleEnabled()) {
+
+            return $this;
         }
 
         $this->setStatus(self::STATUS_RUNNING)
@@ -126,53 +129,46 @@ class Queue extends \Magento\Framework\Model\AbstractModel
             ->save();
 
         $code = $this->getCode();
+        $websiteId = $this->getWebsiteId();
+
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        /** @var  \MalibuCommerce\MConnect\Model\Queue $model */
         $model = $objectManager->create('MalibuCommerce\MConnect\Model\Queue\\' . ucwords(str_replace('_', '', $code)));
+
         $action = $this->getAction();
         $prefix = lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $action))));
         $method = $prefix . 'Action';
+
         if (!method_exists($model, $method)) {
-            $this->endProcess(self::STATUS_ERROR, sprintf('M-Connect error: The action "%s" is not recognized and cannot be processed.  You may need to update the M-Connect module or clear the Magento cache.', $action));
+            $this->endProcess(
+                self::STATUS_ERROR,
+                sprintf('M-Connect error: The action "%s" is not recognized and cannot be processed.  You may need to update the M-Connect module or clear the Magento cache.', $action)
+            );
+
             return $this;
         }
         $this->registry->register('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM_ID', $this->getId());
 
         try {
-            $this->initConnection();
             if (($code == 'customer' || $code == 'order') && ($action == 'export')) {
                 $model->{$method}($this->getEntityId());
             } else {
                 $model->setDetails($this->getDetails());
-                $model->{$method}();
+                $model->{$method}($websiteId);
             }
 
             if ($model->captureEntityId) {
                 $this->setEntityId($model->getEntityId());
             }
             $this->endProcess(self::STATUS_SUCCESS, $model->getMessages());
-        } catch (\Exception $e) {
-            $this->_logger->critical($e);
-            $this->endProcess(self::STATUS_ERROR, $e->getMessage());
-        } catch (\Error $e) {
+        } catch (\Throwable $e) {
             $this->_logger->critical($e);
             $this->endProcess(self::STATUS_ERROR, $e->getMessage());
         }
+
         $this->registry->unregister('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM_ID', $this->getId());
 
         return $this;
-    }
-
-    public function getAllStatuses()
-    {
-        $reflect = new \ReflectionClass(get_class($this));
-        $constants = $reflect->getConstants();
-        $statuses = array();
-        foreach ($constants as $key => $value) {
-            if (strpos($key, 'STATUS_') === 0) {
-                $statuses[$value] = $value;
-            }
-        }
-        return $statuses;
     }
 
     protected function endProcess($status, $message = null)
@@ -180,40 +176,16 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         $this->setMessage($message)
             ->setFinishedAt(date('Y-m-d H:i:s'))
             ->setStatus($status)
-            ->setConnectionId($this->getConfig()->getNavConnectionId())
             ->save();
 
         return $this;
     }
 
-    protected function initConnection()
+    public function getLastSyncTime($code, $websiteId = null)
     {
-        $connection = $this->getConnection();
-
-        foreach ($this->attributes as $attr) {
-            if ($this->registry->registry(self::REGISTRY_PREFIX . strtoupper($attr))) {
-                $this->registry->unregister(self::REGISTRY_PREFIX . strtoupper($attr));
-            }
-            $this->registry->register(self::REGISTRY_PREFIX . strtoupper($attr), $connection->getData($attr));
+        if (!empty($websiteId)) {
+            $code .= '_' . $websiteId;
         }
-
-        return $this;
-    }
-
-    protected function getConnection()
-    {
-        $connection = new \Magento\Framework\DataObject();
-
-        $connection->setId('1');
-        $connection->setUrl($this->getConfig()->get('nav_connection/url'));
-        $connection->setUsername($this->getConfig()->get('nav_connection/username'));
-        $connection->setPassword($this->getConfig()->get('nav_connection/password'));
-
-        return $connection;
-    }
-
-    public function getLastSyncTime($code)
-    {
         $flag = $this->queueFlagFactory->create()->setQueueFlagCode($code)->loadSelf();
         $time = $flag->hasData() ? $flag->getLastUpdate() : '';
         if (!$time) {
@@ -223,8 +195,11 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         return date('Y-m-d\TH:i:s', strtotime($time));
     }
 
-    public function setLastSyncTime($code, $time)
+    public function setLastSyncTime($code, $time, $websiteId = null)
     {
+        if (!empty($websiteId)) {
+            $code .= '_' . $websiteId;
+        }
         $this->queueFlagFactory->create()->setQueueFlagCode($code)->loadSelf()
             ->setLastUpdate($time)
             ->save();
@@ -244,12 +219,23 @@ class Queue extends \Magento\Framework\Model\AbstractModel
 
     public function hasRecords($result)
     {
-        if (isset($result->status->end_of_records) && (string) $result->status->end_of_records === 'true') {
+        if (isset($result->status->end_of_records) && (string)$result->status->end_of_records === 'true') {
             return false;
         }
-        if ((int) $result->status->record_count <= 0) {
+        if ((int)$result->status->record_count <= 0) {
             return false;
         }
+
         return true;
+    }
+
+    public function removePendingItemsByEntityId($entityId, $message = null)
+    {
+        return $this->getResource()->removePendingItemsByEntityId($entityId, $message);
+    }
+
+    public function wasTheItemEverSuccessfullyExported($entityId)
+    {
+        return $this->getResource()->wasTheItemEverSuccessfullyExported($entityId);
     }
 }

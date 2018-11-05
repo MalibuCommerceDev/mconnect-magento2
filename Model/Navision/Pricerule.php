@@ -1,11 +1,12 @@
 <?php
+
 namespace MalibuCommerce\MConnect\Model\Navision;
 
 class Pricerule extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 {
-    public function export($page = 0, $lastUpdated = false)
+    public function export($page = 0, $lastUpdated = false, $websiteId = 0)
     {
-        $max = $this->config->get('price_rule/max_rows');
+        $max = $this->config->getWebsiteData('price_rule/max_rows', $websiteId);
         $parameters = array(
             'skip'     => $page * $max,
             'max_rows' => $max,
@@ -14,6 +15,6 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
             $parameters['last_updated'] = $lastUpdated;
         }
 
-        return $this->_export('sales_price_export', $parameters);
+        return $this->_export('sales_price_export', $parameters, $websiteId);
     }
 }

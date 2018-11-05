@@ -43,6 +43,11 @@ class Stream
      */
     protected $filesystem;
 
+    /**
+     * @var int
+     */
+    protected $websiteId = 0;
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
         \Magento\Framework\Filesystem $filesystem,
@@ -53,10 +58,20 @@ class Stream
         $this->directoryList = $directoryList;
     }
 
+    public function setWebsiteId($websiteId)
+    {
+        $this->websiteId = $websiteId;
+    }
+
+    public function getWebsiteId()
+    {
+        return $this->websiteId;
+    }
+
     public function stream_open($streamUri)
     {
         $this->streamUri = $streamUri;
-        $this->initStream();
+        $this->initStream($this->getWebsiteId());
         if (empty($this->streamData)) {
             throw new \RuntimeException('SOAP-ERROR: Couldn\'t load WSDL');
         }
@@ -122,7 +137,7 @@ class Stream
         return $this->stream_stat();
     }
 
-    protected function initStream()
+    protected function initStream($websiteId = 0)
     {
         if ($this->streamData !== null) {
             return;
@@ -131,19 +146,19 @@ class Stream
         $this->streamCurlHandle = curl_init($this->streamUri);
         curl_setopt($this->streamCurlHandle, CURLOPT_RETURNTRANSFER, true);
 
-        if ($config->getIsInsecureConnectionAllowed()) {
+        if ($config->getIsInsecureConnectionAllowed($websiteId)) {
             curl_setopt($this->streamCurlHandle, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($this->streamCurlHandle, CURLOPT_SSL_VERIFYPEER, 0);
         }
 
         curl_setopt($this->streamCurlHandle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-        if ($config->getUseNtlmAuthentication()) {
+        if ($config->getUseNtlmAuthentication($websiteId)) {
             curl_setopt($this->streamCurlHandle, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
         }
         curl_setopt(
             $this->streamCurlHandle,
             CURLOPT_USERPWD,
-            $config->getNavConnectionUsername() . ':' . $config->getNavConnectionPassword()
+            $config->getNavConnectionUsername($websiteId) . ':' . $config->getNavConnectionPassword($websiteId)
         );
         $this->streamData = trim(curl_exec($this->streamCurlHandle));
 

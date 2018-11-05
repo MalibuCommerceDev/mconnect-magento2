@@ -102,7 +102,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
         $this->shippingConfig = $shippingConfig;
     }
 
-    public function importAction()
+    public function importAction($websiteId)
     {
         $count = 0;
         $page = 0;
@@ -112,7 +112,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
             $result = $this->navShipment->export($page++, $lastUpdated);
             foreach ($result->shipment as $data) {
                 try {
-                    $importResult = $this->importShipment($data);
+                    $importResult = $this->importShipment($data, $websiteId);
                     if ($importResult) {
                         $count++;
                     }
@@ -133,7 +133,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
         }
     }
 
-    protected function importShipment(\SimpleXMLElement $entity)
+    protected function importShipment(\SimpleXMLElement $entity, $websiteId)
     {
         $incrementId = (string)$entity->mag_order_id;
         /** @var \Magento\Sales\Model\Order $order */
