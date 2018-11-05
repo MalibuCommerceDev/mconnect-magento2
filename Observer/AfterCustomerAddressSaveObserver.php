@@ -32,17 +32,18 @@ class AfterCustomerAddressSaveObserver implements \Magento\Framework\Event\Obser
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
-        /** @var \Magento\Customer\Model\Address $object */
-        $object = $observer->getCustomerAddress();
-        if (!$object->getSkipMconnect() && !$object->getCustomer()->getSkipMconnect()) {
-            $this->_queue('customer', 'export', $object->getCustomerId());
+        /** @var \Magento\Customer\Model\Address $customerAddress */
+        $customerAddress = $observer->getCustomerAddress();
+        $websiteId = $customerAddress->getCustomer()->getWebsiteId();
+        if (!$customerAddress->getSkipMconnect() && !$customerAddress->getCustomer()->getSkipMconnect()) {
+            $this->_queue('customer', 'export', $websiteId, $customerAddress->getCustomerId());
         }
     }
 
-    protected function _queue($code, $action, $id = null, $details = array())
+    protected function _queue($code, $action, $websiteId, $id = null)
     {
         try {
-            return $this->queue->create()->add($code, $action, $id, $details);
+            return $this->queue->create()->add($code, $action, $websiteId, $id);
         } catch (\Exception $e) {
             $this->logger->critical($e);
         }

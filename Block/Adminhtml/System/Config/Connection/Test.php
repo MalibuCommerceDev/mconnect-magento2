@@ -54,7 +54,7 @@ class Test extends Field
      */
     public function getAjaxUrl()
     {
-        return $this->getUrl('mconnect/system_config_connection/test');
+        return $this->getUrl('mconnect/system_config_connection/test', $this->getRequest()->getParams());
     }
 
     /**

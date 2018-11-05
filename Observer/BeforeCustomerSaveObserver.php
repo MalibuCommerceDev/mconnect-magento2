@@ -35,10 +35,13 @@ class BeforeCustomerSaveObserver implements \Magento\Framework\Event\ObserverInt
             /** @var \Magento\Customer\Model\Customer $customer */
             $customer = $observer->getCustomer();
             if (!$customer || $customer->getId() || $customer->getSkipMconnect()) {
+
                 return $this;
             }
-            $navId = $this->config->get('customer/default_nav_id_magento_registered', $customer->getStore()->getId());
+            $websiteId = $customer->getWebsiteId();
+            $navId = $this->config->getWebsiteData('customer/default_nav_id_magento_registered', $websiteId);
             if (!$navId) {
+
                 return $this;
             }
             $customer->setNavId($navId);

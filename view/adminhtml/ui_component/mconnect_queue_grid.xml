@@ -123,6 +123,16 @@
                 </item>
             </argument>
         </column>
+        <column name="website_id" class="MalibuCommerce\MConnect\Ui\Component\Listing\Column\Website">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">textRange</item>
+                    <item name="label" xsi:type="string" translate="true">Website</item>
+                    <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
+                    <item name="sortOrder" xsi:type="number">50</item>
+                </item>
+            </argument>
+        </column>
         <column name="details" class="MalibuCommerce\MConnect\Ui\Component\Listing\Column\Details">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -131,7 +141,7 @@
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                     <item name="dataType" xsi:type="string">text</item>
                     <item name="sortable" xsi:type="boolean">false</item>
-                    <item name="sortOrder" xsi:type="number">50</item>
+                    <item name="sortOrder" xsi:type="number">60</item>
                 </item>
             </argument>
         </column>
@@ -143,7 +153,7 @@
                     <item name="dataType" xsi:type="string">date</item>
                     <item name="label" xsi:type="string" translate="true">Created At</item>
                     <item name="timezone" xsi:type="boolean">true</item>
-                    <item name="sortOrder" xsi:type="number">60</item>
+                    <item name="sortOrder" xsi:type="number">70</item>
                 </item>
             </argument>
         </column>
@@ -155,7 +165,7 @@
                     <item name="dataType" xsi:type="string">date</item>
                     <item name="label" xsi:type="string" translate="true">Scheduled At</item>
                     <item name="timezone" xsi:type="boolean">true</item>
-                    <item name="sortOrder" xsi:type="number">70</item>
+                    <item name="sortOrder" xsi:type="number">80</item>
                 </item>
             </argument>
         </column>
@@ -167,7 +177,7 @@
                     <item name="dataType" xsi:type="string">date</item>
                     <item name="label" xsi:type="string" translate="true">Synced At</item>
                     <item name="timezone" xsi:type="boolean">true</item>
-                    <item name="sortOrder" xsi:type="number">80</item>
+                    <item name="sortOrder" xsi:type="number">90</item>
                 </item>
             </argument>
         </column>
@@ -176,7 +186,7 @@
                 <item name="config" xsi:type="array">
                     <item name="label" xsi:type="string" translate="true">Duration</item>
                     <item name="dataType" xsi:type="string">text</item>
-                    <item name="sortOrder" xsi:type="number">90</item>
+                    <item name="sortOrder" xsi:type="number">100</item>
                 </item>
             </argument>
         </column>
@@ -187,7 +197,7 @@
                     <item name="label" xsi:type="string" translate="true">Messages</item>
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                     <item name="dataType" xsi:type="string">text</item>
-                    <item name="sortOrder" xsi:type="number">100</item>
+                    <item name="sortOrder" xsi:type="number">110</item>
                 </item>
             </argument>
         </column>
@@ -198,7 +208,7 @@
                     <item name="label" xsi:type="string" translate="true">NAV API Log</item>
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                     <item name="dataType" xsi:type="string">text</item>
-                    <item name="sortOrder" xsi:type="number">110</item>
+                    <item name="sortOrder" xsi:type="number">120</item>
                 </item>
             </argument>
         </column>
@@ -210,7 +220,7 @@
                     <item name="label" xsi:type="string" translate="true">Status</item>
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                     <item name="dataType" xsi:type="string">select</item>
-                    <item name="sortOrder" xsi:type="number">120</item>
+                    <item name="sortOrder" xsi:type="number">130</item>
                 </item>
             </argument>
         </column>

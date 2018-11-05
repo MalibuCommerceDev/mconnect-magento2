@@ -87,10 +87,12 @@ class Cron
         $connection = $this->queue->getResource()->getConnection();
         $select = $connection->select()
             ->from('core_config_data', ['scope_id'])
-            ->where('scope = \'website\'');
+            ->where('scope = \'website\'')
+            ->where('path = \'malibucommerce_mconnect/nav_connection/url\'');
         $websiteIds = $connection->fetchCol($select);
         if (!empty($websiteIds)) {
 
+            $websiteIds = array_unique($websiteIds);
             return $websiteIds;
         }
 
