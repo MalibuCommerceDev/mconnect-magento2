@@ -183,7 +183,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
             }
         } while ($this->hasRecords($result));
         if ($count > 0) {
-            $this->setLastSyncTime(Flag::FLAG_CODE_LAST_CUSTOMER_SYNC_TIME, $lastSync);
+            $this->setLastSyncTime(Flag::FLAG_CODE_LAST_CUSTOMER_SYNC_TIME, $lastSync, $websiteId);
             $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';
         } else {
             $this->messages .= PHP_EOL . 'Nothing to import.';
@@ -194,7 +194,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
     {
         $email = (string)$data->cust_email;
         if (empty($email)) {
-            $this->messages .= 'Skipping NAV ID "' . $data->cust_nav_id . '": email is empty' . PHP_EOL;
+            $this->messages .= 'Customer "' . $data->cust_nav_id . '": SKIPPED - email is empty' . PHP_EOL;
 
             return false;
         }
@@ -276,6 +276,8 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
             $customer->setDataUsingMethod($attribute->getAttributeCode(), $value);
         }
 
+        $id = $customer && $customer->getNavId() ? $customer->getNavId() : $email;
+        $id = 'Customer: "' . $id . '"';
         try {
             if ($customer->hasDataChanges() || !empty($this->customAttributesMap)) {
                 $customer->save();
@@ -283,19 +285,19 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
                 $this->saveCustomCustomerAttributes($customer, $data);
 
                 if ($customerExists) {
-                    $this->messages .= $email . ': updated';
+                    $this->messages .= $id . ': UPDATED';
                 } else {
-                    $this->messages .= $email . ': created';
+                    $this->messages .= $id . ': CREATED';
 
                     if ($this->mailer->resetPasswordForNewCustomer($customer)) {
-                        $this->messages .= $email . ': new customer email sent';
+                        $this->messages .= $id . ': REST PSWD EMAIL SENT';
                     }
                 }
             } else {
-                $this->messages .= $email . ': skipped';
+                $this->messages .= $id . ': SKIPPED';
             }
         } catch (\Exception $e) {
-            $this->messages .= $email . ': ' . $e->getMessage();
+            $this->messages .= $id . ': ERROR - ' . $e->getMessage();
         }
 
         /**
@@ -403,15 +405,15 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
             if ($address->hasDataChanges()) {
                 $address->save();
                 if ($addressExists) {
-                    $this->messages .= '; Address ' . $addressData->addr_nav_id . ': updated' . PHP_EOL;
+                    $this->messages .= PHP_EOL . "\t" . 'Address "' . $addressData->addr_nav_id . '": UPDATED' . PHP_EOL;
                 } else {
-                    $this->messages .= '; Address ' . $addressData->addr_nav_id . ': created' . PHP_EOL;
+                    $this->messages .= PHP_EOL . "\t" . 'Address "' . $addressData->addr_nav_id . '": CREATED' . PHP_EOL;
                 }
             } else {
-                $this->messages .= '; Address ' . $addressData->addr_nav_id . ': skipped' . PHP_EOL;
+                $this->messages .= PHP_EOL . "\t" . 'Address "' . $addressData->addr_nav_id . '": SKIPPED' . PHP_EOL;
             }
         } catch (\Exception $e) {
-            $this->messages .= '; Address ' . $addressData->addr_nav_id . ': ' . $e->getMessage() . PHP_EOL;
+            $this->messages .= PHP_EOL . "\t" . 'Address "' . $addressData->addr_nav_id . '": ERROR - ' . $e->getMessage() . PHP_EOL;
         }
     }
 

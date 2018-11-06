@@ -54,7 +54,7 @@ class Soap
     public function __call($method, $arguments)
     {
         try {
-            $websiteId = $arguments['website_id'] ?? 0;
+            $websiteId = $arguments[0]['website_id'] ?? 0;
 
             $this->registerStream($websiteId);
             $this->registerClient($websiteId);

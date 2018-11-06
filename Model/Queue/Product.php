@@ -136,7 +136,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             }
         } while ($this->hasRecords($result));
         if ($count > 0) {
-            $this->setLastSyncTime(Flag::FLAG_CODE_LAST_PRODUCT_SYNC_TIME, $lastSync);
+            $this->setLastSyncTime(Flag::FLAG_CODE_LAST_PRODUCT_SYNC_TIME, $lastSync, $websiteId);
             $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';
         } else {
             $this->messages .= PHP_EOL . 'Nothing to import.';

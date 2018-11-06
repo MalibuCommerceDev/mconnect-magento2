@@ -84,18 +84,23 @@ class Cron
 
     protected function getMultiCompanyActiveWebsites()
     {
-        $connection = $this->queue->getResource()->getConnection();
+        $connection = $this->queue->create()->getResource()->getConnection();
         $select = $connection->select()
-            ->from('core_config_data', ['scope_id'])
-            ->where('scope = \'website\'')
+            ->from('core_config_data', ['scope', 'scope_id'])
             ->where('path = \'malibucommerce_mconnect/nav_connection/url\'');
-        $websiteIds = $connection->fetchCol($select);
-        if (!empty($websiteIds)) {
+        $scopes = $connection->fetchPairs($select);
 
-            $websiteIds = array_unique($websiteIds);
-            return $websiteIds;
+        $websiteIds = [0];
+        if (!empty($scopes)) {
+            foreach ($scopes as $scope => $scopeId) {
+                if (!in_array($scope, ['default', 'websites'])) {
+                    continue;
+                }
+
+                $websiteIds[] = $scopeId;
+            }
         }
 
-        return [0];
+        return array_unique($websiteIds);
     }
 }

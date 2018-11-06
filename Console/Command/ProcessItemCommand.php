@@ -16,6 +16,7 @@ class ProcessItemCommand extends Command
     const ARGUMENT_CODE = 'code';
     const ARGUMENT_ACTION = 'action';
     const ARGUMENT_ENTITY_ID = 'entity_id';
+    const ARGUMENT_WEBSITE_ID = 'website_id';
     const OPTION_SYNC = 'sync';
 
     /**
@@ -63,6 +64,11 @@ class ProcessItemCommand extends Command
                     'Action'
                 ),
                 new InputArgument(
+                    self::ARGUMENT_WEBSITE_ID,
+                    InputArgument::OPTIONAL,
+                    'Website ID'
+                ),
+                new InputArgument(
                     self::ARGUMENT_ENTITY_ID,
                     InputArgument::OPTIONAL,
                     'Entity ID'
@@ -83,9 +89,11 @@ class ProcessItemCommand extends Command
             $this->emulatedAreaProcessor->process(function () use ($input, $output) {
                 $code = $input->getArgument(self::ARGUMENT_CODE);
                 $action = $input->getArgument(self::ARGUMENT_ACTION);
+                $websiteId = $input->getArgument(self::ARGUMENT_WEBSITE_ID);
                 $entityId = $input->getArgument(self::ARGUMENT_ENTITY_ID);
                 $sync = $input->getOption(self::OPTION_SYNC);
-                $queue = $this->queue->add($code, $action, $entityId, [], null, true);
+                $websiteId = $websiteId ?: 0;
+                $queue = $this->queue->add($code, $action, $websiteId, $entityId, [], null, true);
                 if (!$queue->getId()) {
                     $output->writeln('<error>Failed to add item to the queue</error>');
                     return;

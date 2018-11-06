@@ -47,6 +47,8 @@ class OrderMConnectStatus extends \Magento\Ui\Component\Listing\Columns\Column
                 $queueCollection = $this->_queue->getCollection()
                     ->addFilter('code', 'order')
                     ->addFilter('entity_id', $item['entity_id'])
+                    ->setPageSize(1)
+                    ->setCurPage(1)
                     ->setOrder('finished_at', 'desc');
 
                 /** @var \MalibuCommerce\MConnect\Model\Queue $queueItem */

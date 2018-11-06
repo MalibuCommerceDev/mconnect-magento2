@@ -71,7 +71,7 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue
             }
         } while ($this->hasRecords($result));
         if ($count > 0) {
-            $this->setLastSyncTime(Flag::FLAG_CODE_LAST_PRICERULE_SYNC_TIME, $lastSync);
+            $this->setLastSyncTime(Flag::FLAG_CODE_LAST_PRICERULE_SYNC_TIME, $lastSync, $websiteId);
             $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';
         } else {
             $this->messages .= PHP_EOL . 'Nothing to import.';
@@ -92,11 +92,20 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue
             'date_end'             => ((string) $entity->end_date) ? date('Y:m:d H:i:s', strtotime((string) $entity->end_date)) : null,
         ];
 
-        $model = $this->rule->load((int) $entity->unique_id, 'nav_id');
+        /** @var \MalibuCommerce\MConnect\Model\Resource\Pricerule\Collection $collection */
+        $collection = $this->rule->getCollection()
+            ->addFilter('nav_id', (int) $entity->unique_id)
+            ->addFilter('website_id', (int) $websiteId)
+            ->setPageSize(1)
+            ->setCurPage(1);
+
+        /** @var \MalibuCommerce\MConnect\Model\Pricerule $model */
+        $model = $collection->getFirstItem();
+        $isUpdate = $model && $model->getId();
         $model->addData($data);
         try {
             $model->save();
-            $this->messages .= 'Price Rule created: ID ' . $model->getId();
+            $this->messages .= 'Price Rule ' . ($isUpdate ? 'UPDATED' : 'CREATED')  . ': NAV ID ' . $model->getNavId();
         } catch (\Throwable $e) {
             $this->messages .= $e->getMessage();
         }

@@ -91,7 +91,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 
     public function export($page = 0, $lastUpdated = false, $websiteId = 0)
     {
-        $max = $this->config->getWebsiteData('customer/max_rows', $websiteId);
+        $max = $this->config->get('customer/max_rows');
         $parameters = array(
             'skip'     => $page * $max,
             'max_rows' => $max,
