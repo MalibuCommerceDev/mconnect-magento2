@@ -36,7 +36,16 @@ class Pricerule extends \Magento\Framework\Model\AbstractModel
 
         /** @var \MalibuCommerce\MConnect\Model\Resource\Pricerule\Collection $collection */
         $collection = $this->getResourceCollection();
-        $this->matchedPrices[$cacheId] = $collection->matchDiscountPrice($sku, $qty, $websiteId);
+        $price = $collection->matchDiscountPrice($sku, $qty, $websiteId);
+        
+        // attempt to get price match for default scope
+        if (!$price === false && $websiteId != 0) {
+            $collection->getSelect()->reset(\Magento\Framework\DB\Select::WHERE);
+            $collection->getSelect()->reset(\Magento\Framework\DB\Select::COLUMNS);
+            $price = $collection->matchDiscountPrice($sku, $qty, 0);
+        }
+
+        $this->matchedPrices[$cacheId] = $price;
 
         return $this->matchedPrices[$cacheId];
     }

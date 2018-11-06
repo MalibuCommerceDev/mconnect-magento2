@@ -113,7 +113,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      */
     public function applyWebsiteFilter($value)
     {
-        $this->addFieldToFilter('website_id', [['eq' => $value], ['eq' => 0]]);
+        $this->addFieldToFilter('website_id', ['eq' => $value]);
 
         return $this;
     }
