@@ -56,11 +56,11 @@ class Soap
         try {
             $websiteId = $arguments['website_id'] ?? 0;
 
-            $this->soapClient->setWebsiteId($websiteId);
-            $this->stream->setWebsiteId($websiteId);
-
             $this->registerStream($websiteId);
             $this->registerClient($websiteId);
+
+            $this->soapClient->setWebsiteId($websiteId);
+            $this->stream->setWebsiteId($websiteId);
 
             unset($arguments['website_id']);
             $result = call_user_func_array(array($this->soapClient, $method), $arguments);

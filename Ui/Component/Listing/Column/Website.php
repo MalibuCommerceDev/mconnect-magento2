@@ -83,7 +83,7 @@ class Website extends \Magento\Ui\Component\Listing\Columns\Column
                 }
                 /** @var \Magento\Store\Model\Website $website */
                 $website = $this->websites[$item['website_id']];
-                $link = $this->urlBuilder->getUrl('system_store/editWebsite', array('website_id' => $item['website_id']));
+                $link = $this->urlBuilder->getUrl('admin/system_store/editWebsite', array('website_id' => $item['website_id']));
 
                 $item['website_id'] = sprintf('<a href="%s" target="_blank" title="%s">%s<a/> (ID: %s; Code: %s)', $link, $website->getName(), $website->getName(), $website->getId(), $website->getCode());
             }
