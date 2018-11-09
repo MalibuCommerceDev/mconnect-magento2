@@ -34,8 +34,9 @@ class NavReports extends \Magento\Framework\App\Helper\AbstractHelper
     public function areNavReportsEnabled($store = null)
     {
         $customerGroup = $this->customerSession->getCustomerGroupId();
+        $websiteId = $this->customerSession->getCustomer()->getWebsiteId();
         return $this->mConnectConfig->isModuleEnabled()
-               && $this->mConnectConfig->getFlag('customer/show_reports')
-               && in_array($customerGroup, $this->mConnectConfig->getNAVReportsCustomerGroups($store));
+               && (bool)$this->mConnectConfig->getWebsiteData('customer/show_reports', $websiteId)
+               && in_array($customerGroup, $this->mConnectConfig->getNAVReportsCustomerGroups($websiteId));
     }
 }
