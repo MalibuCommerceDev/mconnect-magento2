@@ -32,6 +32,11 @@ class BeforeCustomerSaveObserver implements \Magento\Framework\Event\ObserverInt
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         try {
+            if (!$this->config->isModuleEnabled()) {
+
+                return $this;
+            }
+
             /** @var \Magento\Customer\Model\Customer $customer */
             $customer = $observer->getCustomer();
             if (!$customer || $customer->getId() || $customer->getSkipMconnect()) {

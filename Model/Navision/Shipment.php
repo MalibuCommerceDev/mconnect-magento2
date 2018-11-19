@@ -4,7 +4,7 @@ namespace MalibuCommerce\MConnect\Model\Navision;
 
 class Shipment extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 {
-    public function export($page = 0, $lastUpdated = false)
+    public function export($page = 0, $lastUpdated = false, $websiteId = 0)
     {
         $max = $this->config->get('shipment/max_rows');
         $parameters = array(
@@ -15,6 +15,6 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
             $parameters['last_updated'] = $lastUpdated;
         }
 
-        return $this->_export('shipment_export', $parameters);
+        return $this->_export('shipment_export', $parameters, $websiteId);
     }
 }

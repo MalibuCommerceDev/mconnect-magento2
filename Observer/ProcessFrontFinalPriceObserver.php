@@ -13,12 +13,19 @@ class ProcessFrontFinalPriceObserver implements \Magento\Framework\Event\Observe
      */
     protected $logger;
 
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Config
+     */
+    protected $config;
+
     public function __construct(
+        \MalibuCommerce\MConnect\Model\Config $config,
         \Psr\Log\LoggerInterface $logger,
         \MalibuCommerce\MConnect\Model\Pricerule $rule
     ) {
         $this->logger = $logger;
         $this->rule = $rule;
+        $this->config = $config;
     }
 
     /**
@@ -30,6 +37,11 @@ class ProcessFrontFinalPriceObserver implements \Magento\Framework\Event\Observe
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
+        if (!$this->config->isModuleEnabled()) {
+
+            return $this;
+        }
+
         $finalPrice = null;
         try {
             /** @var \Magento\Catalog\Model\Product $product */

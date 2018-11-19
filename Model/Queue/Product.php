@@ -223,8 +223,8 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             }
         }
 
-        if (!isset($data->item_visibility)) {
-            $visibilities = ($this->getVisibilityOptions());
+        if (isset($data->item_visibility)) {
+            $visibilities = $this->getVisibilityOptions();
             $inputVisibility = (int)$data->item_visibility;
             if (array_key_exists($inputVisibility, $visibilities)) {
                 $product->setVisibility($inputVisibility);

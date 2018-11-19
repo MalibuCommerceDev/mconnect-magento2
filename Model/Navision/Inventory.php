@@ -4,7 +4,7 @@ namespace MalibuCommerce\MConnect\Model\Navision;
 
 class Inventory extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 {
-    public function export($page = 0, $lastUpdated = false)
+    public function export($page = 0, $lastUpdated = false, $websiteId = 0)
     {
         $max = $this->config->get('inventory/max_rows');
         $parameters = array(
@@ -15,7 +15,7 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
             $parameters['last_updated'] = $lastUpdated;
         }
 
-        return $this->_export('inventory_export', $parameters);
+        return $this->_export('inventory_export', $parameters, $websiteId);
     }
 
 }

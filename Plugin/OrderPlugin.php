@@ -22,17 +22,18 @@ class OrderPlugin
     protected $logger;
 
     /**
-     * OrderPlugin constructor.
-     *
-     * @param \MalibuCommerce\MConnect\Model\QueueFactory $queue
-     * @param \Psr\Log\LoggerInterface                    $logger
+     * @var \Magento\Store\Model\StoreManagerInterface
      */
+    protected $storeManager;
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\QueueFactory $queue,
-        \Psr\Log\LoggerInterface $logger
+        \Psr\Log\LoggerInterface $logger,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->queue = $queue;
         $this->logger = $logger;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -73,9 +74,11 @@ class OrderPlugin
      */
     public function afterUnhold(\Magento\Sales\Model\Order $order, $result)
     {
-        if ($order->canHold() && !$this->queue->create()->wasTheItemEverSuccessfullyExported($order->getId())) {
+        $websiteId = $this->storeManager->getStore($order->getStoreId())->getWebsiteId();
+
+        if ($order->canHold() && !$this->queue->create()->wasTheItemEverSuccessfullyExported($order->getId(), 'order')) {
             try {
-                $this->queue->create()->add('order', 'export', $order->getId());
+                $this->queue->create()->add('order', 'export', $websiteId, $order->getId());
             } catch (\Exception $e) {
                 $this->logger->critical($e);
             }
@@ -91,8 +94,9 @@ class OrderPlugin
     {
         try {
             if ($order && $order->getId()) {
-                $this->queue->create()->removePendingItemsByEntityId(
+                $this->queue->create()->removePendingItems(
                     $order->getId(),
+                    'order',
                     sprintf('Order "%s" (ID: %s) export is canceled because its status is: %s', $order->getIncrementId(), $order->getId(), $order->getStatus())
                 );
             }

@@ -16,7 +16,7 @@
 
             <group id="general" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>General</label>
-                <field id="enabled" sortOrder="10" type="select" showInDefault="0" showInWebsite="0" showInStore="0" translate="label">
+                <field id="enabled" sortOrder="10" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
@@ -268,9 +268,9 @@
                 </field>
             </group>
 
-            <group id="invoice" type="text" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+            <group id="invoice" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>Invoice</label>
-                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
@@ -292,9 +292,9 @@
                 </field>
             </group>
 
-            <group id="shipment" type="text" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+            <group id="shipment" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>Shipment</label>
-                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>

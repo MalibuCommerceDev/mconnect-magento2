@@ -12,11 +12,6 @@ class Productsync extends Action
     protected $config;
 
     /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
-     */
-    protected $scopeConfig;
-
-    /**
      * @var \MalibuCommerce\MConnect\Model\Queue
      */
     protected $queue;
@@ -51,22 +46,8 @@ class Productsync extends Action
      */
     protected $resultJsonFactory;
 
-    /**
-     * Productsync constructor.
-     *
-     * @param \Magento\Framework\Controller\Result\JsonFactory   $resultJsonFactory
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
-     * @param \MalibuCommerce\MConnect\Model\Config              $config
-     * @param \MalibuCommerce\MConnect\Model\QueueFactory        $queue
-     * @param \Magento\Framework\Controller\ResultFactory        $result
-     * @param \Magento\Catalog\Api\ProductRepositoryInterface    $productRepository
-     * @param \MalibuCommerce\MConnect\Helper\Data               $helper
-     * @param \Magento\Backend\Helper\Data                       $backendHelper
-     * @param \Magento\Framework\App\Action\Context              $context
-     */
     public function __construct(
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\QueueFactory $queue,
         \Magento\Framework\Controller\ResultFactory $result,
@@ -77,7 +58,6 @@ class Productsync extends Action
     ) {
         $this->resultJsonFactory = $resultJsonFactory;
         $this->config = $config;
-        $this->scopeConfig = $scopeConfig;
         $this->queue = $queue;
         $this->resultFactory = $result;
         $this->productRepository = $productRepository;
@@ -106,7 +86,7 @@ class Productsync extends Action
 
         $productSku = $this->getRequest()->getParam('id');
         $data = array();
-        if (!$this->scopeConfig->getValue('malibucommerce_mconnect/general/enabled')) {
+        if (!$this->config->isModuleEnabled()) {
             $data['error'] = 1;
             $data['message'] = 'M-Connect is disabled).';
         } else {
@@ -114,6 +94,7 @@ class Productsync extends Action
                 $queue = $this->queue->create()->add(
                     'product',
                     'import_single',
+                    0,
                     null,
                     array('nav_id' => $productSku)
                 );

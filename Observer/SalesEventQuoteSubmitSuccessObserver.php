@@ -39,16 +39,24 @@ class SalesEventQuoteSubmitSuccessObserver implements \Magento\Framework\Event\O
      * Add order to export queue
      *
      * @param \Magento\Framework\Event\Observer $observer
-     * @return void
+     * @return $this
+     *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
+        if (!$this->config->isModuleEnabled()) {
+
+            return $this;
+        }
+
         /** @var \Magento\Sales\Model\Order $order */
         $order = $observer->getOrder();
         if ($order && !$order->getSkipMconnect()) {
             $this->queue('order', 'export', $order);
         }
+
+        return $this;
     }
 
     /**

@@ -6,6 +6,23 @@ class Pricerule extends \Magento\Framework\Model\AbstractModel
 {
     protected $matchedPrices = [];
 
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Config
+     */
+    protected $config;
+
+    public function __construct(
+        \MalibuCommerce\MConnect\Model\Config $config,
+        \Magento\Framework\Model\Context $context,
+        \Magento\Framework\Registry $registry,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        array $data = []
+    ) {
+        $this->config = $config;
+        parent::__construct($context, $registry, $resource, $resourceCollection, $data);
+    }
+
     public function _construct()
     {
         $this->_init('MalibuCommerce\MConnect\Model\Resource\Pricerule');
@@ -22,6 +39,11 @@ class Pricerule extends \Magento\Framework\Model\AbstractModel
      */
     public function matchDiscountPrice($product, $qty, $websiteId = 0)
     {
+        if (!$this->config->isModuleEnabled()) {
+
+            return false;
+        }
+
         $sku = $product;
         if ($product instanceof \Magento\Catalog\Model\Product) {
             $sku = $product->getSku();

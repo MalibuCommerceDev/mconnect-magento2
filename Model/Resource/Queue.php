@@ -1,4 +1,5 @@
 <?php
+
 namespace MalibuCommerce\MConnect\Model\Resource;
 
 class Queue extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
@@ -8,32 +9,35 @@ class Queue extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         $this->_init('malibucommerce_mconnect_queue', 'id');
     }
 
-    public function removePendingItemsByEntityId($entityId, $message = null)
+    public function removePendingItems($entityId, $code, $message = null)
     {
         $adapter = $this->getConnection();
+
         return $adapter->update(
             $this->getMainTable(),
             [
-                'status' => \MalibuCommerce\MConnect\Model\Queue::STATUS_CANCELED,
+                'status'  => \MalibuCommerce\MConnect\Model\Queue::STATUS_CANCELED,
                 'message' => $message
             ],
             [
                 'entity_id = ?' => $entityId,
-                'status = ?' => \MalibuCommerce\MConnect\Model\Queue::STATUS_PENDING
+                'code = ?'      => $code,
+                'status = ?'    => \MalibuCommerce\MConnect\Model\Queue::STATUS_PENDING
             ]
         );
     }
 
-    public function wasTheItemEverSuccessfullyExported($entityId)
+    public function wasTheItemEverSuccessfullyExported($entityId, $code)
     {
         $adapter = $this->getConnection();
         $select = $adapter->select()
             ->from($this->getMainTable(), ['id'])
             ->where('entity_id = ?', $entityId)
+            ->where('code = ?', $code)
             ->where('status = ?', \MalibuCommerce\MConnect\Model\Queue::STATUS_SUCCESS)
             ->where('action = ?', 'export')
             ->limit(1);
 
-        return (bool) $adapter->fetchOne($select);
+        return (bool)$adapter->fetchOne($select);
     }
 }

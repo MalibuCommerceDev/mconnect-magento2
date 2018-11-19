@@ -107,9 +107,9 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
         $count = 0;
         $page = 0;
         $lastSync = false;
-        $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_SHIPMENT_SYNC_TIME);
+        $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_SHIPMENT_SYNC_TIME, $websiteId);
         do {
-            $result = $this->navShipment->export($page++, $lastUpdated);
+            $result = $this->navShipment->export($page++, $lastUpdated, $websiteId);
             foreach ($result->shipment as $data) {
                 try {
                     $importResult = $this->importShipment($data, $websiteId);
@@ -126,7 +126,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
             }
         } while ($this->hasRecords($result));
         if ($count > 0) {
-            $this->setLastSyncTime(Flag::FLAG_CODE_LAST_SHIPMENT_SYNC_TIME, $lastSync);
+            $this->setLastSyncTime(Flag::FLAG_CODE_LAST_SHIPMENT_SYNC_TIME, $lastSync, $websiteId);
             $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';
         } else {
             $this->messages .= PHP_EOL . 'Nothing to import.';

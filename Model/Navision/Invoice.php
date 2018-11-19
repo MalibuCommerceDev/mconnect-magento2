@@ -3,7 +3,7 @@ namespace MalibuCommerce\MConnect\Model\Navision;
 
 class Invoice extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 {
-    public function export($page = 0, $lastUpdated = false)
+    public function export($page = 0, $lastUpdated = false, $websiteId = 0)
     {
         $max = $this->config->get('invoice/max_rows');
         $parameters = array(
@@ -14,6 +14,6 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
             $parameters['last_updated'] = $lastUpdated;
         }
 
-        return $this->_export('invoice_export', $parameters);
+        return $this->_export('invoice_export', $parameters, $websiteId);
     }
 }

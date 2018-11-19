@@ -54,7 +54,8 @@ class Cron
 
     protected function queueImportItem($code)
     {
-        if (!$this->config->getFlag('general/enabled')) {
+        if (!$this->config->isModuleEnabled()) {
+
             return 'M-Connect is disabled.';
         }
 

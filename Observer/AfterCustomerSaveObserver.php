@@ -14,12 +14,19 @@ class AfterCustomerSaveObserver implements \Magento\Framework\Event\ObserverInte
      */
     protected $logger;
 
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Config
+     */
+    protected $config;
+
     public function __construct(
+        \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\QueueFactory $queue,
         \Psr\Log\LoggerInterface $logger
     ) {
         $this->queue = $queue;
         $this->logger = $logger;
+        $this->config = $config;
     }
 
     /**
@@ -27,17 +34,25 @@ class AfterCustomerSaveObserver implements \Magento\Framework\Event\ObserverInte
      *
      * @param \Magento\Framework\Event\Observer $observer
      *
-     * @return void
+     * @return $this
+     *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
+        if (!$this->config->isModuleEnabled()) {
+
+            return $this;
+        }
+
         /** @var \Magento\Customer\Model\Customer $customer */
         $customer = $observer->getCustomer();
         if (!$customer->getSkipMconnect()) {
             $websiteId = $customer->getWebsiteId();
             $this->_queue('customer', 'export', $websiteId, $customer->getId());
         }
+
+        return $this;
     }
 
     protected function _queue($code, $action, $websiteId = 0, $id = null)

@@ -41,7 +41,8 @@ class Queue
     public function process($forceSyncNow = false)
     {
         $config = $this->config;
-        if (!$config->getFlag('general/enabled')) {
+        if (!$config->isModuleEnabled()) {
+
             return 'Module is disabled.';
         }
 
@@ -80,9 +81,11 @@ class Queue
     public function clean()
     {
         $config = $this->config;
-        if (!$config->getFlag('general/enabled')) {
+        if (!$config->isModuleEnabled()) {
+
             return 'Module is disabled.';
         }
+
         $value = $config->get('queue/delete_after');
         if (!$value) {
             return 'Queue cleaning not enabled.';
@@ -104,9 +107,11 @@ class Queue
     public function error()
     {
         $config = $this->config;
-        if (!$config->getFlag('general/enabled')) {
+        if (!$config->isModuleEnabled()) {
+
             return 'Module is disabled.';
         }
+
         $value = $config->get('queue/error_after');
         if (!$value) {
             return 'Error marking not enabled.';

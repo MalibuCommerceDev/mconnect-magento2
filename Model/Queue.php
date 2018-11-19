@@ -229,13 +229,13 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         return true;
     }
 
-    public function removePendingItemsByEntityId($entityId, $message = null)
+    public function removePendingItems($entityId, $code, $message = null)
     {
-        return $this->getResource()->removePendingItemsByEntityId($entityId, $message);
+        return $this->getResource()->removePendingItems($entityId, $code, $message);
     }
 
-    public function wasTheItemEverSuccessfullyExported($entityId)
+    public function wasTheItemEverSuccessfullyExported($entityId, $code)
     {
-        return $this->getResource()->wasTheItemEverSuccessfullyExported($entityId);
+        return $this->getResource()->wasTheItemEverSuccessfullyExported($entityId, $code);
     }
 }
