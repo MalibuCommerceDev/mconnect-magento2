@@ -284,12 +284,15 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
 
         $product
             ->setOptions([])
-            ->setPrice(number_format((float) $data->item_unit_price, 4, '.', ''))
-            ->setStatus((string) $status);
+            ->setPrice(number_format((float)$data->item_unit_price, 4, '.', ''))
+            ->setStatus((string)$status);
 
         try {
             if ($product->hasDataChanges() || !empty($this->customAttributesMap)) {
                 $this->saveCustomProductAttributes($product, $data);
+
+                // Fix image roles reset issue
+                $product->unsetData('media_gallery');
 
                 $this->productRepository->save($product);
 
@@ -351,8 +354,12 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
     public function getCustomProductNavAttributeValue($product, $data, $navAttributeCode, $eavAttributeCode)
     {
         $value = (string)$data->$navAttributeCode;
+        // Unset product data when NAV attribute value is not set
+        if ($value == '') {
+            $value = null;
+        }
         $attribute = $product->getResource()->getAttribute($eavAttributeCode);
-        if ($attribute->usesSource()) {
+        if ($attribute && $attribute->usesSource()) {
             $value = $attribute->getSource()->getOptionId($value);
         }
 
@@ -377,7 +384,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         $productId = $product->getId();
         $connection->query('DELETE FROM ' . $tableName . ' WHERE product_id = ' . $productId);
         foreach ($websiteIds as $id) {
-            $id = (int) $id;
+            $id = (int)$id;
             $connection->query('INSERT INTO ' . $tableName . ' (product_id, website_id) VALUES (' . $productId . ', ' . $id . ')');
         }
     }
