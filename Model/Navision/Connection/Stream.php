@@ -6,7 +6,7 @@ use Magento\Framework\App\Filesystem\DirectoryList;
 
 class Stream
 {
-    const NAV_WSDL_FILE = 'nav.wsdl';
+    const NAV_WSDL_FILE_MASK = 'nav_%s.wsdl';
 
     /**
      * @var string
@@ -74,9 +74,10 @@ class Stream
         $this->initStream();
 
         $tmpDir = $this->filesystem->getDirectoryWrite(DirectoryList::TMP);
-        $tmpDir->writeFile(self::NAV_WSDL_FILE, $this->streamData);
+        $wsdlFileName = sprintf(self::NAV_WSDL_FILE_MASK, $this->getWebsiteId());
+        $tmpDir->writeFile($wsdlFileName, $this->streamData);
 
-        return $tmpDir->getAbsolutePath(self::NAV_WSDL_FILE);
+        return $tmpDir->getAbsolutePath($wsdlFileName);
     }
 
     public function stream_close()
