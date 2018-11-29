@@ -4,17 +4,18 @@ namespace MalibuCommerce\MConnect\Model\Navision;
 class Connection
 {
     /**
-     * @var Connection\Soap
+     * @var Connection\SoapFactory
      */
-    protected $soapConnection;
+    protected $soapConnectionFactory;
 
-    public function __construct(Connection\Soap $soapConnection)
-    {
-        $this->soapConnection = $soapConnection;
+    public function __construct(
+        Connection\SoapFactory $soapConnectionFactory
+    ) {
+        $this->soapConnectionFactory = $soapConnectionFactory;
     }
 
     public function __call($method, $arguments)
     {
-        return call_user_func_array(array($this->soapConnection, $method), $arguments);
+        return call_user_func_array(array($this->soapConnectionFactory->create(), $method), $arguments);
     }
 }
