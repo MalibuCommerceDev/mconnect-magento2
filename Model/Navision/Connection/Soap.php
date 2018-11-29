@@ -64,6 +64,7 @@ class Soap
         } catch (\Throwable $e) {
             $this->mConnectHelper->logRequestError($arguments, $this->mConnectConfig->getNavConnectionUrl($websiteId), $method, $e);
 
+            $this->unregisterStream($websiteId);
             throw $e;
         }
         $this->unregisterStream($websiteId);
