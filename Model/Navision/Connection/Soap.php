@@ -59,13 +59,10 @@ class Soap
             $this->registerStream($websiteId);
             $this->registerClient($websiteId);
 
-            $this->soapClient->setWebsiteId($websiteId);
-            $this->stream->setWebsiteId($websiteId);
-
             unset($arguments['website_id']);
             $result = call_user_func_array(array($this->soapClient, $method), $arguments);
         } catch (\Throwable $e) {
-            $this->mConnectHelper->logRequestError($arguments, null, $method, $e);
+            $this->mConnectHelper->logRequestError($arguments, $this->mConnectConfig->getNavConnectionUrl($websiteId), $method, $e);
 
             throw $e;
         }
@@ -90,6 +87,7 @@ class Soap
             throw new \LogicException(sprintf('Failed to register "%s" stream when connecting to Navision.', $protocol));
         }
         $this->isStreamRegistered = true;
+        $this->stream->setWebsiteId($websiteId);
     }
 
     protected function registerClient($websiteId = 0)
@@ -107,6 +105,8 @@ class Soap
                 ]
             );
         }
+
+        $this->soapClient->setWebsiteId($websiteId);
 
         return $this;
     }

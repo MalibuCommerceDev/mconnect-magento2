@@ -71,10 +71,7 @@ class Stream
     public function stream_open($streamUri)
     {
         $this->streamUri = $streamUri;
-        $this->initStream($this->getWebsiteId());
-        if (empty($this->streamData)) {
-            throw new \RuntimeException('SOAP-ERROR: Couldn\'t load WSDL');
-        }
+        $this->initStream();
 
         $tmpDir = $this->filesystem->getDirectoryWrite(DirectoryList::TMP);
         $tmpDir->writeFile(self::NAV_WSDL_FILE, $this->streamData);
@@ -137,35 +134,41 @@ class Stream
         return $this->stream_stat();
     }
 
-    protected function initStream($websiteId = 0)
+    protected function initStream()
     {
         if ($this->streamData !== null) {
             return;
         }
+        $streamUri = $this->streamUri;
         $config = $this->mConnectConfig;
-        $this->streamCurlHandle = curl_init($this->streamUri);
+        $this->streamCurlHandle = curl_init($streamUri);
         curl_setopt($this->streamCurlHandle, CURLOPT_RETURNTRANSFER, true);
 
-        if ($config->getIsInsecureConnectionAllowed($websiteId)) {
+        if ($config->getIsInsecureConnectionAllowed($this->getWebsiteId())) {
             curl_setopt($this->streamCurlHandle, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($this->streamCurlHandle, CURLOPT_SSL_VERIFYPEER, 0);
         }
 
         curl_setopt($this->streamCurlHandle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-        if ($config->getUseNtlmAuthentication($websiteId)) {
+        if ($config->getUseNtlmAuthentication($this->getWebsiteId())) {
             curl_setopt($this->streamCurlHandle, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
         }
         curl_setopt(
             $this->streamCurlHandle,
             CURLOPT_USERPWD,
-            $config->getNavConnectionUsername($websiteId) . ':' . $config->getNavConnectionPassword($websiteId)
+            $config->getNavConnectionUsername($this->getWebsiteId()) . ':' . $config->getNavConnectionPassword($this->getWebsiteId())
         );
         $this->streamData = trim(curl_exec($this->streamCurlHandle));
 
         $httpCode = curl_getinfo($this->streamCurlHandle, CURLINFO_HTTP_CODE);
         if ($httpCode != 200) {
-            throw new \RuntimeException('SOAP-ERROR: Couldn\'t not connect to the server');
+            throw new \RuntimeException('SOAP-ERROR: Couldn\'t not connect to the server, URL: ' . $streamUri);
         }
+
+        if (empty($this->streamData)) {
+            throw new \RuntimeException('SOAP-ERROR: Couldn\'t load WSDL from URL: ' . $streamUri);
+        }
+
         $this->streamDataPointer = 0;
     }
 }

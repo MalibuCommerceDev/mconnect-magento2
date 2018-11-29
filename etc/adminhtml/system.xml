@@ -220,9 +220,9 @@
                 </field>
             </group>
 
-            <group id="inventory" type="text" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+            <group id="inventory" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>Inventory</label>
-                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
