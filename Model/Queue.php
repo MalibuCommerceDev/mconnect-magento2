@@ -238,4 +238,9 @@ class Queue extends \Magento\Framework\Model\AbstractModel
     {
         return $this->getResource()->wasTheItemEverSuccessfullyExported($entityId, $code);
     }
+
+    public function deleteQueueItemById($itemId)
+    {
+        return $this->getResource()->deleteQueueItemById($itemId);
+    }
 }

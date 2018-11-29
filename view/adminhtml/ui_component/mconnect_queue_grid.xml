@@ -74,6 +74,15 @@
                     </item>
                 </argument>
             </action>
+            <action name="delete">
+                <argument name="data" xsi:type="array">
+                    <item name="config" xsi:type="array">
+                        <item name="type" xsi:type="string">delete</item>
+                        <item name="label" xsi:type="string" translate="true">Delete</item>
+                        <item name="url" xsi:type="url" path="mconnect/queue/massDelete"/>
+                    </item>
+                </argument>
+            </action>
         </massaction>
         <paging name="listing_paging"/>
     </listingToolbar>

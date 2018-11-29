@@ -40,4 +40,15 @@ class Queue extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 
         return (bool)$adapter->fetchOne($select);
     }
+
+    public function deleteQueueItemById($itemId)
+    {
+        if (!is_array($itemId)) {
+            $itemId = [$itemId];
+        }
+
+        $adapter = $this->getConnection();
+
+        return $adapter->delete($this->getMainTable(), ['id IN (?)' => $itemId]);
+    }
 }
