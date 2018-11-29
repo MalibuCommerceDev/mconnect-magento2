@@ -5,9 +5,9 @@ namespace MalibuCommerce\MConnect\Model\Navision\Connection;
 class Soap
 {
     /**
-     * @var \MalibuCommerce\MConnect\Model\Navision\Connection\Soap\Client
+     * @var \MalibuCommerce\MConnect\Model\Navision\Connection\Soap\Client[]
      */
-    protected $soapClient;
+    protected $soapClients;
     protected $isStreamRegistered = false;
     protected $restoreStream      = false;
     protected $protocol;
@@ -60,7 +60,7 @@ class Soap
             $this->registerClient($websiteId);
 
             unset($arguments['website_id']);
-            $result = call_user_func_array(array($this->soapClient, $method), $arguments);
+            $result = call_user_func_array(array($this->soapClients[$websiteId], $method), $arguments);
         } catch (\Throwable $e) {
             $this->mConnectHelper->logRequestError($arguments, $this->mConnectConfig->getNavConnectionUrl($websiteId), $method, $e);
 
@@ -93,8 +93,8 @@ class Soap
 
     protected function registerClient($websiteId = 0)
     {
-        if ($this->soapClient === null) {
-            $this->soapClient = new \MalibuCommerce\MConnect\Model\Navision\Connection\Soap\Client(
+        if (!array_key_exists($websiteId, $this->soapClients)) {
+            $this->soapClients[$websiteId] = new \MalibuCommerce\MConnect\Model\Navision\Connection\Soap\Client(
                 $this->mConnectConfig,
                 $this->mConnectHelper,
                 $this->stream->stream_open($this->mConnectConfig->getNavConnectionUrl($websiteId)),
@@ -107,7 +107,7 @@ class Soap
             );
         }
 
-        $this->soapClient->setWebsiteId($websiteId);
+        $this->soapClients[$websiteId]->setWebsiteId($websiteId);
 
         return $this;
     }

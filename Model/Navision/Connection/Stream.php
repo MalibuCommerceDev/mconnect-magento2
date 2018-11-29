@@ -14,7 +14,7 @@ class Stream
     protected $streamUri;
 
     /**
-     * @var string
+     * @var []
      */
     protected $streamData;
 
@@ -75,9 +75,25 @@ class Stream
 
         $tmpDir = $this->filesystem->getDirectoryWrite(DirectoryList::TMP);
         $wsdlFileName = sprintf(self::NAV_WSDL_FILE_MASK, $this->getWebsiteId());
-        $tmpDir->writeFile($wsdlFileName, $this->streamData);
+
+        $tmpDir->writeFile($wsdlFileName, $this->getStreamData());
 
         return $tmpDir->getAbsolutePath($wsdlFileName);
+    }
+
+    protected function getStreamData()
+    {
+        if (!array_key_exists($this->getWebsiteId(), $this->streamData)) {
+
+            return null;
+        }
+
+        return $this->streamData[$this->getWebsiteId()];
+    }
+
+    protected function setStreamData($data)
+    {
+        $this->streamData[$this->getWebsiteId()] = $data;
     }
 
     public function stream_close()
@@ -87,10 +103,10 @@ class Stream
 
     public function stream_read($count)
     {
-        if ($this->streamData === null || strlen($this->streamData) === 0) {
+        if ($this->getStreamData() === null || strlen($this->getStreamData()) === 0) {
             return false;
         }
-        $data = substr($this->streamData, $this->streamDataPointer, $count);
+        $data = substr($this->getStreamData(), $this->streamDataPointer, $count);
         $this->streamDataPointer += strlen($data);
 
         return $data;
@@ -98,7 +114,7 @@ class Stream
 
     public function stream_write($data)
     {
-        if ($this->streamData === null || strlen($this->streamData) === 0) {
+        if ($this->getStreamData() === null || strlen($this->getStreamData()) === 0) {
             return false;
         }
 
@@ -107,7 +123,7 @@ class Stream
 
     public function stream_eof()
     {
-        return $this->streamDataPointer > strlen($this->streamData);
+        return $this->streamDataPointer > strlen($this->getStreamData());
     }
 
     public function stream_tell()
@@ -117,7 +133,7 @@ class Stream
 
     public function stream_flush()
     {
-        $this->streamData = null;
+        $this->setStreamData(null);
         $this->streamDataPointer = null;
     }
 
@@ -126,7 +142,7 @@ class Stream
         $this->initStream();
 
         return array(
-            'size' => strlen($this->streamData),
+            'size' => strlen($this->getStreamData()),
         );
     }
 
@@ -137,7 +153,7 @@ class Stream
 
     protected function initStream()
     {
-        if ($this->streamData !== null) {
+        if ($this->getStreamData() !== null) {
             return;
         }
         $streamUri = $this->streamUri;
@@ -159,14 +175,14 @@ class Stream
             CURLOPT_USERPWD,
             $config->getNavConnectionUsername($this->getWebsiteId()) . ':' . $config->getNavConnectionPassword($this->getWebsiteId())
         );
-        $this->streamData = trim(curl_exec($this->streamCurlHandle));
+        $this->setStreamData(trim(curl_exec($this->streamCurlHandle)));
 
         $httpCode = curl_getinfo($this->streamCurlHandle, CURLINFO_HTTP_CODE);
         if ($httpCode != 200) {
             throw new \RuntimeException('SOAP-ERROR: Couldn\'t not connect to the server, URL: ' . $streamUri);
         }
 
-        if (empty($this->streamData)) {
+        if (empty($this->getStreamData())) {
             throw new \RuntimeException('SOAP-ERROR: Couldn\'t load WSDL from URL: ' . $streamUri);
         }
 
