@@ -18,11 +18,11 @@ class Pricerule extends \Magento\Framework\Model\AbstractModel
 
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $config,
+        \Magento\Store\Api\WebsiteRepositoryInterface $websiteRepository,
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
-        \Magento\Store\Api\WebsiteRepositoryInterface $websiteRepository,
         array $data = []
     ) {
         $this->config = $config;
