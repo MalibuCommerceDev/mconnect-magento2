@@ -32,17 +32,25 @@ class ProcessItemCommand extends Command
     protected $emulatedAreaProcessor;
 
     /**
-     * ProcessItemCommand constructor.
-     *
-     * @param Queue                          $queue
-     * @param EmulatedAdminhtmlAreaProcessor $emulatedAreaProcessor
+     * @var \MalibuCommerce\MConnect\Model\Cron
      */
+    protected $cronModel;
+
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Config
+     */
+    protected $config;
+
     public function __construct(
         Queue $queue,
-        EmulatedAdminhtmlAreaProcessor $emulatedAreaProcessor
+        EmulatedAdminhtmlAreaProcessor $emulatedAreaProcessor,
+        \MalibuCommerce\MConnect\Model\Cron $cronModel,
+        \MalibuCommerce\MConnect\Model\Config $config
     ) {
         $this->queue = $queue;
         $this->emulatedAreaProcessor = $emulatedAreaProcessor;
+        $this->cronModel = $cronModel;
+        $this->config = $config;
 
         parent::__construct();
     }
@@ -89,26 +97,40 @@ class ProcessItemCommand extends Command
             $this->emulatedAreaProcessor->process(function () use ($input, $output) {
                 $code = $input->getArgument(self::ARGUMENT_CODE);
                 $action = $input->getArgument(self::ARGUMENT_ACTION);
-                $websiteId = $input->getArgument(self::ARGUMENT_WEBSITE_ID);
+                $websiteIds = $input->getArgument(self::ARGUMENT_WEBSITE_ID);
                 $entityId = $input->getArgument(self::ARGUMENT_ENTITY_ID);
                 $sync = $input->getOption(self::OPTION_SYNC);
-                $websiteId = $websiteId ?: 0;
-                $queue = $this->queue->add($code, $action, $websiteId, $entityId, [], null, true);
-                if (!$queue->getId()) {
-                    $output->writeln('<error>Failed to add item to the queue</error>');
-                    return;
+                
+                if ($websiteIds === null || $websiteIds === '') {
+                    $websiteIds = $this->cronModel->getMultiCompanyActiveWebsites();
                 }
-                $output->writeln(sprintf('Queue Item ID is "%d"', $queue->getId()));
+                if (!is_array($websiteIds)) {
+                    $websiteIds = [$websiteIds];
+                }
+
+                foreach ($websiteIds as $websiteId) {
+                    if (!(bool)$this->config->getWebsiteData($code . '/import_enabled', $websiteId)) {
+                        $message = sprintf('Import functionality is disabled for %s at Website ID %s', $code, $websiteId);
+                        $output->writeln('<warning>' . $message . ' </warning>');
+                        continue;
+                    }
+
+                    $queue = $this->queue->add($code, $action, $websiteId, $entityId, [], null, true);
+
+                    if ($queue->getId()) {
+                        $message = sprintf('New %s item added to queue for Website ID %s: %s', $code, $websiteId, $queue->getId());
+                        $output->writeln('<info>' . $message . ' </info>');
+                    } else {
+                        $message = sprintf('Failed to add new %s item added to queue for Website ID %s', $code, $websiteId);
+                        $output->writeln('<error>' . $message . ' </error>');
+                    }
+                }
+
+
                 if ($sync) {
                     $output->writeln('Syncing...');
-                    $queue->process();
-                    if ($queue->getStatus() === Queue::STATUS_SUCCESS) {
-                        $output->writeln('Success');
-                    } else {
-                        $message = 'Failed';
-                        $message .= ': ' . $queue->getMessage();
-                        $output->writeln('<error>' . $message . '</error>');
-                    }
+                    $this->queue->process();
+                    $output->writeln('Sync Completed!');
                 }
             });
 

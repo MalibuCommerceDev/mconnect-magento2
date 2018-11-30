@@ -83,7 +83,7 @@ class Cron
         return $messages;
     }
 
-    protected function getMultiCompanyActiveWebsites()
+    public function getMultiCompanyActiveWebsites()
     {
         $connection = $this->queue->create()->getResource()->getConnection();
         $select = $connection->select()
