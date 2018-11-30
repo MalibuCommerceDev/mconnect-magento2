@@ -11,15 +11,22 @@ class Pricerule extends \Magento\Framework\Model\AbstractModel
      */
     protected $config;
 
+    /**
+     * @var \Magento\Store\Api\WebsiteRepositoryInterface
+     */
+    protected $websiteRepository;
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $config,
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        \Magento\Store\Api\WebsiteRepositoryInterface $websiteRepository,
         array $data = []
     ) {
         $this->config = $config;
+        $this->websiteRepository = $websiteRepository;
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
     }
 
@@ -60,8 +67,8 @@ class Pricerule extends \Magento\Framework\Model\AbstractModel
         $collection = $this->getResourceCollection();
         $price = $collection->matchDiscountPrice($sku, $qty, $websiteId);
         
-        // attempt to get price match for default scope
-        if (!$price === false && $websiteId != 0) {
+        // If current website is a default website, then attempt to get price match for default scope (Website ID = 0)
+        if ($price === false && $websiteId == $this->websiteRepository->getDefault()->getId()) {
             $collection->getSelect()->reset(\Magento\Framework\DB\Select::WHERE);
             $collection->getSelect()->reset(\Magento\Framework\DB\Select::COLUMNS);
             $price = $collection->matchDiscountPrice($sku, $qty, 0);
