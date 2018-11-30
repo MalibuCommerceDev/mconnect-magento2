@@ -163,7 +163,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
             $this->endProcess(self::STATUS_SUCCESS, $model->getMessages());
         } catch (\Throwable $e) {
             $this->_logger->critical($e);
-            $this->endProcess(self::STATUS_ERROR, $e->getMessage());
+            $this->endProcess(self::STATUS_ERROR, 'Processing interrupted: ' . $e->getMessage() . "\n\n" . $model->getMessages());
         }
 
         $this->registry->unregister('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM_ID', $this->getId());

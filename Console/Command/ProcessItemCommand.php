@@ -100,7 +100,7 @@ class ProcessItemCommand extends Command
                 $websiteIds = $input->getArgument(self::ARGUMENT_WEBSITE_ID);
                 $entityId = $input->getArgument(self::ARGUMENT_ENTITY_ID);
                 $sync = $input->getOption(self::OPTION_SYNC);
-                
+
                 if ($websiteIds === null || $websiteIds === '') {
                     $websiteIds = $this->cronModel->getMultiCompanyActiveWebsites();
                 }

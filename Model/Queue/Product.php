@@ -244,11 +244,12 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         if (!empty($websiteId)) {
             $websiteIds = [$websiteId];
         }
-        if (!empty($data->item_webshop_list) && empty($websiteId)) {
+        if (!empty($data->item_webshop_list)) {
             $websiteIds = (string)$data->item_webshop_list;
+            $websiteIds = explode(',', $websiteIds);
         }
         if (!empty($websiteId)) {
-            $product->setWebsiteIds(explode(',', $websiteIds));
+            $product->setWebsiteIds($websiteIds);
         }
 
         $status = $data->item_blocked == 'true'
@@ -296,8 +297,8 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
 
                 $this->productRepository->save($product);
 
-                if (!empty($data->item_webshop_list)) {
-                    $this->updateProductWebsites($sku, explode(',', $websiteIds));
+                if (!empty($websiteIds)) {
+                    $this->updateProductWebsites($sku, $websiteIds);
                 }
                 if ($productExists) {
                     $this->messages .= $sku . ': updated';
