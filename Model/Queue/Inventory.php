@@ -66,7 +66,7 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
         $lastSync = false;
         $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_INVENTORY_SYNC_TIME, $websiteId);
         do {
-            $result = $this->navInventory->export($page++, $lastUpdated);
+            $result = $this->navInventory->export($page++, $lastUpdated, $websiteId);
             foreach ($result->item_inventory as $data) {
                 try {
                     $importResult = $this->updateInventory($data, $websiteId);

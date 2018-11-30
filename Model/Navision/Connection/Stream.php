@@ -16,7 +16,7 @@ class Stream
     /**
      * @var []
      */
-    protected $streamData;
+    protected $streamData = [];
 
     /**
      * @var int
