@@ -248,7 +248,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
             $websiteIds = (string)$data->item_webshop_list;
             $websiteIds = explode(',', $websiteIds);
         }
-        if (!empty($websiteId)) {
+        if (!empty($websiteIds)) {
             $product->setWebsiteIds($websiteIds);
         }
 
