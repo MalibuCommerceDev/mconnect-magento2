@@ -161,9 +161,8 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
     {
         $this->initImport();
 
-        $count = 0;
-        $page = 0;
-        $lastSync = false;
+        $page = $count = 0;
+        $detectedErrors = $lastSync = false;
         $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_CUSTOMER_SYNC_TIME, $websiteId);
         do {
             $result = $this->navCustomer->export($page++, $lastUpdated, $websiteId);
@@ -174,6 +173,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
                         $count++;
                     }
                 } catch (\Exception $e) {
+                    $detectedErrors = true;
                     $this->messages .= $e->getMessage() . PHP_EOL;
                 }
                 $this->messages .= PHP_EOL;
@@ -182,8 +182,12 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
                 $lastSync = $result->status->current_date_time;
             }
         } while ($this->hasRecords($result));
-        if ($count > 0) {
+
+        if (!$detectedErrors || $this->config->getWebsiteData('customer/ignore_magento_errors', $websiteId)) {
             $this->setLastSyncTime(Flag::FLAG_CODE_LAST_CUSTOMER_SYNC_TIME, $lastSync, $websiteId);
+        }
+
+        if ($count > 0) {
             $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';
         } else {
             $this->messages .= PHP_EOL . 'Nothing to import.';

@@ -111,9 +111,8 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
 
         $this->setCurrentStore($websiteId);
 
-        $count       = 0;
-        $page        = 0;
-        $lastSync    = false;
+        $page = $count = 0;
+        $detectedErrors = $lastSync = false;
         $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_PRODUCT_SYNC_TIME, $websiteId);
         do {
             $result = $this->navProduct->export($page++, $lastUpdated, $websiteId);
@@ -127,6 +126,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
                         $this->messages .= 'Unable to import NAV product' . PHP_EOL;
                     }
                 } catch (\Exception $e) {
+                    $detectedErrors = true;
                     $this->messages .= $e->getMessage() . PHP_EOL;
                 }
                 $this->messages .= PHP_EOL;
@@ -135,8 +135,12 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
                 $lastSync = $result->status->current_date_time;
             }
         } while ($this->hasRecords($result));
-        if ($count > 0) {
+
+        if (!$detectedErrors || $this->config->getWebsiteData('product/ignore_magento_errors', $websiteId)) {
             $this->setLastSyncTime(Flag::FLAG_CODE_LAST_PRODUCT_SYNC_TIME, $lastSync, $websiteId);
+        }
+
+        if ($count > 0) {
             $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';
         } else {
             $this->messages .= PHP_EOL . 'Nothing to import.';

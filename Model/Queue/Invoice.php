@@ -59,9 +59,8 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
 
     public function importAction($websiteId)
     {
-        $count = 0;
-        $page = 0;
-        $lastSync = false;
+        $page = $count = 0;
+        $detectedErrors = $lastSync = false;
         $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_INVOICE_SYNC_TIME, $websiteId);
         do {
             $result = $this->navInvoice->export($page++, $lastUpdated, $websiteId);
@@ -72,6 +71,7 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
                         $count++;
                     }
                 } catch (\Exception $e) {
+                    $detectedErrors = true;
                     $this->messages .= $e->getMessage() . PHP_EOL;
                 }
                 $this->messages .= PHP_EOL;
@@ -80,8 +80,12 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
                 $lastSync = $result->status->current_date_time;
             }
         } while ($this->hasRecords($result));
-        if ($count > 0) {
+
+        if (!$detectedErrors || $this->config->getWebsiteData('invoice/ignore_magento_errors', $websiteId)) {
             $this->setLastSyncTime(Flag::FLAG_CODE_LAST_INVOICE_SYNC_TIME, $lastSync, $websiteId);
+        }
+
+        if ($count > 0) {
             $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';
         } else {
             $this->messages .= PHP_EOL . 'Nothing to import.';
