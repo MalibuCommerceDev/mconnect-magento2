@@ -142,7 +142,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         if (!method_exists($model, $method)) {
             $this->endProcess(
                 self::STATUS_ERROR,
-                sprintf('M-Connect error: The action "%s" is not recognized and cannot be processed.  You may need to update the M-Connect module or clear the Magento cache.', $action)
+                sprintf('Malibu Connect error: The action "%s" is not recognized and cannot be processed.  You may need to update the Malibu Connect module or clear the Magento cache.', $action)
             );
 
             return $this;

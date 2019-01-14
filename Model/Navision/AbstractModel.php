@@ -78,7 +78,7 @@ class AbstractModel extends \Magento\Framework\DataObject
             return $this->prepareResponseXml($responseXml);
         }
 
-        throw new \RuntimeException('Empty Response from NAV server, try to increase NAV connection timeout in Magento Admin Panel -> Stores -> Configuration -> Services -> M-Connect -> NAV Connection');
+        throw new \RuntimeException('Empty Response from NAV server, try to increase NAV connection timeout in Magento Admin Panel -> Stores -> Configuration -> Services -> Malibu Connect -> NAV Connection');
     }
 
     protected function _import($action, $parameters = array(), $websiteId = 0)
