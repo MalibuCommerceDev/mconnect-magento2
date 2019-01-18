@@ -3,35 +3,39 @@
 namespace MalibuCommerce\MConnect\Ui\Component\Listing\Column;
 
 use \Magento\Sales\Api\OrderRepositoryInterface;
+use \MalibuCommerce\MConnect\Model\Queue;
 use \Magento\Framework\View\Element\UiComponent\ContextInterface;
 use \Magento\Framework\View\Element\UiComponentFactory;
-use \Magento\Ui\Component\Listing\Columns\Column;
-use \Magento\Framework\Api\SearchCriteriaBuilder;
 
-class OrderNavId extends \Magento\Ui\Component\Listing\Columns\Column
+class NavStatus extends \Magento\Ui\Component\Listing\Columns\Column
 {
-    protected $_orderRepository;
+    /**
+     * @var \MalibuCommerce\MConnect\Helper\Data
+     */
+    protected $helper;
 
     public function __construct(
         ContextInterface $context,
         UiComponentFactory $uiComponentFactory,
         OrderRepositoryInterface $orderRepository,
+        Queue $queue,
+        \MalibuCommerce\MConnect\Helper\Data $helper,
         array $components = [],
         array $data = [])
     {
-        $this->_orderRepository = $orderRepository;
+        $this->helper = $helper;
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
 
     public function prepareDataSource(array $dataSource)
     {
+        $targetColumnName = $this->getData('name');
         if (isset($dataSource['data']['items'])) {
-            foreach ($dataSource['data']['items'] as & $item) {
-
-                $order = $this->_orderRepository->get($item["entity_id"]);
-                $navId = $order->getData('nav_id');
-
-                $item[$this->getData('name')] = $navId;
+            foreach ($dataSource['data']['items'] as $columnId => & $item) {
+                if ($columnId != $targetColumnName) {
+                    continue;
+                }
+                $item[$targetColumnName] = $this->helper->getQueueItemStatusHtml($item['mc_status'], $item['mc_message']);
             }
         }
 

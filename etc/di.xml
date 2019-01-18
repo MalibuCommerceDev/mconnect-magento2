@@ -13,6 +13,8 @@
             <argument name="collections" xsi:type="array">
                 <item name="mconnect_queue_grid_data_source" xsi:type="string">MalibuCommerce\MConnect\Model\Resource\Adminhtml\Queue\Grid\Collection</item>
                 <item name="mconnect_pricerule_grid_data_source" xsi:type="string">MalibuCommerce\MConnect\Model\Resource\Adminhtml\Pricerule\Grid\Collection</item>
+                <item name="sales_order_grid_data_source" xsi:type="string">MalibuCommerce\MConnect\Model\Resource\Order\Grid\Collection</item>
+                <item name="customer_listing_data_source" xsi:type="string">MalibuCommerce\MConnect\Model\Resource\Customer\Grid\Collection</item>
             </argument>
         </arguments>
     </type>
@@ -28,6 +30,13 @@
         <plugin name="orderStatesPlugin" type="MalibuCommerce\MConnect\Plugin\OrderPlugin" />
     </type>
     <type name="Magento\Framework\View\Layout\Reader\Visibility\Condition">
-        <plugin name="orderStatesPlugin" type="MalibuCommerce\MConnect\Plugin\Framework\View\Layout\Reader\Visibility\ConditionPlugin" />
+        <plugin name="mconnect_layout_visibility_condition_plugin" type="MalibuCommerce\MConnect\Plugin\Framework\View\Layout\Reader\Visibility\ConditionPlugin" />
     </type>
+    <virtualType name="Magento\Sales\Model\ResourceModel\Order\Grid" type="Magento\Sales\Model\ResourceModel\Grid">
+        <arguments>
+            <argument name="columns" xsi:type="array">
+                <item name="nav_id" xsi:type="string">sales_order.nav_id</item>
+            </argument>
+        </arguments>
+    </virtualType>
 </config>

@@ -116,16 +116,16 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * Generate Queue Item Status as html
+     * Render queue item status for HTML version
      *
-     * @param \MalibuCommerce\MConnect\Model\Queue $queueItem
+     * @param string $status
+     * @param string $message
      *
      * @return string
      */
-    public function getQueueItemStatusHtml(\MalibuCommerce\MConnect\Model\Queue $queueItem)
+    public function getQueueItemStatusHtml($status, $message)
     {
         $result = '';
-        $status = $queueItem->getStatus();
         $style = 'text-transform: uppercase;'
                  . ' font-weight: bold;'
                  . ' color: white;'
@@ -134,7 +134,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                  . ' display: block;'
                  . ' text-align: center;'
                  . ' border-radius: 10px;';
-        $title = htmlentities($queueItem->getMessage());
+        $title = htmlentities($message);
         $background = false;
         switch ($status) {
             case \MalibuCommerce\MConnect\Model\Queue::STATUS_PENDING:
