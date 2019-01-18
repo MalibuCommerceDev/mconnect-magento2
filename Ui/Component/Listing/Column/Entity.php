@@ -80,8 +80,8 @@ class Entity extends \Magento\Ui\Component\Listing\Columns\Column
 
             $link = false;
             $title = false;
-            if ($item['code'] === 'customer') {
-                if ($item['action'] === 'export') {
+            if ($item['code'] === \MalibuCommerce\MConnect\Model\Queue\Customer::CODE) {
+                if ($item['action'] === \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT) {
                     if (!array_key_exists($item['entity_id'], $this->customers)) {
                         $this->customers[$item['entity_id']] = $this->customerFactory->create()->load($item['entity_id']);
                     }
@@ -92,7 +92,7 @@ class Entity extends \Magento\Ui\Component\Listing\Columns\Column
                         $title = $entity->getEmail();
                     }
                 }
-            } else if ($item['code'] === 'product') {
+            } else if ($item['code'] === \MalibuCommerce\MConnect\Model\Queue\Product::CODE) {
                 if ($item['action'] === 'import_single') {
                     if (!array_key_exists($item['entity_id'], $this->products)) {
                         $this->products[$item['entity_id']] = $this->catalogProductFactory->create()->load($item['entity_id']);
@@ -104,8 +104,8 @@ class Entity extends \Magento\Ui\Component\Listing\Columns\Column
                         $title = $entity->getName();
                     }
                 }
-            } else if ($item['code'] === 'order') {
-                if ($item['action'] === 'export') {
+            } else if ($item['code'] === \MalibuCommerce\MConnect\Model\Queue\Order::CODE) {
+                if ($item['action'] === \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT) {
                     if (!array_key_exists($item['entity_id'], $this->orders)) {
                         $this->orders[$item['entity_id']] = $this->salesOrderFactory->create()->load($item['entity_id']);
                     }

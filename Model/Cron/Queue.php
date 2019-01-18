@@ -88,7 +88,7 @@ class Queue
 
         $value = $config->get('queue/delete_after');
         if (!$value) {
-            return 'Queue cleaning not enabled.';
+            return 'Queue cleaning is not enabled.';
         }
 
         $queues = $this->queueCollectionFactory->create();
@@ -114,7 +114,7 @@ class Queue
 
         $value = $config->get('queue/error_after');
         if (!$value) {
-            return 'Error marking not enabled.';
+            return 'Mconnect module is not configured, queue/error_after is missing.';
         }
 
         $queues = $this->queueCollectionFactory->create();
@@ -122,12 +122,18 @@ class Queue
             ->addFieldToFilter('status', ['eq' => QueueModel::STATUS_RUNNING]);
         $count = $queues->getSize();
         if (!$count) {
-            return 'No items in queue to remove.';
+            return 'No items in queue to mark with error status.';
         }
 
         foreach ($queues as $queue) {
             $message = sprintf("Marked as staled after %s minutes\n\n", $value);
             $message .= $queue->getMessage();
+            $message = mb_strimwidth(
+                $message,
+                0,
+                \MalibuCommerce\MConnect\Helper\Data::QUEUE_ITEM_MAX_MESSAGE_SIZE,
+                '...'
+            );
 
             $queue->setStatus(QueueModel::STATUS_ERROR)
                 ->setMessage($message)

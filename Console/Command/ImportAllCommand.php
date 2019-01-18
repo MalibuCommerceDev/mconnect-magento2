@@ -64,14 +64,13 @@ class ImportAllCommand extends Command
                 $this->mconnectCron->queueShipmentImport();
                 $this->mconnectCron->queuePriceRuleImport();
 
-                $results = $this->queue->process();
-                $output->writeln($results);
+                $this->queue->process();
             });
 
             return Cli::RETURN_SUCCESS;
         } catch (\Exception $e) {
             $output->writeln(
-                sprintf('<error>%s</error>', $e->getMessage())
+                sprintf('<error>%s</error>', $e->getMessage() . "\n\n" . $e->getTraceAsString())
             );
 
             return Cli::RETURN_FAILURE;

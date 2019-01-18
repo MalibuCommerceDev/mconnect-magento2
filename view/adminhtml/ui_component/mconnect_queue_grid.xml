@@ -7,11 +7,6 @@
     </argument>
     <settings>
         <buttons>
-            <button name="add">
-                <url path="*/*/new"/>
-                <class>primary</class>
-                <label translate="true">Add New</label>
-            </button>
             <button name="sync">
                 <url path="*/*/sync"/>
                 <class>action secondary</class>
@@ -139,6 +134,16 @@
                     <item name="label" xsi:type="string" translate="true">Website</item>
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                     <item name="sortOrder" xsi:type="number">50</item>
+                </item>
+            </argument>
+        </column>
+        <column name="nav_page_num">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">NAV Page #</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="sortOrder" xsi:type="number">55</item>
                 </item>
             </argument>
         </column>

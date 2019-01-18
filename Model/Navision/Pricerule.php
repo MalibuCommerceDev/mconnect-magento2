@@ -2,11 +2,11 @@
 
 namespace MalibuCommerce\MConnect\Model\Navision;
 
-class Pricerule extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
+class Pricerule extends AbstractModel
 {
     public function export($page = 0, $lastUpdated = false, $websiteId = 0)
     {
-        $max = $this->config->get('price_rule/max_rows');
+        $max = $this->config->get(\MalibuCommerce\MConnect\Model\Queue\Pricerule::CODE . '/max_rows');
         $parameters = array(
             'skip'     => $page * $max,
             'max_rows' => $max,

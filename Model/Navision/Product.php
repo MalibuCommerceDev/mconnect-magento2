@@ -2,7 +2,7 @@
 
 namespace MalibuCommerce\MConnect\Model\Navision;
 
-class Product extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
+class Product extends AbstractModel
 {
     /**
      * Navision export products
@@ -15,7 +15,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
      */
     public function export($page = 0, $lastUpdated = false, $websiteId = 0)
     {
-        $max = $this->config->get('product/max_rows');
+        $max = $this->config->get(\MalibuCommerce\MConnect\Model\Queue\Product::CODE . '/max_rows');
         $parameters = array(
             'skip'     => $page * $max,
             'max_rows' => $max,

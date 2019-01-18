@@ -2,7 +2,7 @@
 
 namespace MalibuCommerce\MConnect\Model\Navision;
 
-class AbstractModel extends \Magento\Framework\DataObject
+abstract class AbstractModel extends \Magento\Framework\DataObject
 {
     /**
      * @var \MalibuCommerce\MConnect\Model\Navision\Connection
@@ -41,6 +41,15 @@ class AbstractModel extends \Magento\Framework\DataObject
     }
 
     /**
+     * @param int  $page
+     * @param bool $lastUpdated
+     * @param int  $websiteId
+     *
+     * @return \simpleXMLElement
+     */
+    abstract public function export($page = 0, $lastUpdated = false, $websiteId = 0);
+
+    /**
      * @return \MalibuCommerce\MConnect\Model\Navision\Connection
      */
     public function getConnection()
@@ -53,7 +62,7 @@ class AbstractModel extends \Magento\Framework\DataObject
         static $attempts = 1;
 
         try {
-            $responseXml = $this->doRequest('export', $this->prepareRequestXml($action, $parameters),  $websiteId);
+            $responseXml = $this->doRequest(\MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT, $this->prepareRequestXml($action, $parameters),  $websiteId);
         } catch (\Throwable $e) {
             if (!$this->config->getWebsiteData('nav_connection/retry_on_failure', $websiteId)) {
                 $attempts = 1;
@@ -85,7 +94,7 @@ class AbstractModel extends \Magento\Framework\DataObject
     {
         return $this->prepareResponseXml(
             $this->doRequest(
-                'import',
+                \MalibuCommerce\MConnect\Model\Queue::ACTION_IMPORT,
                 $this->prepareRequestXml($action, $parameters),
                 $websiteId
             )
@@ -123,10 +132,10 @@ class AbstractModel extends \Magento\Framework\DataObject
     protected function doRequest($type, $xml, $websiteId = 0)
     {
         switch ($type) {
-            case 'export':
+            case \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT:
                 $method = 'ExportFromNAV';
                 break;
-            case 'import':
+            case \MalibuCommerce\MConnect\Model\Queue::ACTION_IMPORT:
                 $method = 'ImportToNAV';
                 break;
             default:

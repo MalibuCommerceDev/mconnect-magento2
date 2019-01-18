@@ -24,9 +24,10 @@ class Log extends \Magento\Ui\Component\Listing\Columns\Column
         array $components = [],
         array $data = []
     ) {
-        parent::__construct($context, $uiComponentFactory, $components, $data);
         $this->helper = $helper;
         $this->urlBuilder = $urlBuilder;
+
+        parent::__construct($context, $uiComponentFactory, $components, $data);
     }
 
     public function prepareDataSource(array $dataSource)
@@ -34,15 +35,17 @@ class Log extends \Magento\Ui\Component\Listing\Columns\Column
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
                 $logFile = $this->helper->getLogFile($item['id']);
+                $size = $this->helper->getFileSize($logFile, false);
 
-                if ($logFile) {
-                    $label = __('View');
-                    $size = $this->helper->getFileSize($logFile);
-                    if ($size) {
-                        $label = $size;
+                if ($size) {
+                    if ($size <= \MalibuCommerce\MConnect\Helper\Data::ALLOWED_LOG_SIZE_TO_BE_VIEWED) {
+                        $url = $this->urlBuilder->getUrl('mconnect/queue/log', ['id' => $item['id']]);
+                        $item['log'] = __('<a target="_blank" href="%1">View (%2)</a>', $url, $this->helper->getFileSize($logFile));
+                    } else {
+                        $item['log'] = __('Large Data (%1)', $size);
                     }
-
-                    $item['log'] = '<a target="_blank" href="' . $this->urlBuilder->getUrl('mconnect/queue/log', array('id' => $item['id'])) . '">' . $label . '</a>';
+                } else {
+                    $item['log'] = __('N/A');
                 }
             }
         }

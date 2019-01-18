@@ -78,7 +78,13 @@ class OrderPlugin
 
         if ($order->canHold() && !$this->queue->create()->wasTheItemEverSuccessfullyExported($order->getId(), 'order')) {
             try {
-                $this->queue->create()->add('order', 'export', $websiteId, $order->getId());
+                $this->queue->create()->add(
+                    \MalibuCommerce\MConnect\Model\Queue\Order::CODE,
+                    \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT,
+                    $websiteId,
+                    0,
+                    $order->getId()
+                );
             } catch (\Exception $e) {
                 $this->logger->critical($e);
             }
@@ -96,7 +102,7 @@ class OrderPlugin
             if ($order && $order->getId()) {
                 $this->queue->create()->removePendingItems(
                     $order->getId(),
-                    'order',
+                    \MalibuCommerce\MConnect\Model\Queue\Order::CODE,
                     sprintf('Order "%s" (ID: %s) export is canceled because its status is: %s', $order->getIncrementId(), $order->getId(), $order->getStatus())
                 );
             }

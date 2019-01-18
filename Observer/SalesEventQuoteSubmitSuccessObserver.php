@@ -53,7 +53,11 @@ class SalesEventQuoteSubmitSuccessObserver implements \Magento\Framework\Event\O
         /** @var \Magento\Sales\Model\Order $order */
         $order = $observer->getOrder();
         if ($order && !$order->getSkipMconnect()) {
-            $this->queue('order', 'export', $order);
+            $this->queueNewItem(
+                \MalibuCommerce\MConnect\Model\Queue\Order::CODE,
+                \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT,
+                $order
+            );
         }
 
         return $this;
@@ -66,7 +70,7 @@ class SalesEventQuoteSubmitSuccessObserver implements \Magento\Framework\Event\O
      *
      * @return bool|\MalibuCommerce\MConnect\Model\Queue
      */
-    protected function queue($code, $action, $order)
+    protected function queueNewItem($code, $action, $order)
     {
         try {
             $scheduledAt = null;
@@ -76,7 +80,7 @@ class SalesEventQuoteSubmitSuccessObserver implements \Magento\Framework\Event\O
                 $scheduledAt = date('Y-m-d H:i:s', strtotime('+' . (int)$delayInMinutes . ' minutes'));
             }
 
-            return $this->queue->create()->add($code, $action, $websiteId, $order->getId(), [], $scheduledAt);
+            return $this->queue->create()->add($code, $action, $websiteId, 0, $order->getId(), [], $scheduledAt);
         } catch (\Exception $e) {
             $this->logger->critical($e);
         }

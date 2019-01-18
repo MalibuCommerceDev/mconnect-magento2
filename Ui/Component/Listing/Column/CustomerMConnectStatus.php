@@ -37,7 +37,7 @@ class CustomerMConnectStatus extends \Magento\Ui\Component\Listing\Columns\Colum
             foreach ($dataSource['data']['items'] as & $item) {
                 /** @var \MalibuCommerce\MConnect\Model\Resource\Queue\Collection $queueCollection */
                 $queueCollection = $this->_queue->getCollection()
-                    ->addFilter('code', 'customer')
+                    ->addFilter('code', \MalibuCommerce\MConnect\Model\Queue\Customer::CODE)
                     ->addFilter('entity_id', $item['entity_id'])
                     ->setPageSize(1)
                     ->setCurPage(1)

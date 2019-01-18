@@ -24,63 +24,67 @@ class Cron
 
     public function queueCustomerImport()
     {
-        return $this->queueImportItem('customer');
+        return $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Customer::CODE);
     }
 
     public function queueProductImport()
     {
-        return $this->queueImportItem('product');
+        return $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Product::CODE);
     }
 
     public function queueInventoryImport()
     {
-        return $this->queueImportItem('inventory');
+        return $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Inventory::CODE);
     }
 
     public function queueInvoiceImport()
     {
-        return $this->queueImportItem('invoice');
+        return $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Invoice::CODE);
     }
 
     public function queueShipmentImport()
     {
-        return $this->queueImportItem('shipment');
+        return $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Shipment::CODE);
     }
 
     public function queuePriceRuleImport()
     {
-        return $this->queueImportItem('price_rule');
+        return $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Pricerule::CODE);
     }
 
     protected function queueImportItem($code)
     {
         if (!$this->config->isModuleEnabled()) {
 
-            return 'M-Connect is disabled.';
+            echo 'M-Connect is disabled' . PHP_EOL;
         }
 
         $activeWebsites = $this->getMultiCompanyActiveWebsites();
-        $messages = '';
 
         foreach ($activeWebsites as $websiteId) {
             if (!(bool)$this->config->getWebsiteData($code . '/import_enabled', $websiteId)) {
-                $messages .= sprintf('Import functionality is disabled for %s at Website ID %s', $code, $websiteId);
+                echo sprintf('Import functionality is disabled for %s at Website ID "%s"', $code, $websiteId) . PHP_EOL;
                 continue;
             }
 
             $queue = $this->queue->create()->add(
                 $code,
-                'import',
-                $websiteId
+                \MalibuCommerce\MConnect\Model\Queue::ACTION_IMPORT,
+                $websiteId,
+                0,
+                null,
+                [],
+                null,
+                true
             );
             if ($queue->getId()) {
-                $messages .= sprintf('New %s item added to queue for Website ID %s', $code, $websiteId);
+                echo sprintf('The "%s" item added/exists in the queue for Website ID "%s"', $code, $websiteId) . PHP_EOL;
             } else {
-                $messages .= sprintf('Failed to add new %s item added to queue for Website ID %s', $code, $websiteId);
+                echo sprintf('Failed to add new %s item added to queue for Website ID "%s"', $code, $websiteId) . PHP_EOL;
             }
         }
 
-        return $messages;
+        return true;
     }
 
     public function getMultiCompanyActiveWebsites()

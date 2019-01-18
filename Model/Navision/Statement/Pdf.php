@@ -4,6 +4,11 @@ namespace MalibuCommerce\MConnect\Model\Navision\Statement;
 
 class Pdf extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 {
+    public function export($page = 0, $lastUpdated = false, $websiteId = 0)
+    {
+
+    }
+
     public function get($customerNumber, $startDate, $endDate)
     {
         $xml = new \simpleXMLElement('<customer_statement />');

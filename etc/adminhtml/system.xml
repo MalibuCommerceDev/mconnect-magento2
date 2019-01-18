@@ -120,8 +120,12 @@
                     <comment>Number of days to keep historical queue data.  Leave empty to disable.</comment>
                 </field>
                 <field id="error_after" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>\Mark as errored after (minutes)</label>
-                    <comment>Number of minutes after which a running process will be marked as errored.</comment>
+                    <label>Mark queue item as errored after (minutes)</label>
+                    <comment>Amount of time after which a processing  queue item will be marked as errored.</comment>
+                </field>
+                <field id="max_pages_per_execution" sortOrder="40" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Maximum NAV data pages to process per one queue item run</label>
+                    <comment>This is needed in order avoid large amount of data processing failures due to staled/gone corn job process after long period of time.</comment>
                 </field>
             </group>
 
@@ -131,51 +135,55 @@
                     <label>Import Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="ignore_magento_errors" sortOrder="8" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="export_enabled" sortOrder="10" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Export Enabled</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="ignore_magento_errors" sortOrder="20" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Ignore Magento Logical Errors</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Will allow continuation of NAV sync process by changing last sync date even if there were any Magento Logical Exceptions during the sync process]]></comment>
                 </field>
-                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="cron_expr" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
                     <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
                 </field>
-                <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="max_rows" sortOrder="40" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
                 </field>
-                <field id="default_nav_id_magento_guest" sortOrder="30" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="default_nav_id_magento_guest" sortOrder="50" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default NAV ID For Magento Guest Customers</label>
                     <comment><![CDATA[Leave blank to disable]]></comment>
                 </field>
-                <field id="default_nav_id_magento_registered" sortOrder="40" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="default_nav_id_magento_registered" sortOrder="60" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default NAV ID For Magento Newly Registered Customers</label>
                     <comment><![CDATA[Leave blank to disable]]></comment>
                 </field>
-                <field id="default_group_taxable" sortOrder="60" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="default_group_taxable" sortOrder="70" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default group for new customers (taxable)</label>
                     <source_model>\Magento\Customer\Model\Config\Source\Group</source_model>
                 </field>
-                <field id="default_group_nontaxable" sortOrder="70" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="default_group_nontaxable" sortOrder="80" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default group for new customers (non-taxable)</label>
                     <source_model>\Magento\Customer\Model\Config\Source\Group</source_model>
                 </field>
-                <field id="default_website" sortOrder="80" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="default_website" sortOrder="90" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Default website for new customers</label>
                     <source_model>\Magento\Config\Model\Config\Source\Website</source_model>
                 </field>
-                <field id="send_new_customer_emails" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="send_new_customer_emails" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Send Password Reset Email to a New Customers Imported from NAV</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="new_customer_email_sender" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="new_customer_email_sender" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Password Reset Email Sender</label>
                     <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
                     <depends>
                         <field id="send_new_customer_emails">1</field>
                     </depends>
                 </field>
-                <field id="new_customer_email_template" translate="label comment" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="new_customer_email_template" translate="label comment" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Password Res Email Template</label>
                     <comment>Email template chosen based on theme fallback when "Default" option is selected.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
@@ -183,11 +191,11 @@
                         <field id="send_new_customer_emails">1</field>
                     </depends>
                 </field>
-                <field id="show_reports" sortOrder="120" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="show_reports" sortOrder="130" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Enable NAV Reports In Customer Account</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="nav_reports_allowed_customer_groups" sortOrder="130" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="nav_reports_allowed_customer_groups" sortOrder="140" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>NAV Reports Allowed Customer Groups</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Source\CustomerGroups</source_model>
                     <depends>
@@ -255,6 +263,10 @@
                 <label>Order</label>
                 <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Enabled</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="export_enabled" sortOrder="8" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Export Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="hold_new_orders_export" sortOrder="10" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">

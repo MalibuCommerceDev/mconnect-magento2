@@ -49,16 +49,21 @@ class AfterCustomerSaveObserver implements \Magento\Framework\Event\ObserverInte
         $customer = $observer->getCustomer();
         if (!$customer->getSkipMconnect()) {
             $websiteId = $customer->getWebsiteId();
-            $this->_queue('customer', 'export', $websiteId, $customer->getId());
+            $this->queueNewItem(
+                \MalibuCommerce\MConnect\Model\Queue\Customer::CODE,
+                \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT,
+                $websiteId,
+                $customer->getId()
+            );
         }
 
         return $this;
     }
 
-    protected function _queue($code, $action, $websiteId = 0, $id = null)
+    protected function queueNewItem($code, $action, $websiteId = 0, $id)
     {
         try {
-            return $this->queue->create()->add($code, $action, $websiteId, $id);
+            return $this->queue->create()->add($code, $action, $websiteId, 0, $id);
         } catch (\Exception $e) {
             $this->logger->critical($e);
         }

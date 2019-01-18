@@ -2,8 +2,11 @@
 
 namespace MalibuCommerce\MConnect\Model\Queue;
 
-class Inventory extends \MalibuCommerce\MConnect\Model\Queue
+class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
 {
+    const CODE = 'inventory';
+    const NAV_XML_NODE_ITEM_NAME = 'item_inventory';
+
     /**
      * @var \Magento\Catalog\Api\ProductRepositoryInterface|ProductRepositoryInterface
      */
@@ -59,50 +62,23 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue
         $this->queueFlagFactory = $queueFlagFactory;
     }
 
-    public function importAction($websiteId)
+    public function importAction($websiteId, $navPageNumber = 0)
     {
-        $page = $count = 0;
-        $detectedErrors = $lastSync = false;
-        $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_INVENTORY_SYNC_TIME, $websiteId);
-        do {
-            $result = $this->navInventory->export($page++, $lastUpdated, $websiteId);
-            foreach ($result->item_inventory as $data) {
-                try {
-                    $importResult = $this->updateInventory($data, $websiteId);
-                    if ($importResult) {
-                        $count++;
-                    }
-                    if ($importResult === false) {
-                        $this->messages .= 'Unable to import NAV inventory data' . PHP_EOL;
-                    }
-                } catch (\Throwable $e) {
-                    $this->messages .= $e->getMessage() . PHP_EOL;
-                }
-                $this->messages .= PHP_EOL;
-            }
-            if (!$lastSync) {
-                $lastSync = $result->status->current_date_time;
-            }
-        } while ($this->hasRecords($result));
-
-        if (!$detectedErrors || $this->config->getWebsiteData('inventory/ignore_magento_errors', $websiteId)) {
-            $this->setLastSyncTime(Flag::FLAG_CODE_LAST_INVENTORY_SYNC_TIME, $lastSync, $websiteId);
-        }
-
-        if ($count > 0) {
-            $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';
-        } else {
-            $this->messages .= PHP_EOL . 'Nothing to import.';
-        }
+        return $this->processMagentoImport($this->navInventory, $this, $websiteId, $navPageNumber);
     }
 
     /**
-     * @param $data
-     * @param int $websiteId
+     * Backward compatibility method
      *
-     * @return bool
+     * @param \SimpleXMLElement $data
+     * @param int $websiteId
      */
-    public function updateInventory($data, $websiteId)
+    public function updateInventory($data, $websiteId = 0)
+    {
+        $this->importEntity($data, $websiteId);
+    }
+
+    public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
         $sku = (string)$data->nav_item_id;
         $sku = trim($sku);

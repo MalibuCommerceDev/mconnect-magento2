@@ -6,6 +6,8 @@ use Magento\Framework\Exception\LocalizedException;
 
 class Order extends \MalibuCommerce\MConnect\Model\Queue
 {
+    const CODE = 'order';
+
     /**
      * @var \Magento\Sales\Api\OrderRepositoryInterface
      */

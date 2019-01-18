@@ -9,8 +9,11 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\Catalog\Model\Product\Attribute\Source\Status as ProductStatus;
 
-class Product extends \MalibuCommerce\MConnect\Model\Queue
+class Product extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
 {
+    const CODE = 'product';
+    const NAV_XML_NODE_ITEM_NAME = 'item';
+
     /**
      * @var \Magento\Catalog\Api\ProductRepositoryInterface|ProductRepositoryInterface
      */
@@ -105,46 +108,13 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         return $this->customAttributesMap;
     }
 
-    public function importAction($websiteId)
+    public function importAction($websiteId, $navPageNumber = 0)
     {
         $this->initImport();
 
         $this->setCurrentStore($websiteId);
 
-        $page = $count = 0;
-        $detectedErrors = $lastSync = false;
-        $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_PRODUCT_SYNC_TIME, $websiteId);
-        do {
-            $result = $this->navProduct->export($page++, $lastUpdated, $websiteId);
-            foreach ($result->item as $data) {
-                try {
-                    $importResult = $this->addProduct($data, $websiteId);
-                    if ($importResult) {
-                        $count++;
-                    }
-                    if ($importResult === false) {
-                        $this->messages .= 'Unable to import NAV product' . PHP_EOL;
-                    }
-                } catch (\Exception $e) {
-                    $detectedErrors = true;
-                    $this->messages .= $e->getMessage() . PHP_EOL;
-                }
-                $this->messages .= PHP_EOL;
-            }
-            if (!$lastSync) {
-                $lastSync = $result->status->current_date_time;
-            }
-        } while ($this->hasRecords($result));
-
-        if (!$detectedErrors || $this->config->getWebsiteData('product/ignore_magento_errors', $websiteId)) {
-            $this->setLastSyncTime(Flag::FLAG_CODE_LAST_PRODUCT_SYNC_TIME, $lastSync, $websiteId);
-        }
-
-        if ($count > 0) {
-            $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';
-        } else {
-            $this->messages .= PHP_EOL . 'Nothing to import.';
-        }
+        return $this->processMagentoImport($this->navProduct, $this, $websiteId, $navPageNumber);
     }
 
     public function importSingleAction($websiteId)
@@ -157,13 +127,24 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue
         }
         $result = $this->navProduct->exportSingle($details->nav_id, $websiteId);
         $this->captureEntityId = true;
-        $result = $this->addProduct($result->item, $websiteId);
+        $result = $this->importEntity($result->item, $websiteId);
         if ($result === false) {
             throw new LocalizedException(sprintf('Unable to import NAV product "%s"', $details->nav_id));
         }
     }
 
+    /**
+     * Backward compatibility method
+     *
+     * @param \SimpleXMLElement $data
+     * @param int $websiteId
+     */
     public function addProduct($data, $websiteId = 0)
+    {
+        $this->importEntity($data, $websiteId);
+    }
+
+    public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
         if (empty($data->item_nav_id)) {
             $this->messages .= 'No valid NAV ID found in response XML' . PHP_EOL;

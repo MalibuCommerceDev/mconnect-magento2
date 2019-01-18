@@ -5,7 +5,7 @@ namespace MalibuCommerce\MConnect\Model\Navision;
 use Magento\Catalog\Model\Product\Type as ProductType;
 use Magento\Framework\Module\Manager;
 
-class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
+class Order extends AbstractModel
 {
     /**
      * @var \Magento\Directory\Model\Region
@@ -79,6 +79,11 @@ class Order extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         $this->moduleManager = $moduleManager;
 
         parent::__construct($config, $mConnectNavisionConnection, $logger);
+    }
+
+    public function export($page = 0, $lastUpdated = false, $websiteId = 0)
+    {
+
     }
 
     /**

@@ -34,24 +34,24 @@ abstract class Queue extends Action
     protected $mConnectCronQueue;
 
     /**
-     * Queue constructor.
-     *
-     * @param Action\Context                             $context
-     * @param \Magento\Framework\View\Result\PageFactory $resultPageFactory
-     * @param \MalibuCommerce\MConnect\Model\Queue       $mConnectQueue
-     * @param \MalibuCommerce\MConnect\Model\Cron\Queue  $mConnectCronQueue
+     * @var \MalibuCommerce\MConnect\Helper\Data
      */
+    protected $helper;
+
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
         \Magento\Framework\View\Result\PageFactory $resultPageFactory,
         \MalibuCommerce\MConnect\Model\Queue $mConnectQueue,
-        \MalibuCommerce\MConnect\Model\Cron\Queue $mConnectCronQueue
+        \MalibuCommerce\MConnect\Model\Cron\Queue $mConnectCronQueue,
+        \MalibuCommerce\MConnect\Helper\Data $helper
     ) {
-        parent::__construct($context);
         $this->resultPageFactory = $resultPageFactory;
         $this->mConnectQueue = $mConnectQueue;
         $this->mConnectCronQueue = $mConnectCronQueue;
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
         $this->messageManager = $context->getMessageManager();
+        $this->helper = $helper;
+
+        parent::__construct($context);
     }
 }

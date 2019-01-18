@@ -6,6 +6,9 @@ use \Magento\Framework\App\Filesystem\DirectoryList;
 
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
 {
+    const ALLOWED_LOG_SIZE_TO_BE_VIEWED = 10485760; // in bytes, 10 MB
+    const QUEUE_ITEM_MAX_MESSAGE_SIZE   = 16777200; // in bytes, ~16 MB
+
     /**
      * @var \MalibuCommerce\MConnect\Model\Config
      */
@@ -35,7 +38,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param int $id
+     * @param int  $id
      * @param bool $absolute
      * @param bool $nameOnly
      *
@@ -63,12 +66,17 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         return !file_exists($file) && !$nameOnly ? false : $file;
     }
 
-    public function getFileSize($file)
+    public function getFileSize($file, $humanReadable = true)
     {
         if (!file_exists($file)) {
             return false;
         }
         $bytes = filesize($file);
+
+        if (!$humanReadable) {
+            return $bytes;
+        }
+
         $units = array('B', 'KB', 'MB', 'GB', 'TB');
         $bytes = max($bytes, 0);
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
@@ -152,9 +160,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param $request
-     * @param $location
-     * @param $action
+     * @param            $request
+     * @param            $location
+     * @param            $action
      * @param \Throwable $e
      *
      * @return bool
@@ -175,18 +183,19 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         );
 
         $request = $this->prepareLogRequest($request, $location, $action);
-        $this->mConnectMailer->sendErrorEmail('An error occurred when connecting to Navision.', $request, $e->getMessage());
+        $this->mConnectMailer->sendErrorEmail('An error occurred when connecting to Navision.', $request,
+            $e->getMessage());
 
         return true;
     }
 
     /**
      * @param string|array $request
-     * @param string $location
-     * @param string $action
-     * @param string|int $code
-     * @param string $header
-     * @param string $body
+     * @param string       $location
+     * @param string       $action
+     * @param string|int   $code
+     * @param string       $header
+     * @param string       $body
      *
      * @return bool
      */
@@ -205,10 +214,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
         $request = $this->prepareLogRequest($request, $location, $action);
         $response = [
-            'Code'         => $code,
-            'Headers'      => $header,
-            'Body'         => $body,
-            'Response XML' => $this->decodeRequest('/<responseXML>(.*)<\/responseXML>/', $body)
+            'Code'          => $code,
+            'Headers'       => $header,
+            'Response Data' => $this->decodeRequest('/<responseXML>(.*)<\/responseXML>/', $body)
         ];
 
         $logger->debug('Debug Data', array(
@@ -221,20 +229,19 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
     /**
      * @param string|array $request
-     * @param string $location
-     * @param string $action
+     * @param string       $location
+     * @param string       $action
      *
      * @return array
      */
     public function prepareLogRequest($request, $location, $action)
     {
         return [
-            'Time'        => date('r'),
-            'Location'    => $location,
-            'PID'         => getmypid(),
-            'Action'      => $action,
-            'Body'        => is_array($request) ? print_r($request, true) : $request,
-            'Request XML' => $this->decodeRequest('/<ns1:requestXML>(.*)<\/ns1:requestXML>/', $request),
+            'Time'         => date('r'),
+            'Location'     => $location,
+            'PID'          => getmypid(),
+            'Action'       => $action,
+            'Request Data' => $this->decodeRequest('/<ns1:requestXML>(.*)<\/ns1:requestXML>/', $request),
         ];
     }
 
@@ -252,6 +259,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             return base64_decode($matches[1]);
         }
 
-        return false;
+        return $value;
     }
 }

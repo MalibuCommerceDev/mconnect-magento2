@@ -44,6 +44,10 @@ class Common extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         parent::__construct($config, $mConnectNavisionConnection, $logger, $data);
     }
 
+    public function export($page = 0, $lastUpdated = false, $websiteId = 0)
+    {
+    }
+
     /**
      * Make request to Nav system and return entities
      *

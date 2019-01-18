@@ -5,8 +5,11 @@ namespace MalibuCommerce\MConnect\Model\Queue;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order\Shipment\Validation\QuantityValidator;
 
-class Shipment extends \MalibuCommerce\MConnect\Model\Queue
+class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
 {
+    const CODE = 'shipment';
+    const NAV_XML_NODE_ITEM_NAME = 'shipment';
+
     /**
      * @var \MalibuCommerce\MConnect\Model\Navision\Shipment
      */
@@ -102,44 +105,25 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
         $this->shippingConfig = $shippingConfig;
     }
 
-    public function importAction($websiteId)
+    public function importAction($websiteId, $navPageNumber = 0)
     {
-        $page = $count = 0;
-        $detectedErrors = $lastSync = false;
-        $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_SHIPMENT_SYNC_TIME, $websiteId);
-        do {
-            $result = $this->navShipment->export($page++, $lastUpdated, $websiteId);
-            foreach ($result->shipment as $data) {
-                try {
-                    $importResult = $this->importShipment($data, $websiteId);
-                    if ($importResult) {
-                        $count++;
-                    }
-                } catch (\Exception $e) {
-                    $detectedErrors = true;
-                    $this->messages .= $e->getMessage() . PHP_EOL;
-                }
-                $this->messages .= PHP_EOL;
-            }
-            if (!$lastSync) {
-                $lastSync = $result->status->current_date_time;
-            }
-        } while ($this->hasRecords($result));
-
-        if (!$detectedErrors || $this->config->getWebsiteData('shipment/ignore_magento_errors', $websiteId)) {
-            $this->setLastSyncTime(Flag::FLAG_CODE_LAST_SHIPMENT_SYNC_TIME, $lastSync, $websiteId);
-        }
-
-        if ($count > 0) {
-            $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';
-        } else {
-            $this->messages .= PHP_EOL . 'Nothing to import.';
-        }
+        return $this->processMagentoImport($this->navShipment, $this, $websiteId, $navPageNumber);
     }
 
-    protected function importShipment(\SimpleXMLElement $entity, $websiteId)
+    /**
+     * Backward compatibility method
+     *
+     * @param \SimpleXMLElement $data
+     * @param int $websiteId
+     */
+    public function importShipment($data, $websiteId = 0)
     {
-        $incrementId = (string)$entity->mag_order_id;
+        $this->importEntity($data, $websiteId);
+    }
+
+    public function importEntity(\SimpleXMLElement $data, $websiteId)
+    {
+        $incrementId = (string)$data->mag_order_id;
         /** @var \Magento\Sales\Model\Order $order */
         $order = $this->getOrder($incrementId);
 
@@ -149,12 +133,12 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
             }
             $saveTransaction = $this->transactionFactory->create();
 
-            $isShipmentPartial = $this->isShipmentPartial($order, $entity);
-            $shipment = $this->initShipment($order, $entity);
+            $isShipmentPartial = $this->isShipmentPartial($order, $data);
+            $shipment = $this->initShipment($order, $data);
 
-            if ($this->config->get('shipment/create_invoice_with_shipment')) {
+            if ($this->config->get($this->getQueueCode() . '/create_invoice_with_shipment')) {
                 try {
-                    $invoice = $this->initInvoice($order, $entity);
+                    $invoice = $this->initInvoice($order, $data);
                 } catch (\LogicException $e) {
                     // Ignore logical exceptions when attempting to create an invoice.
                     // This is needed when for ex. an invoice already exists and "Create Invoice With Shipment" is ON.
@@ -204,7 +188,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
 
             // send shipment email
             try {
-                if ($shipment && $this->config->get('shipment/send_email_enabled')) {
+                if ($shipment && $this->config->get($this->getQueueCode() . '/send_email_enabled')) {
                     $this->shipmentSender->send($shipment);
                 }
             } catch (\Exception $e) {
@@ -214,7 +198,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
             // cancel remaining order items and complete the order
             try {
                 if ($shipment && $isShipmentPartial
-                    && $this->config->get('shipment/cancel_remaining_not_shipped_items')
+                    && $this->config->get($this->getQueueCode() . '/cancel_remaining_not_shipped_items')
                 ) {
                     if ($order->canCancel()) {
                         $order->cancel();
@@ -241,8 +225,8 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue
      */
     protected function initShipment($order, $navEntity)
     {
-        if ($order->getIsVirtual() && $this->config->get('shipment/create_invoice_with_shipment')
-            && $this->config->get('shipment/skip_shipment_but_invoice_for_virtual_orders')
+        if ($order->getIsVirtual() && $this->config->get($this->getQueueCode() . '/create_invoice_with_shipment')
+            && $this->config->get($this->getQueueCode() . '/skip_shipment_but_invoice_for_virtual_orders')
         ) {
             return null;
         }

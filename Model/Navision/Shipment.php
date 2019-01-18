@@ -2,11 +2,18 @@
 
 namespace MalibuCommerce\MConnect\Model\Navision;
 
-class Shipment extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
+class Shipment extends AbstractModel
 {
+    /**
+     * @param int  $page
+     * @param bool $lastUpdated
+     * @param int  $websiteId
+     *
+     * @return \simpleXMLElement
+     */
     public function export($page = 0, $lastUpdated = false, $websiteId = 0)
     {
-        $max = $this->config->get('shipment/max_rows');
+        $max = $this->config->get(\MalibuCommerce\MConnect\Model\Queue\Shipment::CODE . '/max_rows');
         $parameters = array(
             'skip'     => $page * $max,
             'max_rows' => $max,

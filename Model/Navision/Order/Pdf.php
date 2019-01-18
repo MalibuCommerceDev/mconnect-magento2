@@ -4,6 +4,11 @@ namespace MalibuCommerce\MConnect\Model\Navision\Order;
 
 class Pdf extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 {
+    public function export($page = 0, $lastUpdated = false, $websiteId = 0)
+    {
+
+    }
+
     /**
      * @param $orderNumber
      * @param $customerNumber

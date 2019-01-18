@@ -7,8 +7,9 @@
             </general>
             <queue>
                 <cron_expr>* * * * *</cron_expr>
-                <delete_after>90</delete_after>
-                <error_after>30</error_after>
+                <delete_after>60</delete_after>
+                <error_after>180</error_after>
+                <max_pages_per_execution>150</max_pages_per_execution>
             </queue>
             <nav_connection>
                 <password backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
@@ -25,6 +26,7 @@
             </nav_connection>
             <customer>
                 <import_enabled>1</import_enabled>
+                <export_enabled>1</export_enabled>
                 <ignore_magento_errors>1</ignore_magento_errors>
                 <cron_expr>0 * * * *</cron_expr>
                 <max_rows>50</max_rows>
@@ -57,6 +59,7 @@
             </inventory>
             <order>
                 <import_enabled>1</import_enabled>
+                <export_enabled>1</export_enabled>
                 <hold_new_orders_export>0</hold_new_orders_export>
                 <hold_new_orders_delay>60</hold_new_orders_delay>
                 <order_status_when_synced_to_nav>nav_preparing_for_shipment</order_status_when_synced_to_nav>

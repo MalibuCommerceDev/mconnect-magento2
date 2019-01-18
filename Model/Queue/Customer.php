@@ -5,8 +5,11 @@ namespace MalibuCommerce\MConnect\Model\Queue;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\LocalizedException;
 
-class Customer extends \MalibuCommerce\MConnect\Model\Queue
+class Customer extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
 {
+    const CODE = 'customer';
+    const NAV_XML_NODE_ITEM_NAME = 'customer';
+
     /**
      * @var \Magento\Customer\Api\CustomerRepositoryInterface
      */
@@ -157,48 +160,29 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue
         throw new LocalizedException(__('Unexpected status: "%1". Check log for details.', $status));
     }
 
-    public function importAction($websiteId)
+    public function importAction($websiteId, $navPageNumber = 0)
     {
         $this->initImport();
 
-        $page = $count = 0;
-        $detectedErrors = $lastSync = false;
-        $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_CUSTOMER_SYNC_TIME, $websiteId);
-        do {
-            $result = $this->navCustomer->export($page++, $lastUpdated, $websiteId);
-            foreach ($result->customer as $data) {
-                try {
-                    $importResult = $this->importCustomer($data, $websiteId);
-                    if ($importResult) {
-                        $count++;
-                    }
-                } catch (\Exception $e) {
-                    $detectedErrors = true;
-                    $this->messages .= $e->getMessage() . PHP_EOL;
-                }
-                $this->messages .= PHP_EOL;
-            }
-            if (!$lastSync) {
-                $lastSync = $result->status->current_date_time;
-            }
-        } while ($this->hasRecords($result));
-
-        if (!$detectedErrors || $this->config->getWebsiteData('customer/ignore_magento_errors', $websiteId)) {
-            $this->setLastSyncTime(Flag::FLAG_CODE_LAST_CUSTOMER_SYNC_TIME, $lastSync, $websiteId);
-        }
-
-        if ($count > 0) {
-            $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';
-        } else {
-            $this->messages .= PHP_EOL . 'Nothing to import.';
-        }
+        return $this->processMagentoImport($this->navCustomer, $this, $websiteId, $navPageNumber);
     }
 
-    protected function importCustomer($data, $websiteId)
+    /**
+     * Backward compatibility method
+     *
+     * @param \SimpleXMLElement $data
+     * @param int $websiteId
+     */
+    public function importCustomer($data, $websiteId = 0)
+    {
+        $this->importEntity($data, $websiteId);
+    }
+
+    public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
         $email = (string)$data->cust_email;
         if (empty($email)) {
-            $this->messages .= 'Customer "' . $data->cust_nav_id . '": SKIPPED - email is empty' . PHP_EOL;
+            $this->messages .= 'Customer "' . (string)$data->cust_nav_id . '": SKIPPED - email is empty' . PHP_EOL;
 
             return false;
         }

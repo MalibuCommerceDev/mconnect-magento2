@@ -115,7 +115,7 @@ class ProcessItemCommand extends Command
                         continue;
                     }
 
-                    $queue = $this->queue->add($code, $action, $websiteId, $entityId, [], null, true);
+                    $queue = $this->queue->add($code, $action, $websiteId, 0, $entityId, [], null, true);
 
                     if ($queue->getId()) {
                         $message = sprintf('New %s item added to queue for Website ID %s: %s', $code, $websiteId, $queue->getId());

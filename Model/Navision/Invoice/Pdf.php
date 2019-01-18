@@ -4,6 +4,11 @@ namespace MalibuCommerce\MConnect\Model\Navision\Invoice;
 
 class Pdf extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 {
+    public function export($page = 0, $lastUpdated = false, $websiteId = 0)
+    {
+
+    }
+
     public function get($invoiceNumber, $customerNumber)
     {
         $xml = new \simpleXMLElement('<sales_invoice />');

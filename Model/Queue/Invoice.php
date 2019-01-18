@@ -2,8 +2,11 @@
 
 namespace MalibuCommerce\MConnect\Model\Queue;
 
-class Invoice extends \MalibuCommerce\MConnect\Model\Queue
+class Invoice extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
 {
+    const CODE = 'invoice';
+    const NAV_XML_NODE_ITEM_NAME = 'invoice';
+
     /**
      * @var \MalibuCommerce\MConnect\Model\Navision\Invoice
      */
@@ -57,38 +60,64 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
         $this->queueFlagFactory = $queueFlagFactory;
     }
 
-    public function importAction($websiteId)
+    public function importAction($websiteId, $navPageNumber = 0)
     {
-        $page = $count = 0;
-        $detectedErrors = $lastSync = false;
-        $lastUpdated = $this->getLastSyncTime(Flag::FLAG_CODE_LAST_INVOICE_SYNC_TIME, $websiteId);
-        do {
-            $result = $this->navInvoice->export($page++, $lastUpdated, $websiteId);
-            foreach ($result->invoice as $data) {
-                try {
-                    $importResult = $this->importInvoice($data, $websiteId);
-                    if ($importResult) {
-                        $count++;
-                    }
-                } catch (\Exception $e) {
-                    $detectedErrors = true;
-                    $this->messages .= $e->getMessage() . PHP_EOL;
-                }
-                $this->messages .= PHP_EOL;
-            }
-            if (!$lastSync) {
-                $lastSync = $result->status->current_date_time;
-            }
-        } while ($this->hasRecords($result));
+        return $this->processMagentoImport($this->navInvoice, $this, $websiteId, $navPageNumber);
+    }
 
-        if (!$detectedErrors || $this->config->getWebsiteData('invoice/ignore_magento_errors', $websiteId)) {
-            $this->setLastSyncTime(Flag::FLAG_CODE_LAST_INVOICE_SYNC_TIME, $lastSync, $websiteId);
+    /**
+     * Backward compatibility method
+     *
+     * @param \SimpleXMLElement $data
+     * @param int $websiteId
+     */
+    public function importInvoice($data, $websiteId = 0)
+    {
+        $this->importEntity($data, $websiteId);
+    }
+
+    public function importEntity(\SimpleXMLElement $data, $websiteId)
+    {
+        if ($this->config->get('shipment/create_invoice_with_shipment')) {
+
+            return true;
         }
 
-        if ($count > 0) {
-            $this->messages .= PHP_EOL . 'Successfully processed ' . $count . ' NAV records(s).';
-        } else {
-            $this->messages .= PHP_EOL . 'Nothing to import.';
+        $incrementId = (string)$data->mag_order_id;
+        $order = $this->getOrder($incrementId);
+
+        try {
+            if (!$order || !$order->getId()) {
+                throw new \LogicException(__('The order #%1 no longer exists.', $incrementId));
+            }
+
+            $invoice = $this->createInvoice($order);
+
+            $invoice->getOrder()->setIsInProcess(true);
+            $invoice->getOrder()->setSkipMconnect(true);
+
+            $saveTransaction = $this->transactionFactory->create();
+            $saveTransaction->addObject(
+                $invoice
+            )->addObject(
+                $invoice->getOrder()
+            );
+            $saveTransaction->save();
+
+            $this->messages .= 'Order #' . $incrementId . ' invoiced, invoice #' . $invoice->getIncrementId();
+
+            // send invoice email
+            try {
+                if ($this->config->get($this->getQueueCode() . '/send_email_enabled')) {
+                    $this->invoiceSender->send($invoice);
+                }
+            } catch (\Throwable $e) {
+                $this->messages .= $e->getMessage();
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            throw $e;
         }
     }
 
@@ -122,64 +151,10 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue
             );
         }
 
-        $invoice->setRequestedCaptureCase($this->config->get('invoice/capture_type'));
+        $invoice->setRequestedCaptureCase($this->config->get($this->getQueueCode() . '/capture_type'));
         $invoice->register();
 
         return $invoice;
-    }
-
-    /**
-     * Import invoice from NAV to Magento
-     *
-     * @param \SimpleXMLElement $entity
-     * @param int $websiteId
-     *
-     * @return bool
-     * @throws \Throwable
-     */
-    protected function importInvoice(\SimpleXMLElement $entity, $websiteId)
-    {
-        if ($this->config->get('shipment/create_invoice_with_shipment')) {
-
-            return true;
-        }
-
-        $incrementId = (string)$entity->mag_order_id;
-        $order = $this->getOrder($incrementId);
-
-        try {
-            if (!$order || !$order->getId()) {
-                throw new \LogicException(__('The order #%1 no longer exists.', $incrementId));
-            }
-
-            $invoice = $this->createInvoice($order);
-
-            $invoice->getOrder()->setIsInProcess(true);
-            $invoice->getOrder()->setSkipMconnect(true);
-
-            $saveTransaction = $this->transactionFactory->create();
-            $saveTransaction->addObject(
-                $invoice
-            )->addObject(
-                $invoice->getOrder()
-            );
-            $saveTransaction->save();
-
-            $this->messages .= 'Order #' . $incrementId . ' invoiced, invoice #' . $invoice->getIncrementId();
-
-            // send invoice email
-            try {
-                if ($this->config->get('invoice/send_email_enabled')) {
-                    $this->invoiceSender->send($invoice);
-                }
-            } catch (\Throwable $e) {
-                $this->messages .= $e->getMessage();
-            }
-
-            return true;
-        } catch (\Throwable $e) {
-            throw $e;
-        }
     }
 
     /**

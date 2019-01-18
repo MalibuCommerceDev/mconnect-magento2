@@ -35,7 +35,7 @@ class Queue extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
             ->where('entity_id = ?', $entityId)
             ->where('code = ?', $code)
             ->where('status = ?', \MalibuCommerce\MConnect\Model\Queue::STATUS_SUCCESS)
-            ->where('action = ?', 'export')
+            ->where('action = ?', \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT)
             ->limit(1);
 
         return (bool)$adapter->fetchOne($select);

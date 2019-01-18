@@ -9,7 +9,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
         $this->_init('MalibuCommerce\MConnect\Model\Queue', 'MalibuCommerce\MConnect\Model\Resource\Queue');
     }
 
-    public function findMatchingPending($code, $action, $websiteId = 0, $id = null, $details = array())
+    public function findMatchingPending($code, $action, $websiteId = 0, $navPageNumber = 0, $id = null, $details = '')
     {
         $this
             ->addFieldToFilter('status', [
@@ -20,17 +20,18 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
             ])
             ->addFieldToFilter('code', $code)
             ->addFieldToFilter('action', $action)
-            ->addFieldToFilter('website_id', $websiteId);
+            ->addFieldToFilter('website_id', $websiteId)
+            ->addFieldToFilter('nav_page_num', $navPageNumber);
 
         if ($id === null) {
             $this->addFieldToFilter('entity_id', array('null' => true));
         } else {
             $this->addFieldToFilter('entity_id', $id);
         }
-        if (!count($details)) {
+        if (empty($details)) {
             $this->addFieldToFilter('details', array('null' => true));
         } else {
-            $this->addFieldToFilter('details', json_encode($details));
+            $this->addFieldToFilter('details', $details);
         }
 
         return $this;

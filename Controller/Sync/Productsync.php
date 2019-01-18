@@ -88,15 +88,16 @@ class Productsync extends Action
         $data = array();
         if (!$this->config->isModuleEnabled()) {
             $data['error'] = 1;
-            $data['message'] = 'M-Connect is disabled).';
+            $data['message'] = 'M-Connect is disabled.';
         } else {
             try {
                 $queue = $this->queue->create()->add(
-                    'product',
+                    \MalibuCommerce\MConnect\Model\Queue\Product::CODE,
                     'import_single',
                     0,
+                    0,
                     null,
-                    array('nav_id' => $productSku)
+                    ['nav_id' => $productSku]
                 );
 
                 $queue->process();
