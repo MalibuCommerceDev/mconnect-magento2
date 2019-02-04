@@ -31,8 +31,8 @@ class NavStatus extends \Magento\Ui\Component\Listing\Columns\Column
     {
         $targetColumnName = $this->getData('name');
         if (isset($dataSource['data']['items'])) {
-            foreach ($dataSource['data']['items'] as $columnId => & $item) {
-                if ($columnId != $targetColumnName) {
+            foreach ($dataSource['data']['items'] as &$item) {
+                if (!array_key_exists($targetColumnName, $item)) {
                     continue;
                 }
                 $item[$targetColumnName] = $this->helper->getQueueItemStatusHtml($item['mc_status'], $item['mc_message']);
@@ -41,4 +41,5 @@ class NavStatus extends \Magento\Ui\Component\Listing\Columns\Column
 
         return $dataSource;
     }
+
 }

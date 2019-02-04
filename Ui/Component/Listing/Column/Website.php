@@ -4,6 +4,8 @@ namespace MalibuCommerce\MConnect\Ui\Component\Listing\Column;
 
 class Website extends \Magento\Ui\Component\Listing\Columns\Column
 {
+    const DEFAULT_WEBSITE_ID = 1;
+
     /**
      * Url Builder
      *
@@ -70,23 +72,21 @@ class Website extends \Magento\Ui\Component\Listing\Columns\Column
             }
 
             if (empty($item['website_id'])) {
-                $item['website_id'] = 'Default';
-            } else {
-                if (!array_key_exists($item['website_id'], $this->websites)) {
-                    $website = $this->websiteFactory->create()->load($item['website_id']);
-                    if ($website && $website->getId()) {
-                        $this->websites[$item['website_id']] = $website;
-                    }
-                }
-                if (empty($this->websites[$item['website_id']])) {
-                    continue;
-                }
-                /** @var \Magento\Store\Model\Website $website */
-                $website = $this->websites[$item['website_id']];
-                $link = $this->urlBuilder->getUrl('admin/system_store/editWebsite', array('website_id' => $item['website_id']));
-
-                $item['website_id'] = sprintf('<a href="%s" target="_blank" title="%s">%s<a/> (ID: %s; Code: %s)', $link, $website->getName(), $website->getName(), $website->getId(), $website->getCode());
+                $item['website_id'] = self::DEFAULT_WEBSITE_ID;
             }
+
+            if (!array_key_exists($item['website_id'], $this->websites)) {
+                $website = $this->websiteFactory->create()->load($item['website_id']);
+                if ($website && $website->getId()) {
+                    $link = $this->urlBuilder->getUrl('admin/system_store/editWebsite', array('website_id' => $item['website_id']));
+                    $this->websites[$item['website_id']] = sprintf('<a href="%s" target="_blank" title="%s">%s<a/> (ID: %s; Code: %s)', $link, $website->getName(), $website->getName(), $website->getId(), $website->getCode());
+                }
+            }
+            if (empty($this->websites[$item['website_id']])) {
+                continue;
+            }
+
+            $item['website_id'] = $this->websites[$item['website_id']];
 
         }
 

@@ -133,6 +133,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                  . ' width: 100%;'
                  . ' display: block;'
                  . ' text-align: center;'
+                 . ' padding: 3px;'
                  . ' border-radius: 10px;';
         $title = htmlentities($message);
         $background = false;

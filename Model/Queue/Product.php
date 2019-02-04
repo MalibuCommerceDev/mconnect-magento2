@@ -144,6 +144,21 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         $this->importEntity($data, $websiteId);
     }
 
+    protected function getFormattedExceptionString(\Exception $e, $code, $sku)
+    {
+        $shortTrace = explode("\n", $e->getTraceAsString());
+        $shortTrace = count($shortTrace) > 3
+            ? $shortTrace[0] . "\n" . $shortTrace[1]
+            : implode("\n", $shortTrace);
+        return sprintf(
+            'SKU "%s": Error [%s] %s' . "\n\n" . '%s' . "...\n",
+            $sku,
+            $code,
+            $e->getMessage(),
+            $shortTrace
+        );
+    }
+
     public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
         if (empty($data->item_nav_id)) {
@@ -161,7 +176,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         } catch (NoSuchEntityException $e) {
             $product = $this->productFactory->create();
         } catch (\Exception $e) {
-            $this->messages .= $sku . ': ' . $e->getMessage();
+            $this->messages .= $this->getFormattedExceptionString($e, __LINE__, $sku);
 
             return false;
         }
@@ -230,8 +245,11 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
             $websiteIds = [$websiteId];
         }
         if (!empty($data->item_webshop_list)) {
-            $websiteIds = (string)$data->item_webshop_list;
-            $websiteIds = explode(',', $websiteIds);
+            $websiteIdsString = (string)$data->item_webshop_list;
+            $websiteIds = explode('|', $websiteIdsString);
+            if (sizeof($websiteIds) < 2) {
+                $websiteIds = explode(',', $websiteIdsString);
+            }
         }
         if (!empty($websiteIds)) {
             $product->setWebsiteIds($websiteIds);
@@ -286,12 +304,12 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                     $this->updateProductWebsites($sku, $websiteIds);
                 }
                 if ($productExists) {
-                    $this->messages .= $sku . ': updated';
+                    $this->messages .= 'SKU ' . $sku . ': updated';
                 } else {
-                    $this->messages .= $sku . ': created';
+                    $this->messages .= 'SKU ' . $sku . ': created';
                 }
             } else {
-                $this->messages .= $sku . ': skipped';
+                $this->messages .= 'SKU ' . $sku . ': skipped';
             }
 
             $this->setEntityId($product->getId());
@@ -303,18 +321,22 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
 
                 try {
                     $this->productRepository->save($product);
+
+                    if (!empty($websiteIds)) {
+                        $this->updateProductWebsites($sku, $websiteIds);
+                    }
                     if ($productExists) {
-                        $this->messages .= $sku . ': updated';
+                        $this->messages .= 'SKU ' . $sku . ': updated';
                     } else {
-                        $this->messages .= $sku . ': created';
+                        $this->messages .= 'SKU ' . $sku . ': created';
                     }
                 } catch (\Exception $e) {
-                    $this->messages .= $sku . ': ' . $e->getMessage();
+                    $this->messages .= $this->getFormattedExceptionString($e, __LINE__, $sku);
 
                     return false;
                 }
             } else {
-                $this->messages .= $sku . ': ' . $e->getMessage();
+                $this->messages .= $this->getFormattedExceptionString($e, __LINE__, $sku);
 
                 return false;
             }
