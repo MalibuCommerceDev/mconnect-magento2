@@ -56,7 +56,7 @@ class Cron
     {
         if (!$this->config->isModuleEnabled()) {
 
-            echo 'M-Connect is disabled' . PHP_EOL;
+            return 'Malibu Connect is disabled.';
         }
 
         $activeWebsites = $this->getMultiCompanyActiveWebsites();

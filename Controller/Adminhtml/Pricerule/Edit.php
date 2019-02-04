@@ -21,7 +21,7 @@ class Edit extends \MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule\Price
             $breadcrumbTitle = __('New Mconnect Price Rule');
             $breadcrumbLabel = __('Create Mconnect Price Rule');
         }
-        $this->_view->getPage()->getConfig()->getTitle()->prepend(__('Mconnect Price Rules'));
+        $this->_view->getPage()->getConfig()->getTitle()->prepend(__('Malibu Connect Price Rules'));
         $this->_view->getPage()->getConfig()->getTitle()->prepend($breadcrumbTitle);
 
         $this->_addBreadcrumb($breadcrumbLabel, $breadcrumbTitle);

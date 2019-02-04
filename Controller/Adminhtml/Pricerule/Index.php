@@ -9,8 +9,8 @@ class Index extends \MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule\Pric
      */
     public function execute()
     {
-        $this->initAction()->_addBreadcrumb(__('Mconnect Price Rules'), __('Mconnect Price Rules'));
-        $this->_view->getPage()->getConfig()->getTitle()->prepend(__('Mconnect Price Rules'));
+        $this->initAction()->_addBreadcrumb(__('Malibu Connect Price Rules'), __('Malibu Connect Price Rules'));
+        $this->_view->getPage()->getConfig()->getTitle()->prepend(__('Malibu Connect Price Rules'));
         $this->_view->renderLayout();
     }
 }
