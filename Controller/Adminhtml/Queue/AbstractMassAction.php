@@ -34,10 +34,11 @@ abstract class AbstractMassAction extends Queue
         \Magento\Framework\View\Result\PageFactory $resultPageFactory,
         \MalibuCommerce\MConnect\Model\Queue $mConnectQueue,
         \MalibuCommerce\MConnect\Model\Cron\Queue $mConnectCronQueue,
+        \MalibuCommerce\MConnect\Helper\Data $helper,
         CollectionFactory $collectionFactory,
         Filter $filter
     ) {
-        parent::__construct($context, $resultPageFactory, $mConnectQueue, $mConnectCronQueue);
+        parent::__construct($context, $resultPageFactory, $mConnectQueue, $mConnectCronQueue, $helper);
         $this->filter = $filter;
         $this->collectionFactory = $collectionFactory;
     }
