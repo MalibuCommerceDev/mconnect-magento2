@@ -66,7 +66,7 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue implements Importab
 
     public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
-        $data = [
+        $modelData = [
             'nav_id'               => (int) $data->unique_id,
             'website_id'           => (int) $websiteId,
             'sku'                  => (string) $data->nav_item_id,
@@ -88,7 +88,7 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         /** @var \MalibuCommerce\MConnect\Model\Pricerule $model */
         $model = $collection->getFirstItem();
         $isUpdate = $model && $model->getId();
-        $model->addData($data);
+        $model->addData($modelData);
         try {
             $model->save();
             $this->messages .= 'Price Rule ' . ($isUpdate ? 'UPDATED' : 'CREATED')  . ': NAV ID ' . $model->getNavId();
