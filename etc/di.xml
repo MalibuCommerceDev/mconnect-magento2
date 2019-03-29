@@ -1,13 +1,5 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../lib/internal/Magento/Framework/ObjectManager/etc/config.xsd">
-    <virtualType name="Magento\Catalog\Pricing\Price\Pool" type="Magento\Framework\Pricing\Price\Pool">
-        <arguments>
-            <argument name="prices" xsi:type="array">
-                <item name="mconnect_rule_price" xsi:type="string">MalibuCommerce\MConnect\Pricing\Price\CatalogRulePrice</item>
-            </argument>
-        </arguments>
-    </virtualType>
-
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\FilterPool">
         <arguments>
             <argument name="appliers" xsi:type="array">

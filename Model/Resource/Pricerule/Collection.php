@@ -3,15 +3,9 @@
 namespace MalibuCommerce\MConnect\Model\Resource\Pricerule;
 
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Customer\Model\Session;
 
 class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
 {
-    /**
-     * @var Session
-     */
-    protected $customerSession;
-
     /**
      * @var \Magento\Customer\Api\Data\CustomerInterface
      */
@@ -28,31 +22,23 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     protected $groupRepository;
 
     /**
-     * Collection constructor.
-     *
-     * @param \Magento\Framework\Data\Collection\EntityFactoryInterface    $entityFactory
-     * @param \Psr\Log\LoggerInterface                                     $logger
-     * @param \Magento\Customer\Model\CustomerRegistry                     $customerRegistry
-     * @param \Magento\Customer\Api\GroupRepositoryInterface               $groupRepository
-     * @param \Magento\Framework\Data\Collection\Db\FetchStrategyInterface $fetchStrategy
-     * @param \Magento\Framework\Event\ManagerInterface                    $eventManager
-     * @param Session                                                      $customerSession
-     * @param \Magento\Framework\DB\Adapter\AdapterInterface|null          $connection
-     * @param \Magento\Framework\Model\ResourceModel\Db\AbstractDb|null    $resource
+     * @var \Magento\Customer\Model\SessionFactory
      */
+    protected $customerSessionFactory;
+
     public function __construct(
-        \Magento\Framework\Data\Collection\EntityFactoryInterface $entityFactory,
-        \Psr\Log\LoggerInterface $logger,
         \Magento\Customer\Model\CustomerRegistry $customerRegistry,
         \Magento\Customer\Api\GroupRepositoryInterface $groupRepository,
+        \Magento\Customer\Model\SessionFactory $customerSessionFactory,
+        \Magento\Framework\Data\Collection\EntityFactoryInterface $entityFactory,
+        \Psr\Log\LoggerInterface $logger,
         \Magento\Framework\Data\Collection\Db\FetchStrategyInterface $fetchStrategy,
         \Magento\Framework\Event\ManagerInterface $eventManager,
-        Session $customerSession,
         \Magento\Framework\DB\Adapter\AdapterInterface $connection = null,
         \Magento\Framework\Model\ResourceModel\Db\AbstractDb $resource = null
     ) {
         $this->customerRegistry = $customerRegistry;
-        $this->customerSession = $customerSession;
+        $this->customerSessionFactory = $customerSessionFactory;
         $this->groupRepository = $groupRepository;
         parent::__construct($entityFactory, $logger, $fetchStrategy, $eventManager, $connection, $resource);
     }
@@ -237,9 +223,9 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     public function getCustomer()
     {
         if (!$this->customer) {
-            if ($this->customerSession->isLoggedIn()) {
-                $customerId = $this->customerSession->getCustomerId();
-                $this->customer = $this->customerRegistry->retrieve($customerId);
+            $customer = $this->customerSessionFactory->create();
+            if ($customer->getCustomer() && $customer->getCustomer()->getId()) {
+                $this->customer = $this->customerRegistry->retrieve($customer->getCustomer()->getId());
             } else {
                 return null;
             }
@@ -256,9 +242,12 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     public function getCustomerGroup()
     {
         $groupCode = null;
-        $groupId = $this->customerSession->getCustomerGroupId();
+        $groupId = \Magento\Customer\Model\Group::NOT_LOGGED_IN_ID;
 
         try {
+            if ($this->getCustomer()) {
+                $groupId = $this->getCustomer()->getGroupId();
+            }
             $groupCode = $this->groupRepository->getById($groupId)->getCode();
         } catch (\Exception $e) {
 
