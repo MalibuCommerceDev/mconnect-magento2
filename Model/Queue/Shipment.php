@@ -293,14 +293,14 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         $navShipmentItems = array();
         foreach ($navEntity->shipment_item as $item) {
             $sku = (string)$item->nav_item_id;
-            $sku = trim($sku);
+            $sku = strtolower(trim($sku));
             $navShipmentItems[$sku] = (float)$item->quantity_shipped;
         }
 
         $shipmentItems = [];
         foreach ($order->getAllItems() as $item) {
             $sku = $item->getSku();
-            $sku = trim($sku);
+            $sku = strtolower(trim($sku));
             if ($item->getQtyToShip() && !$item->getIsVirtual()
                 && isset($navShipmentItems[$sku]) && $navShipmentItems[$sku] > 0
             ) {
@@ -322,13 +322,13 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         $navShipmentItems = array();
         foreach ($navEntity->shipment_item as $item) {
             $sku = (string)$item->nav_item_id;
-            $sku = trim($sku);
+            $sku = strtolower(trim($sku));
             $navShipmentItems[$sku] = (float)$item->quantity_shipped;
         }
 
         foreach ($order->getAllItems() as $item) {
             $sku = $item->getSku();
-            $sku = trim($sku);
+            $sku = strtolower(trim($sku));
             if (isset($navShipmentItems[$sku]) && !$item->getIsVirtual()
                 && $item->getQtyToShip() > $navShipmentItems[$sku]
             ) {
@@ -361,14 +361,14 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         $navInvoiceItems = array();
         foreach ($navEntity->shipment_item as $item) {
             $sku = (string)$item->nav_item_id;
-            $sku = trim($sku);
+            $sku = strtolower(trim($sku));
             $navInvoiceItems[$sku] = (float)$item->quantity_shipped;
         }
 
         $invoiceItems = [];
         foreach ($order->getAllItems() as $item) {
             $sku = $item->getSku();
-            $sku = trim($sku);
+            $sku = strtolower(trim($sku));
             if ($item->getQtyToInvoice() && isset($navInvoiceItems[$sku]) && $navInvoiceItems[$sku] > 0) {
                 $invoiceItems[$item->getId()] = $navInvoiceItems[$sku];
             }

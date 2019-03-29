@@ -265,9 +265,24 @@ class Order extends AbstractModel
      *
      * @return \simpleXMLElement
      */
-    public function setAdditionalAddressData(\Magento\Sales\Api\Data\OrderAddressInterface $address, $orderEntity, $childElement)
-    {
-        $childElement->street = implode(' ', $address->getStreet());
+    public function setAdditionalAddressData(
+        \Magento\Sales\Api\Data\OrderAddressInterface $address,
+        $orderEntity,
+        $childElement
+    ) {
+        $street = $address->getStreet();
+        $street1 = $street2 = '';
+
+        if (!empty($street) && is_array($street)) {
+            $street1 = array_shift($street);
+        }
+
+        if (count($street) > 0) {
+            $street2 = implode(' ', $street);
+        }
+
+        $childElement->street = $street1;
+        $childElement->street2 = $street2;
 
         return $childElement;
     }
