@@ -2,6 +2,8 @@
 
 namespace MalibuCommerce\MConnect\Model;
 
+use MalibuCommerce\MConnect\Model\Resource\Pricerule as RuleResourceModel;
+
 class Pricerule extends \Magento\Framework\Model\AbstractModel
 {
     protected $matchedPrices = [];
@@ -32,7 +34,7 @@ class Pricerule extends \Magento\Framework\Model\AbstractModel
 
     public function _construct()
     {
-        $this->_init('MalibuCommerce\MConnect\Model\Resource\Pricerule');
+        $this->_init(RuleResourceModel::class);
     }
 
     /**

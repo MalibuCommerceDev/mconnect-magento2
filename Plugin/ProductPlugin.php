@@ -2,6 +2,9 @@
 
 namespace MalibuCommerce\MConnect\Plugin;
 
+/**
+ * Used to override product price on PLP
+ */
 class ProductPlugin
 {
     /**

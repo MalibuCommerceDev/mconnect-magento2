@@ -1,7 +1,10 @@
 <?php
 namespace MalibuCommerce\MConnect\Observer;
 
-class ProcessFrontFinalPriceObserver implements \Magento\Framework\Event\ObserverInterface
+/**
+ * Override product price on PDP, Cart, Checkout level both in admin and on frontend
+ */
+class ProcessFinalPriceObserver implements \Magento\Framework\Event\ObserverInterface
 {
     /**
      * @var \MalibuCommerce\MConnect\Model\Pricerule
@@ -37,11 +40,6 @@ class ProcessFrontFinalPriceObserver implements \Magento\Framework\Event\Observe
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
-        if (!$this->config->isModuleEnabled()) {
-
-            return $this;
-        }
-
         $finalPrice = null;
         try {
             /** @var \Magento\Catalog\Model\Product $product */
