@@ -265,16 +265,16 @@
                     <label>Import Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="export_enabled" sortOrder="8" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="export_enabled" sortOrder="10" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Export Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="hold_new_orders_export" sortOrder="10" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="hold_new_orders_export" sortOrder="20" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Hold New Orders Export</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <frontend_model>\MalibuCommerce\MConnect\Block\Config\Frontend\Field\HoldNewExport</frontend_model>
                 </field>
-                <field id="hold_new_orders_delay" sortOrder="20" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="hold_new_orders_delay" sortOrder="30" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>New Orders Sync Delay</label>
                     <validate>validate-number validate-zero-or-greater</validate>
                     <comment><![CDATA[In minutes]]></comment>
@@ -282,16 +282,20 @@
                         <field id="hold_new_orders_export">1</field>
                     </depends>
                 </field>
-                <field id="order_status_when_synced_to_nav" sortOrder="30" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="order_status_when_synced_to_nav" sortOrder="40" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Order Status When Synced to NAV</label>
                     <source_model>\Magento\Sales\Model\Config\Source\Order\Status\Newprocessing</source_model>
                     <depends>
                         <field id="hold_new_orders_export">1</field>
                     </depends>
                 </field>
-                <field id="allowed_order_statuses_to_export" sortOrder="40" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="allowed_order_statuses_to_export" sortOrder="50" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Allowed Order Statuses to be Exported to NAV</label>
                     <source_model>\Magento\Sales\Model\Config\Source\Order\Status\Newprocessing</source_model>
+                </field>
+                <field id="gift_wrapping_force_enabled" sortOrder="60" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>GiftWrapping Functionality Forcefully Enabled</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
 

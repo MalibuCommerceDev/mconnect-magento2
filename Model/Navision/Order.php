@@ -114,7 +114,7 @@ class Order extends AbstractModel
         $orderObject->email_address = $orderEntity->getCustomerEmail();
         $orderObject->store_id = $orderEntity->getStoreId();
 
-        $this->addGiftOptions($orderEntity, $orderObject);
+        $this->addGiftOptions($orderEntity, $orderObject, $websiteId);
         $this->addShipping($orderEntity, $orderObject);
 
         $payment = $orderEntity->getPayment();
@@ -135,10 +135,11 @@ class Order extends AbstractModel
      *
      * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
      * @param \simpleXMLElement $root
+     * @param int $websiteId
      *
      * @return $this
      */
-    public function addGiftOptions(\Magento\Sales\Api\Data\OrderInterface $orderEntity, &$root)
+    public function addGiftOptions(\Magento\Sales\Api\Data\OrderInterface $orderEntity, &$root, $websiteId = 0)
     {
         try {
             $root->gift_wrap_message_to = '';
@@ -148,14 +149,12 @@ class Order extends AbstractModel
             $root->gift_card_amt_used = '';
             $root->gift_card_number = '';
 
-            if (!$this->isCommerceEdition()) {
-                return $this;
-            }
-
             /**
              * Gift Wrapping
              */
-            if ($this->moduleManager->isEnabled('Magento_GiftWrapping')) {
+            if ($this->moduleManager->isEnabled('Magento_GiftWrapping')
+                || $this->config->getWebsiteData('order/gift_wrapping_force_enabled', $websiteId)
+            ) {
                 $giftMessageId = $orderEntity->getGiftMessageId();
                 $giftWrappingId = $orderEntity->getGwId();
                 $giftWrappingPrintedCard = $orderEntity->getGwAddCard();
@@ -207,16 +206,6 @@ class Order extends AbstractModel
         }
 
         return $this;
-    }
-
-    /**
-     * Check if Commerce features available in current Magento installation
-     *
-     * @return bool
-     */
-    protected function isCommerceEdition()
-    {
-        return $this->productMetadata->getEdition() != 'Community';
     }
 
     /**
@@ -322,8 +311,12 @@ class Order extends AbstractModel
             $child->mag_item_id = $item->getSku();
             $child->name = $item->getName();
             $child->quantity = $item->getQtyOrdered();
-            $child->unit_price = $item->getParentItem() ? $item->getParentItem()->getBasePrice() : $item->getBasePrice();
-            $child->line_discount_amount = $item->getParentItem() ? $item->getParentItem()->getBaseDiscountAmount() : $item->getBaseDiscountAmount();
+            $child->unit_price = $item->getParentItem()
+                ? $item->getParentItem()->getBasePrice()
+                : $item->getBasePrice();
+            $child->line_discount_amount = $item->getParentItem()
+                ? $item->getParentItem()->getBaseDiscountAmount()
+                : $item->getBaseDiscountAmount();
         }
 
         return $this;
