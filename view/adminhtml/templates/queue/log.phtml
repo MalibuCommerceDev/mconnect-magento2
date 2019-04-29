@@ -6,14 +6,11 @@
 $logDetails = $block->getLogDetails();
 ?>
 <a href="<?php echo $block->getBackUrl() ?>"><?php echo __('Back') ?></a>
-<?php /* <pre style="white-space: pre-line; word-break: break-word;">
-<?php echo $block->escapeHtml($block->getLogContents()); ?>
-</pre> */ ?>
 
 <?php foreach($logDetails as $logDetail): ?>
     <?php foreach($logDetail as $title => $contents): ?>
         <hr />
-        <h1><?php $title ?></h1>
+        <h1><?php echo $title ?></h1>
         <?php foreach ($contents as $label => $content): ?>
             <h3><?php echo $label; ?></h3>
             <pre style="white-space: pre-wrap; word-break: break-word; background: #eee;"><code><?php echo htmlspecialchars($content, ENT_XML1); ?></code></pre>

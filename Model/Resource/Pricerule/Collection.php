@@ -223,6 +223,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     public function getCustomer()
     {
         if (!$this->customer) {
+            /** @var \Magento\Customer\Model\Session $customer */
             $customer = $this->customerSessionFactory->create();
             if ($customer->getCustomer() && $customer->getCustomer()->getId()) {
                 $this->customer = $this->customerRegistry->retrieve($customer->getCustomer()->getId());
@@ -239,7 +240,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      *
      * @return null|string
      */
-    public function getCustomerGroup()
+    public function getCurrentCustomerGroupId()
     {
         $groupCode = null;
         $groupId = \Magento\Customer\Model\Group::NOT_LOGGED_IN_ID;

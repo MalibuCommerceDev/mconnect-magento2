@@ -37,10 +37,10 @@
             </item>
         </argument>
     </dataSource>
-    <fieldset name="general">
+    <fieldset name="rule_settings">
         <argument name="data" xsi:type="array">
             <item name="config" xsi:type="array">
-                <item name="label" xsi:type="string"/>
+                <item name="label" xsi:type="string">Rule Settings</item>
             </item>
         </argument>
         <field name="id">
@@ -51,51 +51,6 @@
                     <item name="formElement" xsi:type="string">input</item>
                     <item name="source" xsi:type="string">pricerule</item>
                     <item name="dataScope" xsi:type="string">id</item>
-                </item>
-            </argument>
-        </field>
-        <field name="nav_id">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="dataType" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Navision ID</item>
-                    <item name="formElement" xsi:type="string">input</item>
-                    <item name="source" xsi:type="string">pricerule</item>
-                    <item name="dataScope" xsi:type="string">nav_id</item>
-                </item>
-            </argument>
-        </field>
-        <field name="title">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="dataType" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Product SKU</item>
-                    <item name="formElement" xsi:type="string">input</item>
-                    <item name="source" xsi:type="string">pricerule</item>
-                    <item name="sortOrder" xsi:type="number">20</item>
-                    <item name="dataScope" xsi:type="string">sku</item>
-                </item>
-            </argument>
-        </field>
-        <field name="navision_customer_id">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="dataType" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Navision Customer ID</item>
-                    <item name="formElement" xsi:type="string">input</item>
-                    <item name="source" xsi:type="string">pricerule</item>
-                    <item name="dataScope" xsi:type="string">navision_customer_id</item>
-                </item>
-            </argument>
-        </field>
-        <field name="customer_price_group">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="label" xsi:type="string">Customer Price Group</item>
-                    <item name="dataType" xsi:type="string">text</item>
-                    <item name="formElement" xsi:type="string">input</item>
-                    <item name="source" xsi:type="string">pricerule</item>
-                    <item name="dataScope" xsi:type="string">customer_price_group</item>
                 </item>
             </argument>
         </field>
@@ -110,6 +65,18 @@
                     <item name="validation" xsi:type="array">
                         <item name="required-entry" xsi:type="boolean">true</item>
                     </item>
+                </item>
+            </argument>
+        </field>
+        <field name="sku">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Product SKU</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">pricerule</item>
+                    <item name="sortOrder" xsi:type="number">20</item>
+                    <item name="dataScope" xsi:type="string">sku</item>
                 </item>
             </argument>
         </field>
@@ -154,6 +121,87 @@
                     <item name="validation" xsi:type="array">
                         <item name="validate-date" xsi:type="boolean">true</item>
                     </item>
+                </item>
+            </argument>
+        </field>
+        <field name="website_id" formElement="select">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">pricerule</item>
+                </item>
+            </argument>
+            <settings>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <dataType>number</dataType>
+                <tooltip>
+                    <link>http://docs.magento.com/m2/ce/user_guide/configuration/scope.html</link>
+                    <description>What is this?</description>
+                </tooltip>
+                <label translate="true">Website</label>
+                <dataScope>website_id</dataScope>
+            </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options class="Magento\CatalogRule\Model\Rule\WebsitesOptionsProvider"/>
+                    </settings>
+                </select>
+            </formElements>
+        </field>
+        <!--<field name="customer_group_ids" formElement="multiselect">-->
+            <!--<argument name="data" xsi:type="array">-->
+                <!--<item name="config" xsi:type="array">-->
+                    <!--<item name="source" xsi:type="string">catalog_rule</item>-->
+                <!--</item>-->
+            <!--</argument>-->
+            <!--<settings>-->
+                <!--<validation>-->
+                    <!--<rule name="required-entry" xsi:type="boolean">true</rule>-->
+                <!--</validation>-->
+                <!--<dataType>number</dataType>-->
+                <!--<label translate="true">Customer Groups</label>-->
+                <!--<dataScope>customer_group_ids</dataScope>-->
+            <!--</settings>-->
+            <!--<formElements>-->
+                <!--<multiselect>-->
+                    <!--<settings>-->
+                        <!--<options class="Magento\CatalogRule\Model\Rule\CustomerGroupsOptionsProvider"/>-->
+                    <!--</settings>-->
+                <!--</multiselect>-->
+            <!--</formElements>-->
+        <!--</field>-->
+        <field name="nav_id">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Navision Rule ID</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">pricerule</item>
+                    <item name="dataScope" xsi:type="string">nav_id</item>
+                </item>
+            </argument>
+        </field>
+        <field name="navision_customer_id">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Navision Customer ID</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">pricerule</item>
+                    <item name="dataScope" xsi:type="string">navision_customer_id</item>
+                </item>
+            </argument>
+        </field>
+        <field name="customer_price_group">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="label" xsi:type="string">Navision Customer Price Group</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">pricerule</item>
+                    <item name="dataScope" xsi:type="string">customer_price_group</item>
                 </item>
             </argument>
         </field>

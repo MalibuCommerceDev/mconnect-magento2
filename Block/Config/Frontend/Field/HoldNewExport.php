@@ -20,8 +20,8 @@ class HoldNewExport extends \Magento\Config\Block\System\Config\Form\Field
 
     protected function _renderValue(\Magento\Framework\Data\Form\Element\AbstractElement $element)
     {
-        if ($this->config->shouldNewOrdersBeForcefullyHolden() && !$this->config->getIsHoldNewOrdersExport()) {
-            $element->setComment('<strong>' . __('Will be forcefully holden for %1 minutes, because Signifyd fraud detection is activated', $this->config::DEFAULT_NEW_ORDERS_DELAY) . '</strong>');
+        if ($this->config->shouldNewOrdersBeForcefullyHeld() && !$this->config->getIsHoldNewOrdersExport()) {
+            $element->setComment('<strong>' . __('Will be forcefully held for %1 minutes, because Signifyd fraud detection is activated', $this->config::DEFAULT_NEW_ORDERS_DELAY) . '</strong>');
         }
 
         return parent::_renderValue($element);

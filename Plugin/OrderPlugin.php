@@ -17,6 +17,11 @@ class OrderPlugin
     protected $queue;
 
     /**
+     * @var \MalibuCommerce\MConnect\Model\Config
+     */
+    protected $config;
+
+    /**
      * @var \Psr\Log\LoggerInterface
      */
     protected $logger;
@@ -28,10 +33,12 @@ class OrderPlugin
 
     public function __construct(
         \MalibuCommerce\MConnect\Model\QueueFactory $queue,
+        \MalibuCommerce\MConnect\Model\Config $config,
         \Psr\Log\LoggerInterface $logger,
         \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->queue = $queue;
+        $this->config = $config;
         $this->logger = $logger;
         $this->storeManager = $storeManager;
     }
@@ -78,6 +85,11 @@ class OrderPlugin
 
         if ($order->canHold() && !$this->queue->create()->wasTheItemEverSuccessfullyExported($order->getId(), 'order')) {
             try {
+                $customerGroupId = $order->getCustomerGroupId();
+                if (in_array($customerGroupId, $this->config->getOrderExportDisallowedCustomerGroups($websiteId))) {
+
+                    return $result;
+                }
                 $this->queue->create()->add(
                     \MalibuCommerce\MConnect\Model\Queue\Order::CODE,
                     \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT,
@@ -85,7 +97,7 @@ class OrderPlugin
                     0,
                     $order->getId()
                 );
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->logger->critical($e);
             }
         }
@@ -106,7 +118,7 @@ class OrderPlugin
                     sprintf('Order "%s" (ID: %s) export is canceled because its status is: %s', $order->getIncrementId(), $order->getId(), $order->getStatus())
                 );
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->logger->critical($e);
         }
     }

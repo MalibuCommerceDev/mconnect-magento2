@@ -139,7 +139,7 @@ class Config
      *
      * @return bool
      */
-    public function shouldNewOrdersBeForcefullyHolden()
+    public function shouldNewOrdersBeForcefullyHeld()
     {
         if ($this->moduleManager->isEnabled('Magento_Signifyd')) {
             $enabled = $this->scopeConfig->isSetFlag(
@@ -172,7 +172,7 @@ class Config
     {
         $delay = (int)$this->getWebsiteData('order/hold_new_orders_delay', $websiteId);
 
-        if (!$this->getIsHoldNewOrdersExport($websiteId) && $this->shouldNewOrdersBeForcefullyHolden()) {
+        if (!$this->getIsHoldNewOrdersExport($websiteId) && $this->shouldNewOrdersBeForcefullyHeld()) {
             $delay = self::DEFAULT_NEW_ORDERS_DELAY;
         }
 
@@ -204,9 +204,29 @@ class Config
      *
      * @return array
      */
+    public function getOrderExportDisallowedCustomerGroups($websiteId = null)
+    {
+        return explode(',', $this->getWebsiteData('order/export_disallowed_customer_groups', $websiteId));
+    }
+
+    /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return array
+     */
     public function getNAVReportsCustomerGroups($websiteId = null)
     {
         return explode(',', $this->getWebsiteData('customer/nav_reports_allowed_customer_groups', $websiteId));
+    }
+
+    /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return array
+     */
+    public function getPriceRuleDisallowedCustomerGroups($websiteId = null)
+    {
+        return explode(',', $this->getWebsiteData('price_rule/disallowed_customer_groups', $websiteId));
     }
 
     /**

@@ -75,13 +75,20 @@ class SalesEventQuoteSubmitSuccessObserver implements \Magento\Framework\Event\O
         try {
             $scheduledAt = null;
             $websiteId = $this->storeManager->getStore($order->getStoreId())->getWebsiteId();
-            if ($this->config->getIsHoldNewOrdersExport($websiteId) || $this->config->shouldNewOrdersBeForcefullyHolden()) {
+
+            $customerGroupId = $order->getCustomerGroupId();
+            if (in_array($customerGroupId, $this->config->getOrderExportDisallowedCustomerGroups($websiteId))) {
+
+                return false;
+            }
+
+            if ($this->config->getIsHoldNewOrdersExport($websiteId) || $this->config->shouldNewOrdersBeForcefullyHeld()) {
                 $delayInMinutes =  $this->config->getHoldNewOrdersDelay($websiteId);
                 $scheduledAt = date('Y-m-d H:i:s', strtotime('+' . (int)$delayInMinutes . ' minutes'));
             }
 
             return $this->queue->create()->add($code, $action, $websiteId, 0, $order->getId(), [], $scheduledAt);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->logger->critical($e);
         }
 

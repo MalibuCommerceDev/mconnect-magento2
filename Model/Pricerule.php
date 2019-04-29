@@ -53,6 +53,15 @@ class Pricerule extends \Magento\Framework\Model\AbstractModel
             return false;
         }
 
+        /** @var \MalibuCommerce\MConnect\Model\Resource\Pricerule\Collection $collection */
+        $collection = $this->getResourceCollection();
+
+        $customerGroupId = $collection->getCurrentCustomerGroupId();
+        if (in_array($customerGroupId, $this->config->getPriceRuleDisallowedCustomerGroups($websiteId))) {
+
+            return false;
+        }
+
         $sku = $product;
         if ($product instanceof \Magento\Catalog\Model\Product) {
             $sku = $product->getSku();
@@ -65,8 +74,6 @@ class Pricerule extends \Magento\Framework\Model\AbstractModel
             return $this->matchedPrices[$cacheId];
         }
 
-        /** @var \MalibuCommerce\MConnect\Model\Resource\Pricerule\Collection $collection */
-        $collection = $this->getResourceCollection();
         $price = $collection->matchDiscountPrice($sku, $qty, $websiteId);
         
         // If current website is a default website, then attempt to get price match for default scope (Website ID = 0)

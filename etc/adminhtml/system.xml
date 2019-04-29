@@ -293,7 +293,11 @@
                     <label>Allowed Order Statuses to be Exported to NAV</label>
                     <source_model>\Magento\Sales\Model\Config\Source\Order\Status\Newprocessing</source_model>
                 </field>
-                <field id="gift_wrapping_force_enabled" sortOrder="60" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="export_disallowed_customer_groups" sortOrder="60" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Export Disallowed Customer Groups</label>
+                    <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Source\CustomerGroups</source_model>
+                </field>
+                <field id="gift_wrapping_force_enabled" sortOrder="70" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>GiftWrapping Functionality Forcefully Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
@@ -376,18 +380,22 @@
                     <label>Import Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="ignore_magento_errors" sortOrder="8" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="ignore_magento_errors" sortOrder="10" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Ignore Magento Logical Errors</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Will allow continuation of NAV sync process by changing last sync date even if there were any Magento Logical Exceptions during the sync process]]></comment>
                 </field>
-                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="cron_expr" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
                     <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
                 </field>
-                <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="max_rows" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
+                </field>
+                <field id="disallowed_customer_groups" sortOrder="40" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Customer Groups Disallowed for Price Rules</label>
+                    <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Source\CustomerGroups</source_model>
                 </field>
             </group>
         </section>
