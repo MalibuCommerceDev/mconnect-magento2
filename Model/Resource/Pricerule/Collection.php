@@ -240,20 +240,36 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      *
      * @return null|string
      */
-    public function getCurrentCustomerGroupId()
+    public function getCustomerGroup()
     {
         $groupCode = null;
-        $groupId = \Magento\Customer\Model\Group::NOT_LOGGED_IN_ID;
 
         try {
-            if ($this->getCustomer()) {
-                $groupId = $this->getCustomer()->getGroupId();
-            }
-            $groupCode = $this->groupRepository->getById($groupId)->getCode();
+            $groupCode = $this->groupRepository->getById($this->getCurrentCustomerGroupId())->getCode();
         } catch (\Exception $e) {
 
         }
 
         return $groupCode;
+    }
+
+    /**
+     * Retrieve current customer group id
+     *
+     * @return int
+     */
+    public function getCurrentCustomerGroupId()
+    {
+        $groupId = \Magento\Customer\Model\Group::NOT_LOGGED_IN_ID;
+
+        try {
+            if ($this->getCustomer()) {
+                return $this->getCustomer()->getGroupId();
+            }
+        } catch (\Exception $e) {
+
+        }
+
+        return $groupId;
     }
 }
