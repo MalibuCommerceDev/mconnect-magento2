@@ -83,9 +83,16 @@ class Config
      *
      * @return bool
      */
-    public function getUseNtlmAuthentication($websiteId = null)
+    public function getAuthenticationMethod($websiteId = null)
     {
-        return (bool)$this->getWebsiteData('nav_connection/ntlm', $websiteId);
+        $value = $this->getWebsiteData('nav_connection/ntlm', $websiteId);
+        switch($value) {
+            case '1':
+                return CURLAUTH_NTLM;
+            case '2':
+                return CURLAUTH_DIGEST;
+        }
+        return false;
     }
 
     /**

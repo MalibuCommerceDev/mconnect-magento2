@@ -76,9 +76,10 @@ class Client extends SoapClient
 
         curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-        if ($this->mConnectConfig->getUseNtlmAuthentication($this->getWebsiteId())) {
-            curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
+        if ($method = $this->mConnectConfig->getAuthenticationMethod($this->getWebsiteId())) {
+            curl_setopt($ch, CURLOPT_HTTPAUTH, $method);
         }
+
         curl_setopt($ch, CURLOPT_USERPWD, $username . ':' . $password);
         curl_setopt($ch, CURLOPT_TIMEOUT, $this->mConnectConfig->getConnectionTimeout($this->getWebsiteId()));
 

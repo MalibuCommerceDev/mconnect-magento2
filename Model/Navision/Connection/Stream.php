@@ -167,8 +167,8 @@ class Stream
         }
 
         curl_setopt($this->streamCurlHandle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-        if ($config->getUseNtlmAuthentication($this->getWebsiteId())) {
-            curl_setopt($this->streamCurlHandle, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
+        if ($method = $config->getAuthenticationMethod($this->getWebsiteId())) {
+            curl_setopt($this->streamCurlHandle, CURLOPT_HTTPAUTH, $method);
         }
         curl_setopt(
             $this->streamCurlHandle,

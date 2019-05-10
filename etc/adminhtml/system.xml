@@ -44,8 +44,8 @@
                     <comment><![CDATA[Connection Timeout to NAV server in seconds. If set to 0, default value will be used: 10 seconds]]></comment>
                 </field>
                 <field id="ntlm" sortOrder="60" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                    <label>Use NTLM Authentication</label>
-                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <label>Authentication Method</label>
+                    <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Source\Authentication</source_model>
                 </field>
                 <field id="test_connection" translate="label comment" type="button" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
                     <frontend_model>\MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Connection\Test</frontend_model>

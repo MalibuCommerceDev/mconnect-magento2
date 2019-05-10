@@ -73,15 +73,12 @@ class Test extends Action
                 CURLOPT_NOBODY         => true,
                 CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
             );
-            if ($this->mConnectConfig->getUseNtlmAuthentication($websiteId)) {
-                $options[CURLOPT_HTTPAUTH] = CURLAUTH_NTLM;
-            }
             if ($this->mConnectConfig->getIsInsecureConnectionAllowed($websiteId)) {
                 $options[CURLOPT_SSL_VERIFYHOST] = 0;
                 $options[CURLOPT_SSL_VERIFYPEER] = 0;
             }
-            if ($this->mConnectConfig->getUseNtlmAuthentication($websiteId)) {
-                $options[CURLOPT_HTTPAUTH] = CURLAUTH_NTLM;
+            if ($method = $this->mConnectConfig->getAuthenticationMethod($websiteId)) {
+                $options[CURLOPT_HTTPAUTH] = $method;
             }
             curl_setopt_array($ch, $options);
             $response = curl_exec($ch);
@@ -92,8 +89,8 @@ class Test extends Action
             $success = $httpCode === 200;
         } catch (\Throwable $e) {
             $response = $e->getMessage();
-            curl_close($ch);
         }
+        curl_close($ch);
 
         /** @var \Magento\Framework\Controller\Result\Json $result */
         $result = $this->resultJsonFactory->create();
@@ -101,7 +98,7 @@ class Test extends Action
         return $result->setData([
             'success'  => $success,
             'time'     => number_format(microtime(true) - $time, 2, '.', ''),
-            'response' => $response
+            'response' => $response,
         ]);
     }
 
