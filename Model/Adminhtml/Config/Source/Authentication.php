@@ -8,8 +8,8 @@ class Authentication implements \Magento\Framework\Option\ArrayInterface
     {
         return [
             ['value' => 0, 'label' => __('Basic Auth')],
-            ['value' => 1, 'label' => __('NTLM')],
-            ['value' => 2, 'label' => __('Digest')],
+            ['value' => \MalibuCommerce\MConnect\Model\Config::AUTH_METHOD_NTLM, 'label' => __('NTLM')],
+            ['value' => \MalibuCommerce\MConnect\Model\Config::AUTH_METHOD_DIGEST, 'label' => __('Digest')],
         ];
     }
 }

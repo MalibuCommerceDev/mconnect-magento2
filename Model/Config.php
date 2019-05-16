@@ -8,6 +8,9 @@ class Config
     const DEFAULT_NAV_CONNECTION_TIMEOUT = 10; // in seconds
     const DEFAULT_NEW_ORDERS_DELAY       = 5; // in minutes
 
+    const AUTH_METHOD_NTLM   = 1;
+    const AUTH_METHOD_DIGEST = 2;
+
     /**
      * @var \Magento\Framework\App\Config\ScopeConfigInterface
      */
@@ -81,18 +84,20 @@ class Config
     /**
      * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
-     * @return bool
+     * @return bool|int
      */
     public function getAuthenticationMethod($websiteId = null)
     {
         $value = $this->getWebsiteData('nav_connection/ntlm', $websiteId);
+
         switch($value) {
-            case '1':
+            case self::AUTH_METHOD_NTLM:
                 return CURLAUTH_NTLM;
-            case '2':
+            case self::AUTH_METHOD_DIGEST:
                 return CURLAUTH_DIGEST;
+            default:
+                return false;
         }
-        return false;
     }
 
     /**
