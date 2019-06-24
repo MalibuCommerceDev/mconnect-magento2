@@ -50,6 +50,7 @@
                 <import_type>simple</import_type>
                 <import_visibility>4</import_visibility>
                 <import_tax_class>2</import_tax_class>
+                <set_out_of_stock>1</set_out_of_stock>
             </product>
             <inventory>
                 <import_enabled>1</import_enabled>

@@ -337,4 +337,14 @@ class Config
             $website
         );
     }
+
+    /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return bool
+     */
+    public function isProductOutOfStockStatusMandatory($websiteId = null)
+    {
+        return (bool)$this->getWebsiteData('product/set_out_of_stock', $websiteId);
+    }
 }

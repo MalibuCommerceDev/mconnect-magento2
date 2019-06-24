@@ -185,9 +185,12 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
             if (isset($data->item_qty_on_hand)) {
                 $stockItem = $product->getExtensionAttributes()->getStockItem();
                 if ($stockItem && $stockItem->getId() && $stockItem->getManageStock()) {
-                    $stockItem
-                        ->setQty((int)$data->item_qty_on_hand)
-                        ->setIsInStock((int)(bool)$data->item_qty_on_hand);
+                    $stockItem->setQty((int)$data->item_qty_on_hand);
+
+                    $stockStatus = (int)(bool)$data->item_qty_on_hand;
+                    if ($stockStatus || $this->getConfig()->isProductOutOfStockStatusMandatory($websiteId)) {
+                        $stockItem->setIsInStock($stockStatus);
+                    }
                 }
             }
         } else {
@@ -199,11 +202,18 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                 ->setTaxClassId($this->getDefaultTaxClass());
 
             if (isset($data->item_qty_on_hand)) {
-                $product->setStockData(array(
+                $stockData = array(
                     'use_config_manage_stock' => 1,
                     'qty'                     => (int)$data->item_qty_on_hand,
-                    'is_in_stock'             => (int)(bool)$data->item_qty_on_hand
-                ));
+                    'is_in_stock'             => 1,
+                );
+
+                $stockStatus = (int)(bool)$data->item_qty_on_hand;
+                if ($stockStatus || $this->getConfig()->isProductOutOfStockStatusMandatory($websiteId)) {
+                    $stockItem['is_in_stock'] = $stockStatus;
+                }
+
+                $product->setStockData($stockData);
             }
 
             if (!empty($data->item_meta_title)) {

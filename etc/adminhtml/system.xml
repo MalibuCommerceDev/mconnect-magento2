@@ -236,6 +236,10 @@
                     <source_model>\Magento\Tax\Model\TaxClass\Source\Product</source_model>
                     <backend_model>\Magento\Tax\Model\Config\TaxClass</backend_model>
                 </field>
+                <field id="set_out_of_stock" sortOrder="70" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Set Product Inventory Status to "Out Of Stock" when QTY is "0"</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
             </group>
 
             <group id="inventory" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
