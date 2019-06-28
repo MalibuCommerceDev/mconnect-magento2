@@ -331,14 +331,14 @@ class UpgradeData implements UpgradeDataInterface
          */
         $oldPath = 'malibucommerce_mconnect/customer/default_nav_id';
         $newPath = 'malibucommerce_mconnect/customer/default_nav_id_magento_registered';
-        $setup->getConnection()->update('core_config_data', ['path' => $newPath], ['path = ?' => $oldPath]);
+        $setup->getConnection()->update($setup->getTable('core_config_data'), ['path' => $newPath], ['path = ?' => $oldPath]);
 
         /**
          * Encrypt NAV connection password
          */
         $select = $setup->getConnection()
             ->select()
-            ->from('core_config_data', 'value')
+            ->from($setup->getTable('core_config_data'), 'value')
             ->where('path = ?', 'malibucommerce_mconnect/nav_connection/password');
 
         $password = $setup->getConnection()->fetchOne($select);
