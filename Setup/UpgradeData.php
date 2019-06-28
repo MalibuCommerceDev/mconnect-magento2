@@ -217,7 +217,7 @@ class UpgradeData implements UpgradeDataInterface
          * Add required static columns to customer entity DB table
          */
         $setup->getConnection()->addColumn(
-            'customer_entity',
+            $setup->getTable('customer_entity'),
             'nav_price_group',
             array(
                 'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
@@ -227,7 +227,7 @@ class UpgradeData implements UpgradeDataInterface
         );
 
         $setup->getConnection()->addColumn(
-            'customer_entity',
+            $setup->getTable('customer_entity'),
             'nav_payment_terms',
             array(
                 'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
