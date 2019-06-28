@@ -171,7 +171,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
         );
 
         $setup->getConnection()->update(
-            'malibucommerce_mconnect_queue',
+            $setup->getTable('malibucommerce_mconnect_queue'),
             ['scheduled_at' => new \Zend_Db_Expr('created_at')]
         );
     }
@@ -189,7 +189,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ]
         );
 
-        $setup->getConnection()->dropColumn('malibucommerce_mconnect_queue', 'connection_id');
+        $setup->getConnection()->dropColumn($setup->getTable('malibucommerce_mconnect_queue'), 'connection_id');
 
         $setup->getConnection()->addColumn(
             $setup->getTable('malibucommerce_mconnect_price_rule'),
