@@ -193,6 +193,10 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                     }
                 }
             }
+            if (!empty($data->item_name) && ($product->getName() != $data->item_name)) {
+                $urlKey = $product->formatUrlKey($data->item_name);
+                $product->setUrlKey($urlKey);
+            }
         } else {
             $product->setAttributeSetId($this->getDefaultAttributeSetId())
                 ->setStoreId($this->storeManager->getStore()->getId())
@@ -351,7 +355,6 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                 return false;
             }
         }
-
         return true;
     }
 
