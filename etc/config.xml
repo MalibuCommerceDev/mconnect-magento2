@@ -91,6 +91,10 @@
                 <cron_expr>0 * * * *</cron_expr>
                 <max_rows>50</max_rows>
             </price_rule>
+            <promo>
+                <import_enabled>1</import_enabled>
+                <cache_lifetime>60</cache_lifetime>
+            </promo>
         </malibucommerce_mconnect>
     </default>
 </config>

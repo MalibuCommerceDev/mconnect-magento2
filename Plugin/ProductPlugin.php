@@ -22,13 +22,16 @@ class ProductPlugin
      *
      * @param \Psr\Log\LoggerInterface $logger
      * @param \MalibuCommerce\MConnect\Model\Pricerule $rule
+     * @param \MalibuCommerce\MConnect\Model\Queue\Promotion $promotion
      */
     public function __construct(
         \Psr\Log\LoggerInterface $logger,
-        \MalibuCommerce\MConnect\Model\Pricerule $rule
+        \MalibuCommerce\MConnect\Model\Pricerule $rule,
+        \MalibuCommerce\MConnect\Model\Queue\Promotion $promotion
     ) {
         $this->logger = $logger;
         $this->rule = $rule;
+        $this->promotion = $promotion;
     }
 
     /**
@@ -40,6 +43,7 @@ class ProductPlugin
      */
     public function afterGetPrice(\Magento\Catalog\Model\Product $product, $originalFinalPrice)
     {
+        var_dump($this->promotion->getPromoPrice($product)); die;
         $finalPrice = null;
         try {
             $mconnectPrice = $this->rule->matchDiscountPrice($product, $product->getQty(), $product->getStore()->getWebsiteId());

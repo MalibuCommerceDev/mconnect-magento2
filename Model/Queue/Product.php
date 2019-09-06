@@ -161,6 +161,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
 
     public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
+        //echo $data->item_nav_id; echo '+';
         if (empty($data->item_nav_id)) {
             $this->messages .= 'No valid NAV ID found in response XML' . PHP_EOL;
 
