@@ -18,6 +18,11 @@ class ProductPlugin
     protected $logger;
 
     /**
+     * @var \MalibuCommerce\MConnect\Model\Queue\Promotion
+     */
+    protected $promotion;
+
+    /**
      * Product plugin constructor.
      *
      * @param \Psr\Log\LoggerInterface $logger
@@ -43,17 +48,22 @@ class ProductPlugin
      */
     public function afterGetPrice(\Magento\Catalog\Model\Product $product, $originalFinalPrice)
     {
-        var_dump($this->promotion->getPromoPrice($product)); die;
         $finalPrice = null;
         try {
-            $mconnectPrice = $this->rule->matchDiscountPrice($product, $product->getQty(), $product->getStore()->getWebsiteId());
-            if ($mconnectPrice === false) {
+            $promoPrice = $this->promotion->getPromoPrice($product);
+            echo $product->getSku(); echo '+'; echo $promoPrice; die;
+            if($promoPrice != false)  {
+                $finalPrice = $promoPrice;
+            } else {
+                $mconnectPrice = $this->rule->matchDiscountPrice($product, $product->getQty(), $product->getStore()->getWebsiteId());
+                if ($mconnectPrice === false) {
 
-                return $originalFinalPrice;
-            }
+                    return $originalFinalPrice;
+                }
 
-            if (!$product->hasData('final_price') || $mconnectPrice < $product->getData('final_price')) {
-                $finalPrice = $mconnectPrice;
+                if (!$product->hasData('final_price') || $mconnectPrice < $product->getData('final_price')) {
+                    $finalPrice = $mconnectPrice;
+                }
             }
         } catch (\Throwable $e) {
             $this->logger->critical($e);

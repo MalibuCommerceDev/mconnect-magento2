@@ -79,38 +79,42 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         return $this->processMagentoImport($this->navPromotion, $this, $websiteId, $navPageNumber);
     }
 
-    public function getPromoPrice(\Magento\Catalog\Model\Product $product)
+    public function getPromoPrice(\Magento\Catalog\Model\Product $product, $qty = 1)
     {
         $websiteId = $this->_storeManager->getWebsite()->getWebsiteId();
         if(!(bool)$this->config->getWebsiteData(self::CODE . '/import_enabled', $websiteId)) {
             return false;
         }
 
-        $lifeTime = $this->config->getWebsiteData(self::CODE . '/cache_lifetime', $websiteId);
-        $promoPrice = 0;
-        $cache = $this->cache->load(self::CACHE_ID.$product->getSku());
-        if($cache != false && array_key_exists($product->getSku(), $this->serializer->unserialize($cache))) {
-            $products = $this->serializer->unserialize($cache);
-            $promoPrice = $products[$product->getSku()];
-            return $promoPrice['price'];
+        if($promoPrice = $this->getPriceFromCache($product, $qty)) {
+            return $promoPrice;
         } else {
             $navPageNumber = 0;
             $this->processMagentoImport($this->navPromotion, $this, $websiteId, $navPageNumber);
+            return $this->getPriceFromCache($product, $qty);
         }
+        return false;
     }
 
     public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
-        $cache = $this->cache->load(self::CACHE_ID.$data->sku);
-        if($cache != false) {
-            $products = $this->serializer->unserialize($cache);
-        } else {
-            $products = [];
+        if(isset($data->price)){
+            $productPromoInfo = ['price' => (float)$data->price, 'quantity' => (int)$data->quantity];
+            $lifeTime = $this->config->getWebsiteData(self::CODE . '/cache_lifetime', $websiteId);
+            $this->cache->save($this->serializer->serialize($productPromoInfo), self::CACHE_ID.(string)$data->sku, [self::CACHE_TAG], $lifeTime);
         }
-        $products[$data->sku] = ['price' => $data->price, 'quantity' => $data->quantity];
-        $this->cache->save($this->serializer->serialize($products), self::CACHE_ID.$data->sku, [self::CACHE_TAG], $lifeTime);
-
         return true;
     }
 
+    public function getPriceFromCache(\Magento\Catalog\Model\Product $product, $qty = 1)
+    {
+        $cache = $this->cache->load(self::CACHE_ID.$product->getSku());
+        if($cache != false) {
+            $productPromoInfo = $this->serializer->unserialize($cache);
+            if ($qty >= $productPromoInfo['quantity']) {
+                return $productPromoInfo['price'];
+            }
+        }
+        return false;
+    }
 }

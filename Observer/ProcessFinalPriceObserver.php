@@ -21,14 +21,21 @@ class ProcessFinalPriceObserver implements \Magento\Framework\Event\ObserverInte
      */
     protected $config;
 
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Queue\Promotion
+     */
+    protected $promotion;
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $config,
         \Psr\Log\LoggerInterface $logger,
-        \MalibuCommerce\MConnect\Model\Pricerule $rule
+        \MalibuCommerce\MConnect\Model\Pricerule $rule,
+        \MalibuCommerce\MConnect\Model\Queue\Promotion $promotion
     ) {
         $this->logger = $logger;
         $this->rule = $rule;
         $this->config = $config;
+        $this->promotion = $promotion;
     }
 
     /**
@@ -44,15 +51,20 @@ class ProcessFinalPriceObserver implements \Magento\Framework\Event\ObserverInte
         try {
             /** @var \Magento\Catalog\Model\Product $product */
             $product = $observer->getProduct();
-            $mconnectPrice = $this->rule->matchDiscountPrice($product, $observer->getQty(), $product->getStore()->getWebsiteId());
+            $promoPrice = $this->promotion->getPromoPrice($product, $observer->getQty());
+            if($promoPrice != false)  {
+                $finalPrice = $promoPrice;
+            } else {
+                $mconnectPrice = $this->rule->matchDiscountPrice($product, $observer->getQty(), $product->getStore()->getWebsiteId());
 
-            if ($mconnectPrice === false) {
+                if ($mconnectPrice === false) {
 
-                return $this;
-            }
+                    return $this;
+                }
 
-            if (!$product->hasData('final_price') || $mconnectPrice <= $product->getData('final_price')) {
-                $finalPrice = $mconnectPrice;
+                if (!$product->hasData('final_price') || $mconnectPrice <= $product->getData('final_price')) {
+                    $finalPrice = $mconnectPrice;
+                }
             }
         } catch (\Throwable $e) {
             $this->logger->critical($e);

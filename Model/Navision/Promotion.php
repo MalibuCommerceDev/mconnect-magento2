@@ -45,12 +45,12 @@ class Promotion extends AbstractModel
     <mag_customer_id>67868</mag_customer_id>
     <item>
         <sku>WT09-XS-Purple</sku>
-        <quantity>2</quantity>
-        <price>10.22</price>
+        <quantity>1</quantity>
+        <price>1.22</price>
     </item>
     <item>
         <sku>WT09-XS-Black</sku>
-        <quantity>2</quantity>
+        <quantity>1</quantity>
         <price>12.22</price>
     </item>
 </promo_export>';
