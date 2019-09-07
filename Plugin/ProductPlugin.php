@@ -51,7 +51,6 @@ class ProductPlugin
         $finalPrice = null;
         try {
             $promoPrice = $this->promotion->getPromoPrice($product);
-            echo $product->getSku(); echo '+'; echo $promoPrice; die;
             if($promoPrice != false)  {
                 $finalPrice = $promoPrice;
             } else {
