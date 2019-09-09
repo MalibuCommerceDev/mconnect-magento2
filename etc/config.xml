@@ -92,7 +92,7 @@
                 <max_rows>50</max_rows>
             </price_rule>
             <promotion>
-                <import_enabled>1</import_enabled>
+                <import_enabled>0</import_enabled>
                 <price_ttl>60</price_ttl>
             </promotion>
         </malibucommerce_mconnect>

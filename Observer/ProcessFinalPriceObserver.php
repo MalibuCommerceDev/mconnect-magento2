@@ -1,4 +1,5 @@
 <?php
+
 namespace MalibuCommerce\MConnect\Observer;
 
 /**
@@ -51,20 +52,20 @@ class ProcessFinalPriceObserver implements \Magento\Framework\Event\ObserverInte
         try {
             /** @var \Magento\Catalog\Model\Product $product */
             $product = $observer->getProduct();
-            $promoPrice = $this->promotion->getPromoPrice($product, $observer->getQty());
-            if ($promoPrice != false)  {
-                $finalPrice = $promoPrice;
-            } else {
-                $mconnectPrice = $this->rule->matchDiscountPrice($product, $observer->getQty(), $product->getStore()->getWebsiteId());
+            $websiteId = $product->getStore()->getWebsiteId();
+            $mconnectPrice = $this->promotion->getPromoPrice($product, $observer->getQty(), $websiteId);
 
-                if ($mconnectPrice === false) {
+            if ($mconnectPrice === false) {
+                $mconnectPrice = $this->rule->matchDiscountPrice($product, $observer->getQty(), $websiteId);
+            }
 
-                    return $this;
-                }
+            if ($mconnectPrice === false) {
 
-                if (!$product->hasData('final_price') || $mconnectPrice <= $product->getData('final_price')) {
-                    $finalPrice = $mconnectPrice;
-                }
+                return $this;
+            }
+
+            if (!$product->hasData('final_price') || $mconnectPrice <= $product->getData('final_price')) {
+                $finalPrice = $mconnectPrice;
             }
         } catch (\Throwable $e) {
             $this->logger->critical($e);
