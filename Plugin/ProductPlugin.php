@@ -51,7 +51,7 @@ class ProductPlugin
         $finalPrice = null;
         try {
             $promoPrice = $this->promotion->getPromoPrice($product);
-            if($promoPrice != false)  {
+            if ($promoPrice != false)  {
                 $finalPrice = $promoPrice;
             } else {
                 $mconnectPrice = $this->rule->matchDiscountPrice($product, $product->getQty(), $product->getStore()->getWebsiteId());

@@ -52,7 +52,7 @@ class ProcessFinalPriceObserver implements \Magento\Framework\Event\ObserverInte
             /** @var \Magento\Catalog\Model\Product $product */
             $product = $observer->getProduct();
             $promoPrice = $this->promotion->getPromoPrice($product, $observer->getQty());
-            if($promoPrice != false)  {
+            if ($promoPrice != false)  {
                 $finalPrice = $promoPrice;
             } else {
                 $mconnectPrice = $this->rule->matchDiscountPrice($product, $observer->getQty(), $product->getStore()->getWebsiteId());

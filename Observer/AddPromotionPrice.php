@@ -28,7 +28,7 @@ class AddPromotionPrice implements \Magento\Framework\Event\ObserverInterface
     {
         $collection = $observer->getEvent()->getCollection();
         /* @var $collection \Magento\Catalog\Model\ResourceModel\Product\Collection */
-        if($collection->getSize() > 0 ){
+        if ($collection->getSize() > 0 ){
             $key = \MalibuCommerce\MConnect\Model\Queue\Promotion::CACHE_TAG;
             $prepareProducts = $this->_registry->registry($key);
             foreach ($collection as $product) {

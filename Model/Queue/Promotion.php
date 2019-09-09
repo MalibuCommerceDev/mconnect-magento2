@@ -90,11 +90,11 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     public function getPromoPrice(\Magento\Catalog\Model\Product $product, $qty = 1)
     {
         $websiteId = $this->_storeManager->getWebsite()->getWebsiteId();
-        if(!(bool)$this->config->getWebsiteData(self::CODE . '/import_enabled', $websiteId)) {
+        if (!(bool)$this->config->getWebsiteData(self::CODE . '/import_enabled', $websiteId)) {
             return false;
         }
 
-        if($promoPrice = $this->getPriceFromCache($product, $qty)) {
+        if ($promoPrice = $this->getPriceFromCache($product, $qty)) {
             return $promoPrice;
         } else {
                 $prepareProducts = $this->_registry->registry(self::CACHE_TAG);
@@ -110,7 +110,7 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
 
     public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
-        if(isset($data->price)){
+        if (isset($data->price)){
             $productPromoInfo = ['price' => (float)$data->price, 'quantity' => (int)$data->quantity];
             $lifeTime = $this->config->getWebsiteData(self::CODE . '/price_ttl', $websiteId);
             $this->cache->save($this->serializer->serialize($productPromoInfo), self::CACHE_ID.(string)$data->sku, [self::CACHE_TAG], $lifeTime);
@@ -121,7 +121,7 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     public function getPriceFromCache(\Magento\Catalog\Model\Product $product, $qty = 1)
     {
         $cache = $this->cache->load(self::CACHE_ID.$product->getSku());
-        if($cache != false) {
+        if ($cache != false) {
             $productPromoInfo = $this->serializer->unserialize($cache);
             if ($qty >= $productPromoInfo['quantity']) {
                 return $productPromoInfo['price'];
