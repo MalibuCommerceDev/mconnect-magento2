@@ -37,13 +37,6 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     protected $date;
 
     /**
-     * Store manager
-     *
-     * @var \Magento\Store\Model\StoreManagerInterface
-     */
-    protected $_storeManager;
-
-    /**
      * @var \MalibuCommerce\MConnect\Model\Queue\FlagFactory
      */
     protected $queueFlagFactory;
@@ -65,7 +58,6 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         \MalibuCommerce\MConnect\Model\Navision\Promotion $navPromotion,
         \MalibuCommerce\MConnect\Model\Config $config,
         \Magento\Framework\Stdlib\DateTime\DateTime $date,
-        \Magento\Store\Model\StoreManagerInterface $_storeManager,
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
         \Magento\Framework\App\CacheInterface $cache,
         \Magento\Framework\DataObjectFactory $dataObjectFactory,
@@ -75,7 +67,6 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         $this->navPromotion = $navPromotion;
         $this->config = $config;
         $this->date = $date;
-        $this->_storeManager = $_storeManager;
         $this->queueFlagFactory = $queueFlagFactory;
         $this->cache = $cache;
         $this->dataObjectFactory = $dataObjectFactory;
@@ -88,26 +79,33 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         return $this->processMagentoImport($this->navPromotion, $this, $websiteId, $navPageNumber);
     }
 
-    public function getPromoPrice(\Magento\Catalog\Model\Product $product, $qty = 1)
+    /**
+     * @param \Magento\Catalog\Model\Product $product
+     * @param int                            $qty
+     * @param int                            $websiteId
+     *
+     * @return bool
+     */
+    public function getPromoPrice(\Magento\Catalog\Model\Product $product, $qty = 1, $websiteId = 0)
     {
-        $websiteId = $this->_storeManager->getWebsite()->getWebsiteId();
         if (!(bool)$this->config->getWebsiteData(self::CODE . '/import_enabled', $websiteId)) {
+
             return false;
         }
 
         if ($promoPrice = $this->getPriceFromCache($product, $qty)) {
-            return $promoPrice;
-        } else {
-            $prepareProducts = $this->registry->registry(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
-            $prepareProducts[$product->getSku()] = $qty;
 
-            $this->registry->unregister(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
-            $this->registry->register(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS, $prepareProducts);
-            $navPageNumber = 0;
-            $this->processMagentoImport($this->navPromotion, $this, $websiteId, $navPageNumber);
-            return $this->getPriceFromCache($product, $qty);
+            return $promoPrice;
         }
-        return false;
+
+        $prepareProducts = $this->_registry->registry(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
+        $prepareProducts[$product->getSku()] = $qty;
+        $this->_registry->unregister(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
+        $this->_registry->register(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS, $prepareProducts);
+        $navPageNumber = 0;
+        $this->processMagentoImport($this->navPromotion, $this, $websiteId, $navPageNumber);
+
+        return $this->getPriceFromCache($product, $qty);
     }
 
     public function importEntity(\SimpleXMLElement $data, $websiteId)

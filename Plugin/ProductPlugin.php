@@ -43,26 +43,28 @@ class ProductPlugin
      * Plugin to apply MConnect Price Rules for Product
      *
      * @param \Magento\Catalog\Model\Product $product
-     * @param $originalFinalPrice
-     * @return mixed|null
+     * @param float $originalFinalPrice
+     *
+     * @return float|null
      */
     public function afterGetPrice(\Magento\Catalog\Model\Product $product, $originalFinalPrice)
     {
         $finalPrice = null;
         try {
-            $promoPrice = $this->promotion->getPromoPrice($product);
-            if ($promoPrice != false)  {
-                $finalPrice = $promoPrice;
-            } else {
-                $mconnectPrice = $this->rule->matchDiscountPrice($product, $product->getQty(), $product->getStore()->getWebsiteId());
-                if ($mconnectPrice === false) {
+            $websiteId = $product->getStore()->getWebsiteId();
+            $mconnectPrice = $this->promotion->getPromoPrice($product, $product->getQty(), $websiteId);
 
-                    return $originalFinalPrice;
-                }
+            if ($mconnectPrice === false) {
+                $mconnectPrice = $this->rule->matchDiscountPrice($product, $product->getQty(), $websiteId);
+            }
 
-                if (!$product->hasData('final_price') || $mconnectPrice < $product->getData('final_price')) {
-                    $finalPrice = $mconnectPrice;
-                }
+            if ($mconnectPrice === false) {
+
+                return $originalFinalPrice;
+            }
+
+            if (!$product->hasData('final_price') || $mconnectPrice < $product->getData('final_price')) {
+                $finalPrice = $mconnectPrice;
             }
         } catch (\Throwable $e) {
             $this->logger->critical($e);
