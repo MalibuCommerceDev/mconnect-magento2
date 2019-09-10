@@ -384,6 +384,12 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         return $value;
     }
 
+    /**
+     * @param string $sku
+     * @param array $websiteIds
+     *
+     * @return bool
+     */
     public function updateProductWebsites($sku, array $websiteIds)
     {
         if (empty($websiteIds)) {
@@ -403,8 +409,14 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         $connection->query('DELETE FROM ' . $tableName . ' WHERE product_id = ' . $productId);
         foreach ($websiteIds as $id) {
             $id = (int)$id;
-            $connection->query('INSERT INTO ' . $tableName . ' (product_id, website_id) VALUES (' . $productId . ', ' . $id . ')');
+            try {
+                $connection->query('INSERT INTO ' . $tableName . ' (product_id, website_id) VALUES (' . $productId . ', ' . $id . ')');
+            } catch (\Exception $e) {
+                // ignore Integrity constraint violation error in Magento 2.3.2
+            }
         }
+
+        return true;
     }
 
     public function getDefaultAttributeSetId()
