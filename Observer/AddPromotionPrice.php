@@ -34,8 +34,8 @@ class AddPromotionPrice implements \Magento\Framework\Event\ObserverInterface
             foreach ($collection as $product) {
                 $prepareProducts[$product->getSku()] = 1;
             }
-            $this->_registry->unregister($key);
-            $this->_registry->register($key, $prepareProducts);
+            $this->registry->unregister($key);
+            $this->registry->register($key, $prepareProducts);
         }
         return $this;
     }
