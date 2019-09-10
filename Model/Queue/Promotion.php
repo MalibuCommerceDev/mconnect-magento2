@@ -12,6 +12,8 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     const CACHE_TAG = 'mconnect_promotion';
     const REGISTRY_KEY_NAV_PROMO_PRODUCTS = 'mconnect_promotion';
     const NAV_XML_NODE_ITEM_NAME = 'item';
+    const NAV_XML_NODE_ITEM_CONTAINER_NAME = 'items';
+
 
     /**
      * @var \Magento\Framework\Registry
@@ -98,10 +100,10 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
             return $promoPrice;
         }
 
-        $prepareProducts = $this->_registry->registry(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
+        $prepareProducts = $this->registry->registry(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
         $prepareProducts[$product->getSku()] = $qty;
-        $this->_registry->unregister(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
-        $this->_registry->register(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS, $prepareProducts);
+        $this->registry->unregister(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
+        $this->registry->register(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS, $prepareProducts);
         $navPageNumber = 0;
         $this->processMagentoImport($this->navPromotion, $this, $websiteId, $navPageNumber);
 
