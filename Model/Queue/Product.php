@@ -174,6 +174,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
             $product = $this->productRepository->get($sku, true, null, true);
             $productExists = true;
         } catch (NoSuchEntityException $e) {
+            /** @var \Magento\Catalog\Model\Product $product */
             $product = $this->productFactory->create();
         } catch (\Exception $e) {
             $this->messages .= $this->getFormattedExceptionString($e, __LINE__, $sku);
@@ -183,6 +184,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
 
         if ($productExists) {
             if (isset($data->item_qty_on_hand)) {
+                /** @var \Magento\CatalogInventory\Api\Data\StockItemInterface $stockItem */
                 $stockItem = $product->getExtensionAttributes()->getStockItem();
                 if ($stockItem && $stockItem->getId() && $stockItem->getManageStock()) {
                     $stockItem->setQty((int)$data->item_qty_on_hand);
@@ -192,6 +194,11 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                         $stockItem->setIsInStock($stockStatus);
                     }
                 }
+            }
+            if (!empty($data->item_name) && ($product->getName() != $data->item_name)) {
+                $urlKey = $product->formatUrlKey($data->item_name);
+                $product->setUrlKey($urlKey);
+                $product->setData('save_rewrites_history', true);
             }
         } else {
             $product->setAttributeSetId($this->getDefaultAttributeSetId())
@@ -351,7 +358,6 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                 return false;
             }
         }
-
         return true;
     }
 

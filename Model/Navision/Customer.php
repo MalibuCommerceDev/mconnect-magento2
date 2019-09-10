@@ -10,22 +10,30 @@ class Customer extends AbstractModel
     protected $directoryRegion;
 
     /**
+     * @var \Magento\Customer\Api\GroupRepositoryInterface
+     */
+    protected $groupRepository;
+
+    /**
      * Customer constructor.
      *
-     * @param \Magento\Directory\Model\Region       $directoryRegion
-     * @param \MalibuCommerce\MConnect\Model\Config $config
-     * @param Connection                            $mConnectNavisionConnection
-     * @param \Psr\Log\LoggerInterface              $logger
-     * @param array                                 $data
+     * @param \Magento\Directory\Model\Region                $directoryRegion
+     * @param \MalibuCommerce\MConnect\Model\Config          $config
+     * @param Connection                                     $mConnectNavisionConnection
+     * @param \Psr\Log\LoggerInterface                       $logger
+     * @param \Magento\Customer\Api\GroupRepositoryInterface $groupRepository
+     * @param array                                          $data
      */
     public function __construct(
         \Magento\Directory\Model\Region $directoryRegion,
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection,
         \Psr\Log\LoggerInterface $logger,
+        \Magento\Customer\Api\GroupRepositoryInterface $groupRepository,
         array $data = []
     ) {
         $this->directoryRegion = $directoryRegion;
+        $this->groupRepository = $groupRepository;
 
         parent::__construct($config, $mConnectNavisionConnection, $logger);
     }
@@ -43,6 +51,7 @@ class Customer extends AbstractModel
         $exportXml->last_name       = $customer->getLastname();
         $exportXml->email_address   = $customer->getEmail();
         $exportXml->store_id        = $customer->getStoreId();
+        $exportXml->customer_group  = $this->getCustomerGroupCodeById($customer->getGroupId());
 
         $exportXml = $this->setCustomCustomerAttributes($customer, $customerDataModel, $exportXml);
 
@@ -101,5 +110,25 @@ class Customer extends AbstractModel
         }
 
         return $this->_export('customer_export', $parameters, $websiteId);
+    }
+
+    /**
+     * @param string|int $groupId
+     *
+     * @return null|string
+     */
+    protected function getCustomerGroupCodeById($groupId)
+    {
+        $groupCode = null;
+
+        $groupId = $groupId ?: \Magento\Customer\Model\Group::NOT_LOGGED_IN_ID;
+
+        try {
+            $groupCode = $this->groupRepository->getById($groupId)->getCode();
+        } catch (\Exception $e) {
+
+        }
+
+        return $groupCode;
     }
 }
