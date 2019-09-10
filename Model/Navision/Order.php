@@ -113,7 +113,10 @@ class Order extends AbstractModel
         $orderObject->mag_customer_id = $orderEntity->getCustomerId();
         $orderObject->email_address = $orderEntity->getCustomerEmail();
         $orderObject->store_id = $orderEntity->getStoreId();
-
+        $tracksCollection = $orderEntity->getTracksCollection()->getFirstItem();
+        if ($tracksCollection->getTrackNumber()) {
+            $orderObject->tracking_no = $tracksCollection->getTrackNumber();
+        }
         $this->addGiftOptions($orderEntity, $orderObject, $websiteId);
         $this->addShipping($orderEntity, $orderObject);
 
