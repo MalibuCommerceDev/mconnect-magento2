@@ -7,7 +7,7 @@ class Promotion extends AbstractModel
     /**
      * @var \Magento\Framework\Registry
      */
-    protected $_registry;
+    protected $registry;
 
     /**
      * @var \MalibuCommerce\MConnect\Model\Resource\Pricerule\Collection
@@ -30,7 +30,7 @@ class Promotion extends AbstractModel
         \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection,
         \Psr\Log\LoggerInterface $logger
     ) {
-        $this->_registry = $registry;
+        $this->registry = $registry;
         $this->priceRuleCollection = $priceRuleCollection;
         parent::__construct($config, $mConnectNavisionConnection, $logger);
 
@@ -47,7 +47,7 @@ class Promotion extends AbstractModel
     public function export($page = 0, $lastUpdated = false, $websiteId = 0)
     {
         $this->priceRuleCollection->getCustomer();
-        $prepareProducts = $this->_registry->registry(\MalibuCommerce\MConnect\Model\Queue\Promotion::CACHE_TAG);
+        $prepareProducts = $this->registry->registry(\MalibuCommerce\MConnect\Model\Queue\Promotion::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
         if (!$prepareProducts) {
             return false;
         }
@@ -61,15 +61,20 @@ class Promotion extends AbstractModel
             $root->nav_customer_id = '';
         }
         foreach ($prepareProducts as $k => $v) {
-            $item = $root->addChild('item');
-            $item->addChild('sku', $k);
-            $item->addChild('quantity', $v);
+            $this->addItemChild($root, $k, $v);
+            //Always request all items with QTY 1
+            if ($v > 1) {
+                $this->addItemChild($root, $k, 1);
+            }
         }
-        $item->addChild('sku', '1250');
-        $item->addChild('quantity', '1');
-
-        $item->addChild('sku', '1200');
-        $item->addChild('quantity', '1');
+        print_r($root); die;
         return $this->_export('promo_export', $root, $websiteId);
+    }
+
+    public function addItemChild($root, $sku, $qty)
+    {
+        $item = $root->addChild('item');
+        $item->addChild('sku', $sku);
+        $item->addChild('quantity', $qty);
     }
 }

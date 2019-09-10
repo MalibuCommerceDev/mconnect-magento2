@@ -10,13 +10,14 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     const CODE = 'promotion';
     const CACHE_ID = 'mconnect_promotion_price';
     const CACHE_TAG = 'mconnect_promotion';
+    const REGISTRY_KEY_NAV_PROMO_PRODUCTS = 'mconnect_promotion';
     const NAV_XML_NODE_ITEM_NAME = 'item';
 
     /**
      * @var \Magento\Framework\Registry
      */
 
-    protected $_registry;
+    protected $registry;
 
     /**
      * @var \MalibuCommerce\MConnect\Model\Navision\Promotion
@@ -70,7 +71,7 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         \Magento\Framework\DataObjectFactory $dataObjectFactory,
         Json $serializer = null
     ) {
-        $this->_registry = $registry;
+        $this->registry = $registry;
         $this->navPromotion = $navPromotion;
         $this->config = $config;
         $this->date = $date;
@@ -97,10 +98,11 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         if ($promoPrice = $this->getPriceFromCache($product, $qty)) {
             return $promoPrice;
         } else {
-                $prepareProducts = $this->_registry->registry(self::CACHE_TAG);
-                $prepareProducts[$product->getSku()] = $qty;
-            $this->_registry->unregister(self::CACHE_TAG);
-            $this->_registry->register(self::CACHE_TAG, $prepareProducts);
+            $prepareProducts = $this->registry->registry(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
+            $prepareProducts[$product->getSku()] = $qty;
+
+            $this->registry->unregister(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
+            $this->registry->register(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS, $prepareProducts);
             $navPageNumber = 0;
             $this->processMagentoImport($this->navPromotion, $this, $websiteId, $navPageNumber);
             return $this->getPriceFromCache($product, $qty);
@@ -113,18 +115,32 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         if (isset($data->price)){
             $productPromoInfo = ['price' => (float)$data->price, 'quantity' => (int)$data->quantity];
             $lifeTime = $this->config->getWebsiteData(self::CODE . '/price_ttl', $websiteId);
-            $this->cache->save($this->serializer->serialize($productPromoInfo), self::CACHE_ID.(string)$data->sku, [self::CACHE_TAG], $lifeTime);
+            $this->cache->save(
+                $this->serializer->serialize($productPromoInfo),
+                $this->getCacheId((string)$data->sku, (int)$data->quantity),
+                [self::CACHE_TAG], $lifeTime
+            );
         }
         return true;
     }
 
+    public function getCacheId($sku, $qty)
+    {
+        return self::CACHE_ID.$sku.'_'.$qty;
+    }
+
     public function getPriceFromCache(\Magento\Catalog\Model\Product $product, $qty = 1)
     {
-        $cache = $this->cache->load(self::CACHE_ID.$product->getSku());
+        $cache = $this->cache->load($this->getCacheId($product->getSku(), $qty));
+        if (($qty > 1) && ($cache == false)) {
+            $cache = $this->cache->load($this->getCacheId($product->getSku(), 1));
+        }
         if ($cache != false) {
             $productPromoInfo = $this->serializer->unserialize($cache);
-            if ($qty >= $productPromoInfo['quantity']) {
-                return $productPromoInfo['price'];
+            if(isset($productPromoInfo['quantity']) && isset($productPromoInfo['price'])){
+                if ($qty >= $productPromoInfo['quantity']) {
+                    return $productPromoInfo['price'];
+                }
             }
         }
         return false;

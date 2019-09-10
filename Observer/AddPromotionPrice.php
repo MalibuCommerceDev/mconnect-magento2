@@ -7,7 +7,7 @@ class AddPromotionPrice implements \Magento\Framework\Event\ObserverInterface
     /**
      * @var \Magento\Framework\Registry
      */
-    protected $_registry;
+    protected $registry;
 
     /**
      * PromotionPlugin constructor.
@@ -21,7 +21,7 @@ class AddPromotionPrice implements \Magento\Framework\Event\ObserverInterface
     public function __construct(
         \Magento\Framework\Registry $registry
     ) {
-        $this->_registry = $registry;
+        $this->registry = $registry;
     }
 
     public function execute(\Magento\Framework\Event\Observer $observer)
@@ -29,8 +29,8 @@ class AddPromotionPrice implements \Magento\Framework\Event\ObserverInterface
         $collection = $observer->getEvent()->getCollection();
         /* @var $collection \Magento\Catalog\Model\ResourceModel\Product\Collection */
         if ($collection->getSize() > 0 ){
-            $key = \MalibuCommerce\MConnect\Model\Queue\Promotion::CACHE_TAG;
-            $prepareProducts = $this->_registry->registry($key);
+            $key = \MalibuCommerce\MConnect\Model\Queue\Promotion::REGISTRY_KEY_NAV_PROMO_PRODUCTS;
+            $prepareProducts = $this->registry->registry($key);
             foreach ($collection as $product) {
                 $prepareProducts[$product->getSku()] = 1;
             }
