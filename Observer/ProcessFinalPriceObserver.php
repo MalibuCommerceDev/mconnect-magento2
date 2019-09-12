@@ -1,4 +1,5 @@
 <?php
+
 namespace MalibuCommerce\MConnect\Observer;
 
 /**
@@ -21,14 +22,21 @@ class ProcessFinalPriceObserver implements \Magento\Framework\Event\ObserverInte
      */
     protected $config;
 
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Queue\Promotion
+     */
+    protected $promotion;
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $config,
         \Psr\Log\LoggerInterface $logger,
-        \MalibuCommerce\MConnect\Model\Pricerule $rule
+        \MalibuCommerce\MConnect\Model\Pricerule $rule,
+        \MalibuCommerce\MConnect\Model\Queue\Promotion $promotion
     ) {
         $this->logger = $logger;
         $this->rule = $rule;
         $this->config = $config;
+        $this->promotion = $promotion;
     }
 
     /**
@@ -44,7 +52,12 @@ class ProcessFinalPriceObserver implements \Magento\Framework\Event\ObserverInte
         try {
             /** @var \Magento\Catalog\Model\Product $product */
             $product = $observer->getProduct();
-            $mconnectPrice = $this->rule->matchDiscountPrice($product, $observer->getQty(), $product->getStore()->getWebsiteId());
+            $websiteId = $product->getStore()->getWebsiteId();
+            $mconnectPrice = $this->promotion->getPromoPrice($product, $observer->getQty(), $websiteId);
+
+            if ($mconnectPrice === false) {
+                $mconnectPrice = $this->rule->matchDiscountPrice($product, $observer->getQty(), $websiteId);
+            }
 
             if ($mconnectPrice === false) {
 

@@ -402,6 +402,18 @@
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Source\CustomerGroups</source_model>
                 </field>
             </group>
+            <group id="promotion" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <label>Live Promotional Price</label>
+                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Enabled</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="price_ttl" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Price TTL</label>
+                    <comment><![CDATA[Time for storing promotional price in the magento cache]]></comment>
+
+                </field>
+            </group>
         </section>
     </system>
 </config>
