@@ -347,4 +347,14 @@ class Config
     {
         return (bool)$this->getWebsiteData('product/set_out_of_stock', $websiteId);
     }
+
+    /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return bool
+     */
+    public function isDisableBewProducts($websiteId = null)
+    {
+        return (bool)$this->getWebsiteData('product/disable_new_products', $websiteId);
+    }
 }
