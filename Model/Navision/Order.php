@@ -130,7 +130,6 @@ class Order extends AbstractModel
 
         $this->addAddresses($orderEntity, $orderObject);
         $this->addItems($orderEntity, $orderObject);
-        print_r($orderObject); die;
 
         return $this->_import('order_import', $root, $websiteId);
     }
@@ -152,11 +151,11 @@ class Order extends AbstractModel
              */
             if ($this->moduleManager->isEnabled('Magento_Reward')) {
 
-                if($orderEntity->getExtensionAttributes()->getRewardCurrencyAmount()) {
+                if ($orderEntity->getExtensionAttributes() && $orderEntity->getExtensionAttributes()->getRewardCurrencyAmount()) {
                     $root->rewards_amount = $orderEntity->getExtensionAttributes()->getRewardCurrencyAmount();
                 }
 
-                if($orderEntity->getExtensionAttributes()->getRewardPointsBalance()) {
+                if ($orderEntity->getExtensionAttributes() && $orderEntity->getExtensionAttributes()->getRewardPointsBalance()) {
                     $root->rewards_points = $orderEntity->getExtensionAttributes()->getRewardPointsBalance();
                 }
             }
