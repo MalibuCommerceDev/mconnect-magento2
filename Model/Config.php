@@ -353,7 +353,7 @@ class Config
      *
      * @return bool
      */
-    public function isDisableBewProducts($websiteId = null)
+    public function isDisableNewProducts($websiteId = null)
     {
         return (bool)$this->getWebsiteData('product/disable_new_products', $websiteId);
     }
