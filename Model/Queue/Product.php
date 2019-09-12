@@ -272,9 +272,13 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
             $product->setWebsiteIds($websiteIds);
         }
 
-        $status = $data->item_blocked == 'true'
-            ? ProductStatus::STATUS_DISABLED
-            : ProductStatus::STATUS_ENABLED;
+        if ($this->getConfig()->isDisableNewProducts($websiteId) && !$productExists) {
+            $status = ProductStatus::STATUS_DISABLED;
+        } else {
+            $status = $data->item_blocked == 'true'
+                ? ProductStatus::STATUS_DISABLED
+                : ProductStatus::STATUS_ENABLED;
+        }
 
         /**
          * Set required user defined attributes
