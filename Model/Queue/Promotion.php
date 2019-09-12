@@ -12,6 +12,9 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     const CACHE_TAG = 'mconnect_promotion';
     const REGISTRY_KEY_NAV_PROMO_PRODUCTS = 'mconnect_promotion';
     const NAV_XML_NODE_ITEM_NAME = 'item';
+    const NAV_XML_NODE_ITEM_CONTAINER_NAME = 'items';
+    const NAV_PAGE_NUMBER = 0;
+
 
     /**
      * @var \Magento\Framework\Registry
@@ -92,32 +95,29 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
 
             return false;
         }
-
-        if ($promoPrice = $this->getPriceFromCache($product, $qty)) {
-
+        $promoPrice = $this->getPriceFromCache($product->getSku(), $qty);
+        if ($promoPrice == 'NULL') {
+            return false;
+        }
+        if (!empty($promoPrice)) {
             return $promoPrice;
         }
 
-        $prepareProducts = $this->_registry->registry(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
+        $prepareProducts = $this->registry->registry(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
         $prepareProducts[$product->getSku()] = $qty;
-        $this->_registry->unregister(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
-        $this->_registry->register(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS, $prepareProducts);
+        $this->registry->unregister(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
+        $this->registry->register(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS, $prepareProducts);
         $navPageNumber = 0;
         $this->processMagentoImport($this->navPromotion, $this, $websiteId, $navPageNumber);
 
-        return $this->getPriceFromCache($product, $qty);
+        return $this->getPriceFromCache($product->getSku(), $qty);
     }
 
     public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
-        if (isset($data->price)){
+        if (isset($data->price)) {
             $productPromoInfo = ['price' => (float)$data->price, 'quantity' => (int)$data->quantity];
-            $lifeTime = $this->config->getWebsiteData(self::CODE . '/price_ttl', $websiteId);
-            $this->cache->save(
-                $this->serializer->serialize($productPromoInfo),
-                $this->getCacheId((string)$data->sku, (int)$data->quantity),
-                [self::CACHE_TAG], $lifeTime
-            );
+            $this->savePromoPriceToCache($productPromoInfo, (string)$data->sku, $websiteId);
         }
         return true;
     }
@@ -127,20 +127,35 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         return self::CACHE_ID.$sku.'_'.$qty;
     }
 
-    public function getPriceFromCache(\Magento\Catalog\Model\Product $product, $qty = 1)
+    public function getPriceFromCache($sku, $qty = 1)
     {
-        $cache = $this->cache->load($this->getCacheId($product->getSku(), $qty));
+        $cache = $this->cache->load($this->getCacheId($sku, $qty));
         if (($qty > 1) && ($cache == false)) {
-            $cache = $this->cache->load($this->getCacheId($product->getSku(), 1));
+            $cache = $this->cache->load($this->getCacheId($sku, 1));
         }
         if ($cache != false) {
             $productPromoInfo = $this->serializer->unserialize($cache);
-            if(isset($productPromoInfo['quantity']) && isset($productPromoInfo['price'])){
+            if (isset($productPromoInfo['quantity']) && isset($productPromoInfo['price'])){
                 if ($qty >= $productPromoInfo['quantity']) {
                     return $productPromoInfo['price'];
                 }
             }
         }
         return false;
+    }
+
+    public function savePromoPriceToCache($productPromoInfo, $sku, $websiteId = 0)
+    {
+        $lifeTime = $this->config->getWebsiteData(self::CODE . '/price_ttl', $websiteId);
+        $this->cache->save(
+            $this->serializer->serialize($productPromoInfo),
+            $this->getCacheId($sku, $productPromoInfo['quantity']),
+            [self::CACHE_TAG], $lifeTime
+        );
+    }
+
+    public function runMultiplePromoPriceImport($website = 0)
+    {
+        $this->processMagentoImport($this->navPromotion, $this, $website, self::NAV_PAGE_NUMBER);
     }
 }
