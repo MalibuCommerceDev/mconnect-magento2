@@ -11,8 +11,7 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     const CACHE_ID = 'mconnect_promotion_price';
     const CACHE_TAG = 'mconnect_promotion';
     const REGISTRY_KEY_NAV_PROMO_PRODUCTS = 'mconnect_promotion';
-    const NAV_XML_NODE_ITEM_NAME = 'item';
-    const NAV_XML_NODE_ITEM_CONTAINER_NAME = 'items';
+    const NAV_XML_NODE_ITEM_NAME = 'items';
     const NAV_PAGE_NUMBER = 0;
 
 
@@ -115,9 +114,11 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
 
     public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
-        if (isset($data->price)) {
-            $productPromoInfo = ['price' => (float)$data->price, 'quantity' => (int)$data->quantity];
-            $this->savePromoPriceToCache($productPromoInfo, (string)$data->sku, $websiteId);
+        foreach ($data->item as $item) {
+            if (isset($item->price)) {
+                $productPromoInfo = ['price' => (float)$item->price, 'quantity' => (int)$item->quantity];
+                $this->savePromoPriceToCache($productPromoInfo, (string)$item->sku, $websiteId);
+            }
         }
         return true;
     }
