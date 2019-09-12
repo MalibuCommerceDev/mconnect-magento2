@@ -285,6 +285,10 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         $lastUpdated = $this->getLastSyncTime($this->getImportLastSyncFlagName($websiteId));
         do {
             $result = $navExporter->export($navPageNumber, $lastUpdated, $websiteId);
+            //Check if container exist
+            if (isset($result->{$this->getNavXmlNodeContainerName()})){
+                $result = $result->{$this->getNavXmlNodeContainerName()};
+            }
             foreach ($result->{$this->getNavXmlNodeName()} as $data) {
                 try {
                     $importResult = $magentoImporter->importEntity($data, $websiteId);
@@ -404,6 +408,11 @@ class Queue extends \Magento\Framework\Model\AbstractModel
     public function getNavXmlNodeName()
     {
         return static::NAV_XML_NODE_ITEM_NAME;
+    }
+
+    public function getNavXmlNodeContainerName()
+    {
+        return static::NAV_XML_NODE_ITEM_CONTAINER_NAME;
     }
 
     public function getImportLastSyncFlagName($websiteId = 0)

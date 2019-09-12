@@ -60,11 +60,12 @@ class Promotion extends AbstractModel
             $root->mag_customer_id = '';
             $root->nav_customer_id = '';
         }
+        $items = $root->addChild('items');
         foreach ($prepareProducts as $k => $v) {
-            $this->addItemChild($root, $k, $v);
+            $this->addItemChild($items, $k, $v);
             //Always request all items with QTY 1
             if ($v > 1) {
-                $this->addItemChild($root, $k, 1);
+                $this->addItemChild($items, $k, 1);
             }
         }
         return $this->_export('promo_export', $root, $websiteId);
