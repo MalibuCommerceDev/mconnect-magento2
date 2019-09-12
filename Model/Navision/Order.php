@@ -130,7 +130,6 @@ class Order extends AbstractModel
 
         $this->addAddresses($orderEntity, $orderObject);
         $this->addItems($orderEntity, $orderObject);
-        print_r($orderObject); die;
 
         return $this->_import('order_import', $root, $websiteId);
     }
