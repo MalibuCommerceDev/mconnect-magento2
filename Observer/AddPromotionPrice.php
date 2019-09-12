@@ -85,7 +85,6 @@ class AddPromotionPrice implements \Magento\Framework\Event\ObserverInterface
             $this->registry->unregister($key);
             $this->registry->register($key, $prepareProducts);
 
-
             $store = $this->storeManager->getStore($collection->getStoreId());
             $websiteId = $store->getWebsiteId();
             $this->promotion->runMultiplePromoPriceImport($websiteId);
