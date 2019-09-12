@@ -118,6 +118,7 @@ class Order extends AbstractModel
             $orderObject->tracking_no = $tracksCollection->getTrackNumber();
         }
         $this->addGiftOptions($orderEntity, $orderObject, $websiteId);
+        $this->addRewardPoints($orderEntity, $orderObject, $websiteId);
         $this->addShipping($orderEntity, $orderObject);
 
         $payment = $orderEntity->getPayment();
@@ -129,8 +130,41 @@ class Order extends AbstractModel
 
         $this->addAddresses($orderEntity, $orderObject);
         $this->addItems($orderEntity, $orderObject);
+        print_r($orderObject); die;
 
         return $this->_import('order_import', $root, $websiteId);
+    }
+
+    /**
+     * Add rewards options to NAV export XML
+     *
+     * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
+     * @param \simpleXMLElement $root
+     * @param int $websiteId
+     *
+     * @return $this
+     */
+    public function addRewardPoints(\Magento\Sales\Api\Data\OrderInterface $orderEntity, &$root, $websiteId = 0)
+    {
+        try {
+            /**
+             * Reward Points
+             */
+            if ($this->moduleManager->isEnabled('Magento_Reward')) {
+
+                if($orderEntity->getExtensionAttributes()->getRewardCurrencyAmount()) {
+                    $root->rewards_amount = $orderEntity->getExtensionAttributes()->getRewardCurrencyAmount();
+                }
+
+                if($orderEntity->getExtensionAttributes()->getRewardPointsBalance()) {
+                    $root->rewards_points = $orderEntity->getExtensionAttributes()->getRewardPointsBalance();
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->logger->warning($e);
+        }
+
+        return $this;
     }
 
     /**
