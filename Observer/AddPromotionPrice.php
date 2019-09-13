@@ -52,24 +52,30 @@ class AddPromotionPrice implements \Magento\Framework\Event\ObserverInterface
 
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
-        $collection = $observer->getEvent()->getCollection();
         /* @var $collection \Magento\Catalog\Model\ResourceModel\Product\Collection */
+        $collection = $observer->getEvent()->getCollection();
         if ($collection->getSize() > 0 ) {
             $key = \MalibuCommerce\MConnect\Model\Queue\Promotion::REGISTRY_KEY_NAV_PROMO_PRODUCTS;
+            unset($this->prepareProducts);
+            $this->prepareProducts = [];
             $simpleProducts = [];
             foreach ($collection as $product) {
-                $this->prepareProducts[$product->getSku()] = self::PRODUCT_QTY_FOR_IMPORT;
+                if (!$this->promotion->getPriceFromCache($product->getSku(), self::PRODUCT_QTY_FOR_IMPORT)) {
+                    $this->prepareProducts[$product->getSku()] = self::PRODUCT_QTY_FOR_IMPORT;
+                }
                 if ($product->getTypeId() == \Magento\ConfigurableProduct\Model\Product\Type\Configurable::TYPE_CODE) {
                     $simpleProducts[] = $product->getId();
                 }
             }
             $this->loadSimpleProducts($simpleProducts);
-            $this->registry->unregister($key);
-            $this->registry->register($key, $this->prepareProducts);
 
-            $store = $this->storeManager->getStore($collection->getStoreId());
-            $websiteId = $store->getWebsiteId();
-            $this->promotion->runMultiplePromoPriceImport($websiteId);
+            if (count($this->prepareProducts) > 0) {
+                $this->registry->unregister($key);
+                $this->registry->register($key, $this->prepareProducts);
+                $store = $this->storeManager->getStore($collection->getStoreId());
+                $websiteId = $store->getWebsiteId();
+                $this->promotion->runMultiplePromoPriceImport($websiteId);
+            }
 
             //Save products without promo price to cache
             foreach ($this->prepareProducts as $itemKey => $itemValue) {
@@ -99,7 +105,9 @@ class AddPromotionPrice implements \Magento\Framework\Event\ObserverInterface
         $simpleProducts = $connection->fetchAssoc($select);
         if (count($simpleProducts) > 0) {
             foreach ($simpleProducts as $simpleProduct) {
-                $this->prepareProducts[$simpleProduct['sku']] = self::PRODUCT_QTY_FOR_IMPORT;
+                if (!$this->promotion->getPriceFromCache($simpleProduct['sku'], self::PRODUCT_QTY_FOR_IMPORT)) {
+                    $this->prepareProducts[$simpleProduct['sku']] = self::PRODUCT_QTY_FOR_IMPORT;
+                }
             }
         }
     }
