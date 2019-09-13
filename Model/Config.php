@@ -320,24 +320,6 @@ class Config
         ));
     }
 
-    public function get($path, $store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_CONFIG_SECTION . '/' . $path,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $store
-        );
-    }
-
-    public function getWebsiteData($path, $website = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_CONFIG_SECTION . '/' . $path,
-            \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE,
-            $website
-        );
-    }
-
     /**
      * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
@@ -356,5 +338,52 @@ class Config
     public function isDisableNewProducts($websiteId = null)
     {
         return (bool)$this->getWebsiteData('product/disable_new_products', $websiteId);
+    }
+
+    /**
+     * Get Malibu Mconnect config value per store
+     *
+     * @param string $path
+     * @param null|string|int $store
+     *
+     * @return mixed
+     */
+    public function get($path, $store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_CONFIG_SECTION . '/' . $path,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $store
+        );
+    }
+
+    /**
+     * Get Malibu Mconnect config value per website
+     *
+     * @param string $path
+     * @param null|string|int $website
+     *
+     * @return mixed
+     */
+    public function getWebsiteData($path, $website = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_CONFIG_SECTION . '/' . $path,
+            \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE,
+            $website
+        );
+    }
+
+    /**
+     * Get Global config value per store
+     *
+     * @param string $path
+     * @param null|string|int $store
+     *
+     * @return mixed
+     */
+    public function getConfigValue($path, $store = null)
+    {
+        return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store);
     }
 }
