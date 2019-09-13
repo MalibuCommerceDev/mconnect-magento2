@@ -241,7 +241,7 @@
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="disable_new_products" sortOrder="80" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                    <label>Disabled Newly Imported Products</label>
+                    <label>Disable New Imported Products</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
