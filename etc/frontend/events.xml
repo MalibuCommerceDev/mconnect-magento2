@@ -9,6 +9,6 @@
         <observer name="malibucommerce_mconnect_price_rule" instance="MalibuCommerce\MConnect\Observer\ProcessFinalPriceObserver" />
     </event>
     <event name="catalog_product_collection_load_after">
-        <observer name="mconnect_promotion_price" instance="MalibuCommerce\MConnect\Observer\AddPromotionPrice" />
+        <observer name="mconnect_promotion_price" instance="MalibuCommerce\MConnect\Observer\ProcessLivePromotionPriceObserver" />
     </event>
 </config>
