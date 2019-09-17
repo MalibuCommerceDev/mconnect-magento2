@@ -415,7 +415,13 @@
                 <field id="price_ttl" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Price TTL</label>
                     <comment><![CDATA[Time for storing promotional price in the magento cache]]></comment>
-
+                </field>
+            </group>
+            <group id="tier_price" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <label>Tier Price</label>
+                <field id="is_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Enabled</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
         </section>
