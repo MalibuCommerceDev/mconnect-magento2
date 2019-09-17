@@ -95,6 +95,9 @@
                 <import_enabled>0</import_enabled>
                 <price_ttl>60</price_ttl>
             </promotion>
+            <tier_price>
+                <is_enable>0</is_enable>
+            </tier_price>
         </malibucommerce_mconnect>
     </default>
 </config>

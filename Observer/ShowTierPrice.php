@@ -2,113 +2,72 @@
 
 namespace MalibuCommerce\MConnect\Observer;
 
-class AddPromotionPrice implements \Magento\Framework\Event\ObserverInterface
+class ShowTierPrice implements \Magento\Framework\Event\ObserverInterface
 {
-    const PRODUCT_QTY_FOR_IMPORT = 1;
+    const CODE = 'tier_price';
+    const SORT_ORDER_ASC = 'ASC';
+    const MIN_QTY_TO_SHOW_TIER_PRICE = 2;
+    const CUSTOMER_GROUP = 32000;
+
     /**
-     * @var \Magento\Framework\Registry
+     * @var \MalibuCommerce\MConnect\Model\Pricerule
      */
-    protected $registry;
+    protected $rule;
+
+    /**
+     * @var \Psr\Log\LoggerInterface
+     */
+    protected $logger;
 
     /**
      * @var \MalibuCommerce\MConnect\Model\Queue\Promotion
      */
-    protected $promotion;
+    protected $config;
 
     /**
-     * @var ResourceConnection
-     */
-    private $resourceConnection;
-
-    /**
-     * @var \Magento\Store\Model\StoreManagerInterface
-     */
-    protected $storeManager;
-
-    protected $prepareProducts = [];
-
-    /**
-     * PromotionPlugin constructor.
+     * Showtier price constructor.
      *
-     * @param \Magento\Framework\Registry                               $registry
-     * @param \Magento\ConfigurableProduct\Api\LinkManagementInterface  $linkManagement
-     * @param \Magento\Framework\App\ResourceConnection                 $resourceConnection
-     * @param \MalibuCommerce\MConnect\Model\Queue\Promotion            $promotion
-     * @param \Magento\Store\Model\StoreManagerInterface                $storeManager
+     * @param \Psr\Log\LoggerInterface                               $logger
+     * @param \MalibuCommerce\MConnect\Model\Pricerule               $rule
+     * @param \MalibuCommerce\MConnect\Model\Config                  $config
      */
     public function __construct(
-        \Magento\Framework\Registry $registry,
-        \Magento\ConfigurableProduct\Api\LinkManagementInterface $linkManagement,
-        \Magento\Framework\App\ResourceConnection $resourceConnection,
-        \MalibuCommerce\MConnect\Model\Queue\Promotion $promotion,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        \Psr\Log\LoggerInterface $logger,
+        \MalibuCommerce\MConnect\Model\Pricerule $rule,
+        \MalibuCommerce\MConnect\Model\Config $config
     ) {
-        $this->registry = $registry;
-        $this->linkManagement = $linkManagement;
-        $this->resourceConnection = $resourceConnection;
-        $this->promotion = $promotion;
-        $this->storeManager = $storeManager;
+        $this->logger = $logger;
+        $this->rule = $rule;
+        $this->config = $config;
     }
 
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
-        /* @var $collection \Magento\Catalog\Model\ResourceModel\Product\Collection */
-        $collection = $observer->getEvent()->getCollection();
-        if ($collection->getSize() > 0 ) {
-            $key = \MalibuCommerce\MConnect\Model\Queue\Promotion::REGISTRY_KEY_NAV_PROMO_PRODUCTS;
-            unset($this->prepareProducts);
-            $this->prepareProducts = [];
-            $simpleProducts = [];
-            foreach ($collection as $product) {
-                if (!$this->promotion->getPriceFromCache($product->getSku(), self::PRODUCT_QTY_FOR_IMPORT)) {
-                    $this->prepareProducts[$product->getSku()] = self::PRODUCT_QTY_FOR_IMPORT;
-                }
-                if ($product->getTypeId() == \Magento\ConfigurableProduct\Model\Product\Type\Configurable::TYPE_CODE) {
-                    $simpleProducts[] = $product->getId();
-                }
-            }
-            $this->loadSimpleProducts($simpleProducts);
+        $product = $observer->getEvent()->getProduct();
 
-            if (count($this->prepareProducts) > 0) {
-                $this->registry->unregister($key);
-                $this->registry->register($key, $this->prepareProducts);
-                $store = $this->storeManager->getStore($collection->getStoreId());
-                $websiteId = $store->getWebsiteId();
-                $this->promotion->runMultiplePromoPriceImport($websiteId);
+        $websiteId = $product->getStore()->getWebsiteId();
+        if (!(bool)$this->config->getWebsiteData(self::CODE . '/is_enabled', $websiteId)) {
+
+            return false;
+        }
+        /** @var \MalibuCommerce\MConnect\Model\Resource\Pricerule\Collection $collection */
+        $collection = $this->rule->getResourceCollection();
+        $collection
+            ->applySkuFilter($product->getSku())
+            ->applyWebsiteFilter($websiteId)
+            ->applyCustomerFilter()
+            ->applyFromToDateFilter()
+            ->setOrder('price', self::SORT_ORDER_ASC)
+            ->addFieldToFilter('qty_min', array(
+            array('from' => self::MIN_QTY_TO_SHOW_TIER_PRICE),
+        ));
+        if ($collection->getSize() > 0) {
+            foreach ($collection as $item) {
+                $tierPrices[] = ['website_id' => $websiteId, 'cust_group' => self::CUSTOMER_GROUP, 'price_qty' => $item->getData('qty_min'), 'price' => $item->getData('price')];
             }
 
-            //Save products without promo price to cache
-            foreach ($this->prepareProducts as $itemKey => $itemValue) {
-                if (!$this->promotion->getPriceFromCache($itemKey, self::PRODUCT_QTY_FOR_IMPORT)) {
-                    $this->promotion->savePromoPriceToCache(['price' => 'NULL', 'quantity' => self::PRODUCT_QTY_FOR_IMPORT], $itemKey, $websiteId);
-                }
-            }
+            $product->setTierPrice($tierPrices);
         }
         return $this;
-    }
-
-    public function loadSimpleProducts($simpleProducts)
-    {
-        $connection = $this->resourceConnection->getConnection();
-        $select = $connection->select();
-        $select->from(
-            ['product' => $connection->getTableName('catalog_product_entity')],
-            ['entity_id', 'sku']
-        );
-        $select->joinInner(
-            ['link_table' => 'catalog_product_super_link'],
-            'product.entity_id = link_table.product_id',
-            []
-        );
-        $select->where('link_table.parent_id IN (?)', $simpleProducts);
-
-        $simpleProducts = $connection->fetchAssoc($select);
-        if (count($simpleProducts) > 0) {
-            foreach ($simpleProducts as $simpleProduct) {
-                if (!$this->promotion->getPriceFromCache($simpleProduct['sku'], self::PRODUCT_QTY_FOR_IMPORT)) {
-                    $this->prepareProducts[$simpleProduct['sku']] = self::PRODUCT_QTY_FOR_IMPORT;
-                }
-            }
-        }
     }
 }
