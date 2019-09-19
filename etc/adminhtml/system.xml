@@ -422,6 +422,7 @@
                 <field id="is_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Mconnect Tier Pricing is based on Mconnect Price Rules and will override standard Magento Tier Pricing logic]]></comment>
                 </field>
             </group>
         </section>

@@ -2,11 +2,11 @@
 
 namespace MalibuCommerce\MConnect\Observer;
 
-class ShowTierPrice implements \Magento\Framework\Event\ObserverInterface
+class CatalogProductLoadAfterObserver implements \Magento\Framework\Event\ObserverInterface
 {
     const CODE = 'tier_price';
     const SORT_ORDER_ASC = 'ASC';
-    const MIN_QTY_TO_SHOW_TIER_PRICE = 2;
+    const MIN_QTY_TO_SHOW_TIER_PRICE = 1;
     const CUSTOMER_GROUP = 32000;
 
     /**
