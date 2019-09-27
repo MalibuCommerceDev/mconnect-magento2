@@ -347,7 +347,7 @@ class Order extends AbstractModel
             $child->mag_item_id = $item->getSku();
             $child->name = $item->getName();
             $child->quantity = $item->getQtyOrdered();
-            $child->unit_price = $item->getParentItem()
+            $child->unit_price = ($item->getParentItem() && ($item->getParentItem()->getProductType() != \Magento\Catalog\Model\Product\Type::TYPE_BUNDLE))
                 ? $item->getParentItem()->getBasePrice()
                 : $item->getBasePrice();
             $child->line_discount_amount = $item->getParentItem()
@@ -370,10 +370,11 @@ class Order extends AbstractModel
     {
         $shippingAssignments = $orderEntity->getExtensionAttributes()->getShippingAssignments();
         /** @var \Magento\Sales\Api\Data\ShippingAssignmentInterface $shippingAssignment */
-        foreach ($shippingAssignments as $shippingAssignment) {
-            $method = $shippingAssignment->getShipping()->getMethod();
+        if(isset($shippingAssignments)) {
+            foreach ($shippingAssignments as $shippingAssignment) {
+                $method = $shippingAssignment->getShipping()->getMethod();
+            }
         }
-
         if (!isset($method)) {
             $root->shipping_carrier = 'none';
             $root->shipping_method = 'none';
