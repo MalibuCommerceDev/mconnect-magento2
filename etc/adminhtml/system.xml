@@ -66,6 +66,11 @@
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[May consume a large amount of disk space.]]></comment>
                 </field>
+                <field id="log_to_db" sortOrder="100" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Save logs to DB</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Save logs to DB instead of files]]></comment>
+                </field>
                 <field id="retry_on_failure" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Retry NAV Requests On Failure When Exporting Data from NAV</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

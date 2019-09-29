@@ -20,21 +20,71 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     protected $mConnectMailer;
 
     /**
+     * @var \MalibuCommerce\MConnect\Model\Queue
+     */
+    protected $queue;
+
+    /**
      * @var \Magento\Framework\Registry
      */
     protected $registry;
 
+    /**
+     * Serializer interface instance.
+     *
+     * @var \Magento\Framework\Serialize\Serializer\Json
+     */
+    protected $serializer;
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
+        \MalibuCommerce\MConnect\Model\Queue $queue,
         \MalibuCommerce\MConnect\Helper\Mail $mConnectMailer,
         \Magento\Framework\Registry $registry,
-        \Magento\Framework\App\Helper\Context $context
+        \Magento\Framework\App\Helper\Context $context,
+        \Magento\Framework\Serialize\Serializer\Json $serializer = null
     ) {
         $this->mConnectMailer = $mConnectMailer;
         $this->mConnectConfig = $mConnectConfig;
+        $this->queue          = $queue;
         $this->registry = $registry;
-
+        $this->serializer = $serializer ?: \Magento\Framework\App\ObjectManager::getInstance()
+            ->get(\Magento\Framework\Serialize\Serializer\Json::class);
         parent::__construct($context);
+    }
+
+    /**
+     * @param int  $id
+     * @param bool $absolute
+     * @param bool $nameOnly
+     *
+     * @return bool|string
+     */
+    public function getLog($id, $absolute = true, $nameOnly = false)
+    {
+        if ($this->isLogFileToDb()) {
+            $data =  $this->getLogFromDatabase($id);
+            if (!empty($data)) {
+                return $data;
+            } else {
+                return $this->getLogFile($id, $absolute, $nameOnly);
+            }
+        }
+
+        $file = $this->getLogFile($id, $absolute, $nameOnly);
+        if (!file_exists($file)) {
+            return $this->getLogFromDatabase($id);
+        }
+        return $file;
+    }
+
+    public function getLogFromDatabase($id)
+    {
+        $queueItem = $this->queue->load($id);
+        if ($queueItem && !empty($queueItem->getLogs())) {
+            return $queueItem->getLogs();
+        }
+        return;
     }
 
     /**
@@ -66,17 +116,35 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         return !file_exists($file) && !$nameOnly ? false : $file;
     }
 
+    public function getLogSize($file, $humanReadable = true)
+    {
+        if (is_string($file)) {
+            $bytes = mb_strlen($file);
+            if (!$humanReadable) {
+                return $bytes;
+            }
+
+            return $this->getFormatedSize($bytes);
+        }
+
+        return $this->getFileSize($file, $humanReadable);
+    }
+
     public function getFileSize($file, $humanReadable = true)
     {
         if (!file_exists($file)) {
             return false;
         }
         $bytes = filesize($file);
-
         if (!$humanReadable) {
             return $bytes;
         }
 
+        return $this->getFormatedSize($bytes);
+    }
+
+    public function getFormatedSize($bytes)
+    {
         $units = array('B', 'KB', 'MB', 'GB', 'TB');
         $bytes = max($bytes, 0);
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
@@ -88,21 +156,26 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
     public function getLogFileContents($queueItemId, $asString = true)
     {
-        if ($file = $this->getLogFile($queueItemId, true, true)) {
-            $contents = file_get_contents($file);
+        if ($dataLog = $this->getLog($queueItemId, true, true)) {
             $results = [];
-            if (preg_match_all('~({.+})~', $contents, $matches)) {
-                foreach ($matches[1] as $match) {
-                    $debug = json_decode($match);
-                    $result = [];
-                    foreach ($debug as $title => $data) {
-                        if (preg_match('~({.+})~', $data, $matches2)) {
-                            $data = json_decode($matches2[1]);
+            if (file_exists($dataLog)) {
+                $contents = file_get_contents($dataLog);
+                if (preg_match_all('~({.+})~', $contents, $matches)) {
+                    foreach ($matches[1] as $match) {
+                        $debug = json_decode($match);
+                        $result = [];
+                        foreach ($debug as $title => $data) {
+                            if (preg_match('~({.+})~', $data, $matches2)) {
+                                $data = json_decode($matches2[1]);
+                            }
+                            $result[$title] = $data;
                         }
-                        $result[$title] = $data;
+                        $results[] = $result;
                     }
-                    $results[] = $result;
                 }
+            } else {
+                $contents = $dataLog;
+                $results[] = $this->serializer->unserialize($dataLog);
             }
 
             if (count($results)) {
@@ -207,23 +280,26 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
 
         $queueItemId = $this->registry->registry('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM_ID');
-
-        $logFile = $this->getLogFile($queueItemId, true, true);
-        $writer = new \Zend\Log\Writer\Stream($logFile);
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-
         $request = $this->prepareLogRequest($request, $location, $action);
         $response = [
             'Code'          => $code,
             'Headers'       => $header,
             'Response Data' => $this->decodeRequest('/<responseXML>(.*)<\/responseXML>/', $body)
         ];
-
-        $logger->debug('Debug Data', array(
+        $logData = array(
             'Request'  => $request,
             'Response' => $response
-        ));
+        );
+        if ($this->isLogFileToDb()) {
+            $queueItem = $this->queue->load($queueItemId);
+            $queueItem->setLogs($this->serializer->serialize($logData))->save();
+        } else {
+            $logFile = $this->getLogFile($queueItemId, true, true);
+            $writer = new \Zend\Log\Writer\Stream($logFile);
+            $logger = new \Zend\Log\Logger();
+            $logger->addWriter($writer);
+            $logger->debug('Debug Data', $logData);
+        }
 
         return true;
     }
@@ -261,5 +337,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
 
         return $value;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isLogFileToDb()
+    {
+        return (boolean)$this->mConnectConfig->get('nav_connection/log_to_db');
     }
 }
