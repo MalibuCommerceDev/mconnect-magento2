@@ -41,6 +41,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->upgrade2_4_5($setup);
         }
 
+        if (version_compare($context->getVersion(), '2.4.6', '<')) {
+            $this->upgrade2_4_6($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -245,6 +249,30 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'comment' => 'Malibu quequ logs',
                 'after'   => 'message',
             ]
+        );
+    }
+
+    protected function upgrade2_4_6(SchemaSetupInterface $setup)
+    {
+        $setup->getConnection()->addIndex(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            $setup->getIdxName('malibucommerce_mconnect_queue', ['code']),
+            ['code']
+        );
+        $setup->getConnection()->addIndex(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            $setup->getIdxName('malibucommerce_mconnect_queue', ['website_id']),
+            ['website_id']
+        );
+        $setup->getConnection()->addIndex(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            $setup->getIdxName('malibucommerce_mconnect_queue', ['action']),
+            ['action']
+        );
+        $setup->getConnection()->addIndex(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            $setup->getIdxName('malibucommerce_mconnect_queue', ['status']),
+            ['status']
         );
     }
 }
