@@ -274,5 +274,20 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $setup->getIdxName('malibucommerce_mconnect_queue', ['status']),
             ['status']
         );
+        $setup->getConnection()->addIndex(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            $setup->getIdxName('malibucommerce_mconnect_queue', ['finished_at']),
+            ['finished_at']
+        );
+        $setup->getConnection()->addIndex(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            $setup->getIdxName('malibucommerce_mconnect_queue', ['code', 'action', 'website_id', 'status', 'nav_page_num']),
+            ['code', 'action', 'website_id', 'status', 'nav_page_num']
+        );
+        $setup->getConnection()->addIndex(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            $setup->getIdxName('malibucommerce_mconnect_queue', ['entity_id', 'code', 'status', 'action']),
+            ['entity_id', 'code', 'status', 'action']
+        );
     }
 }
