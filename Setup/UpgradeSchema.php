@@ -37,6 +37,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->upgrade2_2_0($setup);
         }
 
+        if (version_compare($context->getVersion(), '2.4.5', '<')) {
+            $this->upgrade2_4_5($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -226,6 +230,20 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'comment' => 'NAV Data Page Number (chunk number)',
                 'after'   => 'website_id',
                 'default' => 0
+            ]
+        );
+    }
+
+    protected function upgrade2_4_5(SchemaSetupInterface $setup)
+    {
+        $setup->getConnection()->addColumn(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            'logs',
+            [
+                'type'    => Table::TYPE_TEXT,
+                'length'  => Table::MAX_TEXT_SIZE,
+                'comment' => 'Request Logs',
+                'after'   => 'message',
             ]
         );
     }

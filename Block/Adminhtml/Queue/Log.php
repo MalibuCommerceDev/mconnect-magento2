@@ -27,12 +27,12 @@ class Log extends \Magento\Framework\View\Element\Template
 
     public function getLogContents()
     {
-        return $this->helper->getLogFileContents((int)$this->getRequest()->getParam('id'));
+        return $this->helper->getLogContents((int)$this->getRequest()->getParam('id'));
     }
 
     public function getLogDetails()
     {
-        return $this->helper->getLogFileContents((int)$this->getRequest()->getParam('id'), false);
+        return $this->helper->getLogContents((int)$this->getRequest()->getParam('id'), false);
     }
 
     /**

@@ -251,7 +251,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
             $this->endProcess(self::STATUS_ERROR, $message);
         }
 
-        $this->registry->unregister('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM_ID', $this->getId());
+        $this->registry->unregister('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM_ID');
 
         return $this;
     }
