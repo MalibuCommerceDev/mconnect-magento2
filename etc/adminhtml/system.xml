@@ -67,9 +67,12 @@
                     <comment><![CDATA[May consume a large amount of disk space.]]></comment>
                 </field>
                 <field id="log_to_db" sortOrder="100" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                    <label>Save logs to DB</label>
+                    <label>Save Request Logs to DB</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[Save logs to DB instead of files]]></comment>
+                    <comment><![CDATA[Save logs to Magento database instead of files. File logs still will be shown if no logs found in database (fallback feature)]]></comment>
+                    <depends>
+                        <field id="log">1</field>
+                    </depends>
                 </field>
                 <field id="retry_on_failure" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Retry NAV Requests On Failure When Exporting Data from NAV</label>

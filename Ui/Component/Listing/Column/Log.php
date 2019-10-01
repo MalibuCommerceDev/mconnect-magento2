@@ -32,15 +32,20 @@ class Log extends \Magento\Ui\Component\Listing\Columns\Column
 
     public function prepareDataSource(array $dataSource)
     {
+        $logsAreInDb = $this->helper->isLogDataToDb();
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
-                $logFile = $this->helper->getLog($item['id']);
-                $size = $this->helper->getLogSize($logFile, false);
+                if ($logsAreInDb && !empty($item['logs'])) {
+                    $logs = $item['logs'];
+                } else {
+                    $logs = $this->helper->getLogFile($item['id']);
+                }
 
+                $size = $this->helper->getLogSize($logs, false);
                 if ($size) {
                     if ($size <= \MalibuCommerce\MConnect\Helper\Data::ALLOWED_LOG_SIZE_TO_BE_VIEWED) {
                         $url = $this->urlBuilder->getUrl('mconnect/queue/log', ['id' => $item['id']]);
-                        $item['log'] = __('<a target="_blank" href="%1">View (%2)</a>', $url, $this->helper->getLogSize($logFile));
+                        $item['log'] = __('<a target="_blank" href="%1">View (%2)</a>', $url, $this->helper->getLogSize($logs));
                     } else {
                         $item['log'] = __('Large Data (%1)', $size);
                     }

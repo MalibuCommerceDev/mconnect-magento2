@@ -246,7 +246,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
             [
                 'type'    => Table::TYPE_TEXT,
                 'length'  => Table::MAX_TEXT_SIZE,
-                'comment' => 'Malibu quequ logs',
+                'comment' => 'Request Logs',
                 'after'   => 'message',
             ]
         );
