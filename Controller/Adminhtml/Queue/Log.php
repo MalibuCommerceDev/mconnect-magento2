@@ -12,13 +12,13 @@ class Log extends Queue
 
         $resultRedirect = $this->resultRedirectFactory->create();
         $queueItemId = (int)$this->getRequest()->getParam('id');
-        $logFile = $this->helper->getLog($queueItemId);
-        if (!$logFile) {
+        $logs = $this->helper->getLog($queueItemId);
+        if (!$logs) {
             $this->messageManager->addErrorMessage(__('Wrong request.'));
             return $resultRedirect->setPath('*/*');
         }
 
-        $size = $this->helper->getLogSize($logFile, false);
+        $size = $this->helper->getLogSize($logs, false);
         if ($size > \MalibuCommerce\MConnect\Helper\Data::ALLOWED_LOG_SIZE_TO_BE_VIEWED) {
             $this->messageManager->addErrorMessage(__('Wrong request'));
             return $resultRedirect->setPath('*/*');
