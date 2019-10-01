@@ -301,10 +301,23 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         foreach ($order->getAllItems() as $item) {
             $sku = $item->getSku();
             $sku = strtolower(trim($sku));
-            if ($item->getQtyToShip() && !$item->getIsVirtual()
-                && isset($navShipmentItems[$sku]) && $navShipmentItems[$sku] > 0
+
+            if ($item->getProductType() == \Magento\Catalog\Model\Product\Type::TYPE_BUNDLE
+                && $item->getChildrenItems() && count($item->getChildrenItems()) > 0
             ) {
-                $shipmentItems[$item->getId()] = $navShipmentItems[$sku];
+                foreach ($item->getChildrenItems() as $childItem) {
+                    $childrItemSku =  strtolower(trim($childItem->getSku()));
+                    if (array_key_exists($childrItemSku, $navShipmentItems)) {
+                        $shipmentItems[$item->getId()] = $navShipmentItems[$childrItemSku];
+                        break;
+                    }
+                }
+            } else {
+                if ($item->getQtyToShip() && !$item->getIsVirtual()
+                    && isset($navShipmentItems[$sku]) && $navShipmentItems[$sku] > 0
+                ) {
+                    $shipmentItems[$item->getId()] = $navShipmentItems[$sku];
+                }
             }
         }
 
