@@ -110,7 +110,7 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
             $globalManageStock = $this->configuration->getManageStock();
 
             if ((bool)$stockItem->getData('manage_stock') || (
-                    $stockItem->isUseConfigManageStock() == 1 &&
+                    $stockItem->getUseConfigManageStock() == 1 &&
                     $globalManageStock == 1
                 )
             ) {
