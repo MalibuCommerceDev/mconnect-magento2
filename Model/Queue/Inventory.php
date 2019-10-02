@@ -2,6 +2,8 @@
 
 namespace MalibuCommerce\MConnect\Model\Queue;
 
+use Magento\CatalogInventory\Api\StockConfigurationInterface;
+
 class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
 {
     const CODE = 'inventory';
@@ -38,6 +40,11 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     protected $_stockRegistry;
 
     /**
+     * @var StockConfigurationInterface
+     */
+    private $configuration;
+
+    /**
      * Inventory constructor.
      *
      * @param \Magento\Catalog\Api\ProductRepositoryInterface      $productRepository
@@ -52,7 +59,8 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
         \MalibuCommerce\MConnect\Model\Navision\Inventory $navInventory,
         \MalibuCommerce\MConnect\Model\Config $config,
-        \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory
+        \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
+        StockConfigurationInterface $configuration
     ) {
         $this->productRepository = $productRepository;
         $this->_stockStateInterface = $stockStateInterface;
@@ -60,6 +68,7 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         $this->navInventory = $navInventory;
         $this->config = $config;
         $this->queueFlagFactory = $queueFlagFactory;
+        $this->configuration = $configuration;
     }
 
     public function importAction($websiteId, $navPageNumber = 0)
@@ -98,7 +107,13 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
             }
 
             $stockItem = $this->_stockRegistry->getStockItemBySku($sku);
-            if ((bool)$stockItem->getData('manage_stock')) {
+            $globalManageStock = $this->configuration->getManageStock();
+
+            if ((bool)$stockItem->getData('manage_stock') || (
+                    $stockItem->isUseConfigManageStock() == 1 &&
+                    $globalManageStock == 1
+                )
+            ) {
                 $stockItem->setData('is_in_stock', ($quantity > 0));
                 $stockItem->setData('qty', $quantity);
                 $stockItem->save();
