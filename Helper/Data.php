@@ -229,6 +229,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             case \MalibuCommerce\MConnect\Model\Queue::STATUS_SUCCESS:
                 $background = '#00c500';
                 break;
+            case \MalibuCommerce\MConnect\Model\Queue::STATUS_WARNING:
+                $background = '#ff5e00';
+                break;
             case \MalibuCommerce\MConnect\Model\Queue::STATUS_ERROR:
                 $background = '#ff0000';
                 break;

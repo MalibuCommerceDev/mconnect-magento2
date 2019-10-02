@@ -337,7 +337,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                     $this->messages .= 'SKU ' . $sku . ': created';
                 }
             } else {
-                $this->messages .= 'SKU ' . $sku . ': skipped';
+                $this->messages .= 'SKU ' . $sku . ': skipped - no changes detected for this product';
             }
 
             $this->setEntityId($product->getId());

@@ -119,7 +119,7 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
                 $stockItem->save();
                 $this->messages .= $sku . ': qty changed to ' . $quantity;
             } else {
-                $this->messages .= $sku . ': skipped';
+                $this->messages .= $sku . ': skipped - stock for this product is not managed';
             }
         } catch (\Throwable $e) {
             $this->messages .= $sku . ': ' . $e->getMessage() . PHP_EOL;
