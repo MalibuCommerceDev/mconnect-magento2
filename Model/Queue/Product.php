@@ -191,7 +191,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                     $stockItem->setQty((int)$data->item_qty_on_hand);
 
                     $stockStatus = (int)(bool)$data->item_qty_on_hand;
-                    if ($stockStatus || $this->getConfig()->isProductOutOfStockStatusMandatory($websiteId)) {
+                    if ($stockStatus && $this->getConfig()->isProductInStockStatusMandatory($websiteId)) {
                         $stockItem->setIsInStock($stockStatus);
                     }
                 }
@@ -217,7 +217,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                 );
 
                 $stockStatus = (int)(bool)$data->item_qty_on_hand;
-                if ($stockStatus || $this->getConfig()->isProductOutOfStockStatusMandatory($websiteId)) {
+                if ($stockStatus && $this->getConfig()->isProductInStockStatusMandatory($websiteId)) {
                     $stockItem['is_in_stock'] = $stockStatus;
                 }
 

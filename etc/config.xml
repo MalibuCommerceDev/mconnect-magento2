@@ -51,7 +51,7 @@
                 <import_type>simple</import_type>
                 <import_visibility>4</import_visibility>
                 <import_tax_class>2</import_tax_class>
-                <set_out_of_stock>1</set_out_of_stock>
+                <set_in_stock>1</set_in_stock>
                 <disable_new_products>0</disable_new_products>
             </product>
             <inventory>
@@ -59,6 +59,7 @@
                 <ignore_magento_errors>1</ignore_magento_errors>
                 <cron_expr>*/10 * * * *</cron_expr>
                 <max_rows>50</max_rows>
+                <set_in_stock>1</set_in_stock>
             </inventory>
             <order>
                 <import_enabled>1</import_enabled>

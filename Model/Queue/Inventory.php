@@ -108,13 +108,15 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
 
             $stockItem = $this->_stockRegistry->getStockItemBySku($sku);
             $globalManageStock = $this->configuration->getManageStock();
-
             if ((bool)$stockItem->getData('manage_stock') || (
                     $stockItem->getUseConfigManageStock() == 1 &&
                     $globalManageStock == 1
                 )
             ) {
-                $stockItem->setData('is_in_stock', ($quantity > 0));
+                $stockStatus = (bool)$quantity;
+                if ($stockStatus && $this->getConfig()->isInventoryInStockStatusMandatory($websiteId)) {
+                    $stockItem->setData('is_in_stock', $stockStatus);
+                }
                 $stockItem->setData('qty', $quantity);
                 $stockItem->save();
                 $this->messages .= $sku . ': qty changed to ' . $quantity;

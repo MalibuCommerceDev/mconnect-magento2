@@ -244,8 +244,8 @@
                     <source_model>\Magento\Tax\Model\TaxClass\Source\Product</source_model>
                     <backend_model>\Magento\Tax\Model\Config\TaxClass</backend_model>
                 </field>
-                <field id="set_out_of_stock" sortOrder="70" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                    <label>Set Product Inventory Status to "Out Of Stock" when QTY is "0"</label>
+                <field id="set_in_stock" sortOrder="70" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Set Product Stock Status to "In Stock" if QTY > "0"</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="disable_new_products" sortOrder="80" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
@@ -272,6 +272,10 @@
                 </field>
                 <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
+                </field>
+                <field id="set_in_stock" sortOrder="30" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Set Product Stock Status to "In Stock" if QTY > "0"</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
 
