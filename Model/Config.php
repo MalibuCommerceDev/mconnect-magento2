@@ -351,6 +351,17 @@ class Config
     }
 
     /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return bool
+     */
+    public function isApplyProductToAllWebsites($websiteId = null)
+    {
+        return (bool)$this->getWebsiteData('product/apply_product_to_all_websites', $websiteId);
+    }
+
+
+    /**
      * Get Malibu Mconnect config value per store
      *
      * @param string $path

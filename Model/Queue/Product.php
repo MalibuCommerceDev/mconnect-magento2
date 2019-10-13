@@ -262,13 +262,19 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         if (!empty($websiteId)) {
             $websiteIds = [$websiteId];
         }
-        if (!empty($data->item_webshop_list)) {
+        if ($this->getConfig()->isApplyProductToAllWebsites($websiteId)) {
+            $websiteIds = $this->storeManager->getWebsites();
+            if (is_array($websiteIds)) {
+                $websiteIds = array_keys($websiteIds);
+            }
+        } elseif (!empty($data->item_webshop_list)) {
             $websiteIdsString = (string)$data->item_webshop_list;
             $websiteIds = explode('|', $websiteIdsString);
             if (sizeof($websiteIds) < 2) {
                 $websiteIds = explode(',', $websiteIdsString);
             }
         }
+
         if (!empty($websiteIds)) {
             $product->setWebsiteIds($websiteIds);
         }

@@ -252,6 +252,11 @@
                     <label>Disable New Imported Products</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="apply_product_to_all_websites" sortOrder="90" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Assign imported product to the all existing websites</label>
+                    <comment><![CDATA[This is general configuration for all websites.]]></comment>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
             </group>
 
             <group id="inventory" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
