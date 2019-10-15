@@ -20,9 +20,14 @@ class CatalogProductLoadAfterObserver implements \Magento\Framework\Event\Observ
     protected $logger;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Queue\Promotion
+     * @var \MalibuCommerce\MConnect\Model\Config
      */
     protected $config;
+
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Queue\Promotion
+     */
+    protected $promotion;
 
     /**
      * Showtier price constructor.
@@ -34,11 +39,13 @@ class CatalogProductLoadAfterObserver implements \Magento\Framework\Event\Observ
     public function __construct(
         \Psr\Log\LoggerInterface $logger,
         \MalibuCommerce\MConnect\Model\Pricerule $rule,
-        \MalibuCommerce\MConnect\Model\Config $config
+        \MalibuCommerce\MConnect\Model\Config $config,
+        \MalibuCommerce\MConnect\Model\Queue\Promotion $promotion
     ) {
         $this->logger = $logger;
         $this->rule = $rule;
         $this->config = $config;
+        $this->promotion = $promotion;
     }
 
     public function execute(\Magento\Framework\Event\Observer $observer)
@@ -49,6 +56,7 @@ class CatalogProductLoadAfterObserver implements \Magento\Framework\Event\Observ
 
             return false;
         }
+
         /** @var \MalibuCommerce\MConnect\Model\Resource\Pricerule\Collection $collection */
         $collection = $this->rule->getResourceCollection();
         $collection
@@ -62,7 +70,13 @@ class CatalogProductLoadAfterObserver implements \Magento\Framework\Event\Observ
             ));
         if ($collection->getSize() > 0) {
             foreach ($collection as $item) {
-                $tierPrices[] = ['website_id' => $websiteId, 'cust_group' => self::CUSTOMER_GROUP, 'price_qty' => $item->getData('qty_min'), 'price' => $item->getData('price')];
+                $mconnectPromoPrice = $this->promotion->getPromoPrice((string)$item->getData('sku'), $item->getData('qty_min'), $websiteId);
+                if ($mconnectPromoPrice === false) {
+                    $finalPrice = $item->getData('price');
+                } else {
+                    $finalPrice = $mconnectPromoPrice;
+                }
+                $tierPrices[] = ['website_id' => $websiteId, 'cust_group' => self::CUSTOMER_GROUP, 'price_qty' => $item->getData('qty_min'), 'price' => $finalPrice];
             }
             $product->setTierPrice($tierPrices);
         }

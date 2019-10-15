@@ -80,19 +80,26 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     }
 
     /**
-     * @param \Magento\Catalog\Model\Product $product
-     * @param int                            $qty
-     * @param int                            $websiteId
+     * @param \Magento\Catalog\Model\Product|string $product
+     * @param int                                   $qty
+     * @param int                                   $websiteId
      *
      * @return bool
      */
-    public function getPromoPrice(\Magento\Catalog\Model\Product $product, $qty = 1, $websiteId = 0)
+    public function getPromoPrice($product, $qty = 1, $websiteId = 0)
     {
         if (!(bool)$this->config->getWebsiteData(self::CODE . '/import_enabled', $websiteId)) {
 
             return false;
         }
-        $promoPrice = $this->getPriceFromCache($product->getSku(), $qty);
+
+        if(is_string($product)) {
+            $sku = $product;
+        } else {
+            $sku = $product->getSku();
+        }
+
+        $promoPrice = $this->getPriceFromCache($sku, $qty);
         if ($promoPrice == 'NULL') {
             return false;
         }
@@ -101,13 +108,13 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         }
 
         $prepareProducts = $this->registry->registry(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
-        $prepareProducts[$product->getSku()] = $qty;
+        $prepareProducts[$sku] = $qty;
         $this->registry->unregister(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
         $this->registry->register(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS, $prepareProducts);
         $navPageNumber = 0;
         $this->processMagentoImport($this->navPromotion, $this, $websiteId, $navPageNumber);
 
-        return $this->getPriceFromCache($product->getSku(), $qty);
+        return $this->getPriceFromCache($sku, $qty);
     }
 
     public function importEntity(\SimpleXMLElement $data, $websiteId)

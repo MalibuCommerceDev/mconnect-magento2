@@ -14,7 +14,4 @@
     <event name="catalog_product_load_after">
         <observer name="tier_price" instance="MalibuCommerce\MConnect\Observer\CatalogProductLoadAfterObserver"/>
     </event>
-    <event name="catalog_product_load_after">
-        <observer name="tier_price" instance="MalibuCommerce\MConnect\Observer\ShowTierPrice"/>
-    </event>
 </config>
