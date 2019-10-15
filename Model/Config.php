@@ -320,6 +320,34 @@ class Config
         ));
     }
 
+    /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return bool
+     */
+    public function isProductOutOfStockStatusMandatory($websiteId = null)
+    {
+        return (bool)$this->getWebsiteData('product/set_out_of_stock', $websiteId);
+    }
+
+    /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return bool
+     */
+    public function isDisableNewProducts($websiteId = null)
+    {
+        return (bool)$this->getWebsiteData('product/disable_new_products', $websiteId);
+    }
+
+    /**
+     * Get Malibu Mconnect config value per store
+     *
+     * @param string $path
+     * @param null|string|int $store
+     *
+     * @return mixed
+     */
     public function get($path, $store = null)
     {
         return $this->scopeConfig->getValue(
@@ -329,6 +357,14 @@ class Config
         );
     }
 
+    /**
+     * Get Malibu Mconnect config value per website
+     *
+     * @param string $path
+     * @param null|string|int $website
+     *
+     * @return mixed
+     */
     public function getWebsiteData($path, $website = null)
     {
         return $this->scopeConfig->getValue(
@@ -339,12 +375,15 @@ class Config
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     * Get Global config value per store
      *
-     * @return bool
+     * @param string $path
+     * @param null|string|int $store
+     *
+     * @return mixed
      */
-    public function isProductOutOfStockStatusMandatory($websiteId = null)
+    public function getConfigValue($path, $store = null)
     {
-        return (bool)$this->getWebsiteData('product/set_out_of_stock', $websiteId);
+        return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store);
     }
 }

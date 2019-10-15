@@ -7,13 +7,12 @@ use Magento\Framework\Serialize\Serializer\Json;
 
 class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
 {
-    const CODE = 'promotion';
-    const CACHE_ID = 'mconnect_promotion_price';
-    const CACHE_TAG = 'mconnect_promotion';
+    const CODE                            = 'promotion';
+    const CACHE_ID                        = 'mconnect_promotion_price';
+    const CACHE_TAG                       = 'mconnect_promotion';
     const REGISTRY_KEY_NAV_PROMO_PRODUCTS = 'mconnect_promotion';
-    const NAV_XML_NODE_ITEM_NAME = 'items';
-    const NAV_PAGE_NUMBER = 0;
-
+    const NAV_XML_NODE_ITEM_NAME          = 'items';
+    const NAV_PAGE_NUMBER                 = 0;
 
     /**
      * @var \Magento\Framework\Registry
@@ -72,8 +71,7 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         $this->queueFlagFactory = $queueFlagFactory;
         $this->cache = $cache;
         $this->dataObjectFactory = $dataObjectFactory;
-        $this->serializer = $serializer ?: ObjectManager::getInstance()->get(Json::class);
-
+        $this->serializer = $serializer ? : ObjectManager::getInstance()->get(Json::class);
     }
 
     public function importAction($websiteId, $navPageNumber = 0)
@@ -120,12 +118,13 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
                 $this->savePromoPriceToCache($productPromoInfo, (string)$item->sku, $websiteId);
             }
         }
+
         return true;
     }
 
     public function getCacheId($sku, $qty)
     {
-        return self::CACHE_ID.$sku.'_'.$qty;
+        return self::CACHE_ID . $sku . '_' . $qty;
     }
 
     public function getPriceFromCache($sku, $qty = 1)
@@ -136,12 +135,13 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         }
         if ($cache != false) {
             $productPromoInfo = $this->serializer->unserialize($cache);
-            if (isset($productPromoInfo['quantity']) && isset($productPromoInfo['price'])){
+            if (isset($productPromoInfo['quantity']) && isset($productPromoInfo['price'])) {
                 if ($qty >= $productPromoInfo['quantity']) {
                     return $productPromoInfo['price'];
                 }
             }
         }
+
         return false;
     }
 

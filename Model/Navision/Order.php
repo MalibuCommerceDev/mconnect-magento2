@@ -113,8 +113,12 @@ class Order extends AbstractModel
         $orderObject->mag_customer_id = $orderEntity->getCustomerId();
         $orderObject->email_address = $orderEntity->getCustomerEmail();
         $orderObject->store_id = $orderEntity->getStoreId();
-
+        $tracksCollection = $orderEntity->getTracksCollection()->getFirstItem();
+        if ($tracksCollection->getTrackNumber()) {
+            $orderObject->tracking_no = $tracksCollection->getTrackNumber();
+        }
         $this->addGiftOptions($orderEntity, $orderObject, $websiteId);
+        $this->addRewardPoints($orderEntity, $orderObject, $websiteId);
         $this->addShipping($orderEntity, $orderObject);
 
         $payment = $orderEntity->getPayment();
@@ -128,6 +132,38 @@ class Order extends AbstractModel
         $this->addItems($orderEntity, $orderObject);
 
         return $this->_import('order_import', $root, $websiteId);
+    }
+
+    /**
+     * Add rewards options to NAV export XML
+     *
+     * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
+     * @param \simpleXMLElement $root
+     * @param int $websiteId
+     *
+     * @return $this
+     */
+    public function addRewardPoints(\Magento\Sales\Api\Data\OrderInterface $orderEntity, &$root, $websiteId = 0)
+    {
+        try {
+            /**
+             * Reward Points
+             */
+            if ($this->moduleManager->isEnabled('Magento_Reward')) {
+
+                if ($orderEntity->getExtensionAttributes() && $orderEntity->getExtensionAttributes()->getRewardCurrencyAmount()) {
+                    $root->rewards_amount = $orderEntity->getExtensionAttributes()->getRewardCurrencyAmount();
+                }
+
+                if ($orderEntity->getExtensionAttributes() && $orderEntity->getExtensionAttributes()->getRewardPointsBalance()) {
+                    $root->rewards_points = $orderEntity->getExtensionAttributes()->getRewardPointsBalance();
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->logger->warning($e);
+        }
+
+        return $this;
     }
 
     /**

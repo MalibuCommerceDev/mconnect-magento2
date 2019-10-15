@@ -11,7 +11,7 @@ use Magento\Catalog\Model\Product\Attribute\Source\Status as ProductStatus;
 
 class Product extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
 {
-    const CODE = 'product';
+    const CODE                   = 'product';
     const NAV_XML_NODE_ITEM_NAME = 'item';
 
     /**
@@ -137,7 +137,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
      * Backward compatibility method
      *
      * @param \SimpleXMLElement $data
-     * @param int $websiteId
+     * @param int               $websiteId
      */
     public function addProduct($data, $websiteId = 0)
     {
@@ -150,6 +150,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         $shortTrace = count($shortTrace) > 3
             ? $shortTrace[0] . "\n" . $shortTrace[1]
             : implode("\n", $shortTrace);
+
         return sprintf(
             'SKU "%s": Error [%s] %s' . "\n\n" . '%s' . "...\n",
             $sku,
@@ -272,9 +273,13 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
             $product->setWebsiteIds($websiteIds);
         }
 
-        $status = $data->item_blocked == 'true'
-            ? ProductStatus::STATUS_DISABLED
-            : ProductStatus::STATUS_ENABLED;
+        if ($this->getConfig()->isDisableNewProducts($websiteId) && !$productExists) {
+            $status = ProductStatus::STATUS_DISABLED;
+        } else {
+            $status = $data->item_blocked == 'true'
+                ? ProductStatus::STATUS_DISABLED
+                : ProductStatus::STATUS_ENABLED;
+        }
 
         /**
          * Set required user defined attributes
@@ -303,15 +308,20 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
             $product->setDataUsingMethod($attribute->getAttributeCode(), $value);
         }
 
-        $product
-            ->setOptions([])
-            ->setPrice(number_format((float)$data->item_unit_price, 4, '.', ''))
-            ->setStatus((string)$status);
-
         try {
-            if ($product->hasDataChanges() || !empty($this->customAttributesMap)) {
-                $this->saveCustomProductAttributes($product, $data);
+            $product
+                ->setOptions([])
+                ->setStatus((string)$status);
 
+            if (!isset($data->item_unit_price)) {
+                throw new \OutOfBoundsException('Product SKU "' . $sku . '" has no price data');
+            }
+            $product->setPrice(number_format((float)$data->item_unit_price, 4, '.', ''));
+
+            $this->saveCustomProductAttributes($product, $data);
+            $this->saveWebsiteProductPrices($product, $data);
+
+            if ($product->hasDataChanges() || !empty($this->customAttributesMap)) {
                 // Fix image roles reset issue
                 $product->unsetData('media_gallery');
 
@@ -320,6 +330,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                 if (!empty($websiteIds)) {
                     $this->updateProductWebsites($sku, $websiteIds);
                 }
+
                 if ($productExists) {
                     $this->messages .= 'SKU ' . $sku . ': updated';
                 } else {
@@ -358,6 +369,51 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                 return false;
             }
         }
+
+        return true;
+    }
+
+    /**
+     * Set product prices per website/store if Magento price scope is Website Scope
+     *
+     * @param \Magento\Catalog\Api\Data\ProductInterface $product
+     * @param \simpleXMLElement                          $data
+     *
+     * @return bool
+     */
+    public function saveWebsiteProductPrices(
+        \Magento\Catalog\Api\Data\ProductInterface $product,
+        \simpleXMLElement $data
+    ) {
+        if (!$this->getConfig()->getConfigValue(\Magento\Catalog\Helper\Data::XML_PATH_PRICE_SCOPE)) {
+
+            return false;
+        }
+
+        $sku = trim($data->item_nav_id);
+        $dataObjectVars = get_object_vars($data);
+
+        if (empty($dataObjectVars)) {
+
+            return false;
+        }
+
+        foreach ($dataObjectVars as $xmlNodeName => $value) {
+            $priceParts = explode('item_unit_price_', $xmlNodeName);
+            if (count($priceParts) <= 1) {
+                continue;
+            }
+
+            $storeId = $priceParts[1];
+
+            try {
+                $product->addAttributeUpdate('price', $value, $storeId);
+                $this->messages .= 'Set price "' . $value . '" for SKU ' . $sku . ' at store "' . $storeId . '"' . "\n";
+            } catch (\Exception $e) {
+                $this->messages .= $this->getFormattedExceptionString($e, __LINE__, $sku);
+            }
+        }
+
         return true;
     }
 
@@ -392,7 +448,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
 
     /**
      * @param string $sku
-     * @param array $websiteIds
+     * @param array  $websiteIds
      *
      * @return bool
      */
