@@ -63,6 +63,7 @@ class ImportAllCommand extends Command
                 $this->mconnectCron->queueInvoiceImport();
                 $this->mconnectCron->queueShipmentImport();
                 $this->mconnectCron->queuePriceRuleImport();
+                $this->mconnectCron->queueCreditmemoImport();
 
                 $this->queue->process();
             });

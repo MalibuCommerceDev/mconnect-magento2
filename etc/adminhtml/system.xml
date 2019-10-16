@@ -328,6 +328,26 @@
                 </field>
             </group>
 
+            <group id="creditmemo" type="text" sortOrder="77" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <label>CreditMemo</label>
+                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Import Enabled</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="export_enabled" sortOrder="10" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Export Enabled</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cron_expr" sortOrder="15" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Schedule (cron syntax)</label>
+                    <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
+                </field>
+                <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Entity Limit Per Request</label>
+                </field>
+            </group>
+
             <group id="invoice" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>Invoice</label>
                 <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
