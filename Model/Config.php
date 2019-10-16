@@ -325,9 +325,19 @@ class Config
      *
      * @return bool
      */
-    public function isProductOutOfStockStatusMandatory($websiteId = null)
+    public function isProductInStockStatusMandatory($websiteId = null)
     {
-        return (bool)$this->getWebsiteData('product/set_out_of_stock', $websiteId);
+        return (bool)$this->getWebsiteData('product/set_in_stock', $websiteId);
+    }
+
+    /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return bool
+     */
+    public function isInventoryInStockStatusMandatory($websiteId = null)
+    {
+        return (bool)$this->getWebsiteData('inventory/set_in_stock', $websiteId);
     }
 
     /**
@@ -339,6 +349,17 @@ class Config
     {
         return (bool)$this->getWebsiteData('product/disable_new_products', $websiteId);
     }
+
+    /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return bool
+     */
+    public function isApplyProductToAllWebsites($websiteId = null)
+    {
+        return (bool)$this->getWebsiteData('product/apply_product_to_all_websites', $websiteId);
+    }
+
 
     /**
      * Get Malibu Mconnect config value per store

@@ -51,4 +51,29 @@ class Queue extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 
         return $adapter->delete($this->getMainTable(), ['id IN (?)' => $itemId]);
     }
+
+    public function saveLog($itemId, $logData)
+    {
+        $adapter = $this->getConnection();
+
+        return $adapter->update(
+            $this->getMainTable(),
+            [
+                'logs'  => $logData,
+            ],
+            [
+                'id = ?' => (int)$itemId,
+            ]
+        );
+    }
+
+    public function getLog($itemId)
+    {
+        $adapter = $this->getConnection();
+        $select = $adapter->select()
+            ->from($this->getMainTable(), ['logs'])
+            ->where('id = ?', (int)$itemId);
+
+        return $adapter->fetchOne($select);
+    }
 }

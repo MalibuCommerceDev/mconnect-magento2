@@ -37,6 +37,14 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->upgrade2_2_0($setup);
         }
 
+        if (version_compare($context->getVersion(), '2.4.5', '<')) {
+            $this->upgrade2_4_5($setup);
+        }
+
+        if (version_compare($context->getVersion(), '2.4.6', '<')) {
+            $this->upgrade2_4_6($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -227,6 +235,59 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'after'   => 'website_id',
                 'default' => 0
             ]
+        );
+    }
+
+    protected function upgrade2_4_5(SchemaSetupInterface $setup)
+    {
+        $setup->getConnection()->addColumn(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            'logs',
+            [
+                'type'    => Table::TYPE_TEXT,
+                'length'  => Table::MAX_TEXT_SIZE,
+                'comment' => 'Request Logs',
+                'after'   => 'message',
+            ]
+        );
+    }
+
+    protected function upgrade2_4_6(SchemaSetupInterface $setup)
+    {
+        $setup->getConnection()->addIndex(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            $setup->getIdxName('malibucommerce_mconnect_queue', ['code']),
+            ['code']
+        );
+        $setup->getConnection()->addIndex(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            $setup->getIdxName('malibucommerce_mconnect_queue', ['website_id']),
+            ['website_id']
+        );
+        $setup->getConnection()->addIndex(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            $setup->getIdxName('malibucommerce_mconnect_queue', ['action']),
+            ['action']
+        );
+        $setup->getConnection()->addIndex(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            $setup->getIdxName('malibucommerce_mconnect_queue', ['status']),
+            ['status']
+        );
+        $setup->getConnection()->addIndex(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            $setup->getIdxName('malibucommerce_mconnect_queue', ['finished_at']),
+            ['finished_at']
+        );
+        $setup->getConnection()->addIndex(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            $setup->getIdxName('malibucommerce_mconnect_queue', ['code', 'action', 'website_id', 'status', 'nav_page_num']),
+            ['code', 'action', 'website_id', 'status', 'nav_page_num']
+        );
+        $setup->getConnection()->addIndex(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            $setup->getIdxName('malibucommerce_mconnect_queue', ['entity_id', 'code', 'status', 'action']),
+            ['entity_id', 'code', 'status', 'action']
         );
     }
 }

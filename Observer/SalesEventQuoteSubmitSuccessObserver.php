@@ -77,7 +77,7 @@ class SalesEventQuoteSubmitSuccessObserver implements \Magento\Framework\Event\O
             $websiteId = $this->storeManager->getStore($order->getStoreId())->getWebsiteId();
 
             $customerGroupId = $order->getCustomerGroupId();
-            if (in_array($customerGroupId, $this->config->getOrderExportDisallowedCustomerGroups($websiteId))) {
+            if (in_array((string)$customerGroupId, $this->config->getOrderExportDisallowedCustomerGroups($websiteId))) {
 
                 return false;
             }

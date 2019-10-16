@@ -2,6 +2,8 @@
 
 namespace MalibuCommerce\MConnect\Model\Queue;
 
+use Magento\CatalogInventory\Api\StockConfigurationInterface;
+
 class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
 {
     const CODE = 'inventory';
@@ -38,6 +40,11 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     protected $_stockRegistry;
 
     /**
+     * @var StockConfigurationInterface
+     */
+    private $configuration;
+
+    /**
      * Inventory constructor.
      *
      * @param \Magento\Catalog\Api\ProductRepositoryInterface      $productRepository
@@ -52,7 +59,8 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
         \MalibuCommerce\MConnect\Model\Navision\Inventory $navInventory,
         \MalibuCommerce\MConnect\Model\Config $config,
-        \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory
+        \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
+        StockConfigurationInterface $configuration
     ) {
         $this->productRepository = $productRepository;
         $this->_stockStateInterface = $stockStateInterface;
@@ -60,6 +68,7 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         $this->navInventory = $navInventory;
         $this->config = $config;
         $this->queueFlagFactory = $queueFlagFactory;
+        $this->configuration = $configuration;
     }
 
     public function importAction($websiteId, $navPageNumber = 0)
@@ -98,13 +107,21 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
             }
 
             $stockItem = $this->_stockRegistry->getStockItemBySku($sku);
-            if ((bool)$stockItem->getData('manage_stock')) {
-                $stockItem->setData('is_in_stock', ($quantity > 0));
+            $globalManageStock = $this->configuration->getManageStock();
+            if ((bool)$stockItem->getData('manage_stock') || (
+                    $stockItem->getUseConfigManageStock() == 1 &&
+                    $globalManageStock == 1
+                )
+            ) {
+                $stockStatus = (bool)$quantity;
+                if ($stockStatus && $this->getConfig()->isInventoryInStockStatusMandatory($websiteId)) {
+                    $stockItem->setData('is_in_stock', $stockStatus);
+                }
                 $stockItem->setData('qty', $quantity);
                 $stockItem->save();
                 $this->messages .= $sku . ': qty changed to ' . $quantity;
             } else {
-                $this->messages .= $sku . ': skipped';
+                $this->messages .= $sku . ': skipped - stock for this product is not managed';
             }
         } catch (\Throwable $e) {
             $this->messages .= $sku . ': ' . $e->getMessage() . PHP_EOL;

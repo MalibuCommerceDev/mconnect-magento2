@@ -151,7 +151,7 @@ class Productsync extends Action
      */
     public function getLogHtml($queueId)
     {
-        $content = $this->helper->getLogFileContents($queueId, 1);
+        $content = $this->helper->getLogContents($queueId, 1);
         if (!$content) {
             return '';
         }

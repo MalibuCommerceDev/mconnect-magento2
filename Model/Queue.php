@@ -31,6 +31,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
     const STATUS_PENDING  = 'pending';
     const STATUS_RUNNING  = 'running';
     const STATUS_SUCCESS  = 'success';
+    const STATUS_WARNING  = 'warning';
     const STATUS_ERROR    = 'error';
     const STATUS_CANCELED = 'canceled';
 
@@ -243,7 +244,11 @@ class Queue extends \Magento\Framework\Model\AbstractModel
             if ($model->captureEntityId) {
                 $this->setEntityId($model->getEntityId());
             }
-            $this->endProcess(self::STATUS_SUCCESS, $model->getMessages());
+
+            $this->endProcess(
+                $model->getMagentoErrorsDetected() ? self::STATUS_WARNING : self::STATUS_SUCCESS,
+                $model->getMessages()
+            );
         } catch (\Throwable $e) {
             $this->_logger->critical($e);
             $message = 'Processing interrupted!' . "\n" . 'Error: ' . $e->getMessage() . "\n\nProcessing Messages:"
@@ -251,7 +256,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
             $this->endProcess(self::STATUS_ERROR, $message);
         }
 
-        $this->registry->unregister('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM_ID', $this->getId());
+        $this->registry->unregister('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM_ID');
 
         return $this;
     }
@@ -273,6 +278,14 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         return $this;
     }
 
+    /**
+     * @param Navision\AbstractModel $navExporter
+     * @param Queue\ImportableEntity|\MalibuCommerce\MConnect\Model\Queue $magentoImporter
+     * @param                        $websiteId
+     * @param int                    $navPageNumber
+     *
+     * @return $this|bool|\Magento\Framework\DataObject
+     */
     public function processMagentoImport(
         Navision\AbstractModel $navExporter,
         Queue\ImportableEntity $magentoImporter,
@@ -323,6 +336,8 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         ) {
             $this->setLastSyncTime($this->getImportLastSyncFlagName($websiteId), $lastSync);
         }
+
+        $magentoImporter->setMagentoErrorsDetected($detectedErrors);
 
         if ($count > 0) {
             $magentoImporter->addMessage('Successfully processed ' . $count . ' NAV records(s).');

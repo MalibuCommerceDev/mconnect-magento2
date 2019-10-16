@@ -3,6 +3,8 @@
 namespace MalibuCommerce\MConnect\Helper;
 
 use \Magento\Framework\App\Filesystem\DirectoryList;
+use \Magento\Framework\App\ObjectManager;
+use \Magento\Framework\Serialize\Serializer\Json;
 
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
 {
@@ -20,37 +22,92 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     protected $mConnectMailer;
 
     /**
+     * @var \MalibuCommerce\MConnect\Model\Resource\Queue
+     */
+    protected $queueResourceModel;
+
+    /**
      * @var \Magento\Framework\Registry
      */
     protected $registry;
 
+    /**
+     * Serializer interface instance.
+     *
+     * @var \Magento\Framework\Serialize\Serializer\Json
+     */
+    protected $serializer;
+
+    protected $logDataCache = [];
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
+        \MalibuCommerce\MConnect\Model\Resource\Queue $queueResourceModel,
         \MalibuCommerce\MConnect\Helper\Mail $mConnectMailer,
         \Magento\Framework\Registry $registry,
-        \Magento\Framework\App\Helper\Context $context
+        \Magento\Framework\App\Helper\Context $context,
+        \Magento\Framework\Serialize\Serializer\Json $serializer = null
     ) {
         $this->mConnectMailer = $mConnectMailer;
         $this->mConnectConfig = $mConnectConfig;
+        $this->queueResourceModel = $queueResourceModel;
         $this->registry = $registry;
+        $this->serializer = $serializer ? : ObjectManager::getInstance()->get(Json::class);
 
         parent::__construct($context);
     }
 
     /**
-     * @param int  $id
+     * @param int  $queueItemId
      * @param bool $absolute
      * @param bool $nameOnly
      *
      * @return bool|string
      */
-    public function getLogFile($id, $absolute = true, $nameOnly = false)
+    public function getLog($queueItemId, $absolute = true, $nameOnly = false)
+    {
+        if ($this->isLogDataToDb()) {
+            $data = $this->getLogFromDb($queueItemId);
+            if (!empty($data)) {
+
+                return $data;
+            } else {
+
+                return $this->getLogFile($queueItemId, $absolute, $nameOnly);
+            }
+        }
+
+        $file = $this->getLogFile($queueItemId, $absolute, $nameOnly);
+        if (!file_exists($file)) {
+            return $this->getLogFromDb($queueItemId);
+        }
+
+        return $file;
+    }
+
+    public function getLogFromDb($queueItemId)
+    {
+        if (!array_key_exists($queueItemId, $this->logDataCache)) {
+            $this->logDataCache[$queueItemId] = $this->queueResourceModel->getLog($queueItemId);
+        }
+
+        return $this->logDataCache[$queueItemId];
+    }
+
+    /**
+     * @param int  $queueItemId
+     * @param bool $absolute
+     * @param bool $nameOnly
+     *
+     * @return bool|string
+     */
+    public function getLogFile($queueItemId, $absolute = true, $nameOnly = false)
     {
         $directoryList = new DirectoryList(BP);
 
         $dir = 'mconnect';
-        if ($id) {
-            $file = 'queue_' . $id . '.log';
+        if ($queueItemId) {
+            $file = 'queue_' . $queueItemId . '.log';
         } else {
             $file = 'navision_soap.log';
         }
@@ -66,17 +123,35 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         return !file_exists($file) && !$nameOnly ? false : $file;
     }
 
+    public function getLogSize($data, $humanReadable = true)
+    {
+        if (!is_file($data)) {
+            $bytes = mb_strlen($data);
+            if (!$humanReadable) {
+                return $bytes;
+            }
+
+            return $this->getFormattedSize($bytes);
+        }
+
+        return $this->getFileSize($data, $humanReadable);
+    }
+
     public function getFileSize($file, $humanReadable = true)
     {
         if (!file_exists($file)) {
             return false;
         }
         $bytes = filesize($file);
-
         if (!$humanReadable) {
             return $bytes;
         }
 
+        return $this->getFormattedSize($bytes);
+    }
+
+    public function getFormattedSize($bytes)
+    {
         $units = array('B', 'KB', 'MB', 'GB', 'TB');
         $bytes = max($bytes, 0);
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
@@ -86,11 +161,17 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         return number_format($bytes, 2) . ' ' . $units[$pow];
     }
 
-    public function getLogFileContents($queueItemId, $asString = true)
+    public function getLogContents($queueItemId, $asString = true)
     {
-        if ($file = $this->getLogFile($queueItemId, true, true)) {
-            $contents = file_get_contents($file);
-            $results = [];
+        $dataLog = $this->getLog($queueItemId, true, true);
+        if (!$dataLog) {
+
+            return false;
+        }
+
+        $results = [];
+        if (file_exists($dataLog)) {
+            $contents = file_get_contents($dataLog);
             if (preg_match_all('~({.+})~', $contents, $matches)) {
                 foreach ($matches[1] as $match) {
                     $debug = json_decode($match);
@@ -104,15 +185,16 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     $results[] = $result;
                 }
             }
-
-            if (count($results)) {
-                return $asString ? print_r($results, true) : $results;
-            }
-
-            return $contents;
+        } else {
+            $contents = $dataLog;
+            $results[] = $this->serializer->unserialize($dataLog);
         }
 
-        return false;
+        if (count($results)) {
+            return $asString ? print_r($results, true) : $results;
+        }
+
+        return $contents;
     }
 
     /**
@@ -146,6 +228,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 break;
             case \MalibuCommerce\MConnect\Model\Queue::STATUS_SUCCESS:
                 $background = '#00c500';
+                break;
+            case \MalibuCommerce\MConnect\Model\Queue::STATUS_WARNING:
+                $background = '#ff5e00';
                 break;
             case \MalibuCommerce\MConnect\Model\Queue::STATUS_ERROR:
                 $background = '#ff0000';
@@ -184,8 +269,11 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         );
 
         $request = $this->prepareLogRequest($request, $location, $action);
-        $this->mConnectMailer->sendErrorEmail('An error occurred when connecting to Navision.', $request,
-            $e->getMessage());
+        $this->mConnectMailer->sendErrorEmail(
+            'An error occurred when connecting to Navision.',
+            $request,
+            $e->getMessage()
+        );
 
         return true;
     }
@@ -208,22 +296,26 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
         $queueItemId = $this->registry->registry('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM_ID');
 
-        $logFile = $this->getLogFile($queueItemId, true, true);
-        $writer = new \Zend\Log\Writer\Stream($logFile);
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-
         $request = $this->prepareLogRequest($request, $location, $action);
         $response = [
             'Code'          => $code,
             'Headers'       => $header,
             'Response Data' => $this->decodeRequest('/<responseXML>(.*)<\/responseXML>/', $body)
         ];
-
-        $logger->debug('Debug Data', array(
+        $logData = array(
             'Request'  => $request,
             'Response' => $response
-        ));
+        );
+
+        if ($this->isLogDataToDb()) {
+            $this->queueResourceModel->saveLog($queueItemId, $this->serializer->serialize($logData));
+        } else {
+            $logFile = $this->getLogFile($queueItemId, true, true);
+            $writer = new \Zend\Log\Writer\Stream($logFile);
+            $logger = new \Zend\Log\Logger();
+            $logger->addWriter($writer);
+            $logger->debug('Debug Data', $logData);
+        }
 
         return true;
     }
@@ -261,5 +353,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
 
         return $value;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isLogDataToDb()
+    {
+        return (bool)$this->mConnectConfig->get('nav_connection/log_to_db');
     }
 }

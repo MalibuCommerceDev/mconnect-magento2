@@ -191,7 +191,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                     $stockItem->setQty((int)$data->item_qty_on_hand);
 
                     $stockStatus = (int)(bool)$data->item_qty_on_hand;
-                    if ($stockStatus || $this->getConfig()->isProductOutOfStockStatusMandatory($websiteId)) {
+                    if ($stockStatus && $this->getConfig()->isProductInStockStatusMandatory($websiteId)) {
                         $stockItem->setIsInStock($stockStatus);
                     }
                 }
@@ -217,7 +217,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                 );
 
                 $stockStatus = (int)(bool)$data->item_qty_on_hand;
-                if ($stockStatus || $this->getConfig()->isProductOutOfStockStatusMandatory($websiteId)) {
+                if ($stockStatus && $this->getConfig()->isProductInStockStatusMandatory($websiteId)) {
                     $stockItem['is_in_stock'] = $stockStatus;
                 }
 
@@ -262,13 +262,19 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         if (!empty($websiteId)) {
             $websiteIds = [$websiteId];
         }
-        if (!empty($data->item_webshop_list)) {
+        if ($this->getConfig()->isApplyProductToAllWebsites($websiteId)) {
+            $websiteIds = $this->storeManager->getWebsites();
+            if (is_array($websiteIds)) {
+                $websiteIds = array_keys($websiteIds);
+            }
+        } elseif (!empty($data->item_webshop_list)) {
             $websiteIdsString = (string)$data->item_webshop_list;
             $websiteIds = explode('|', $websiteIdsString);
             if (sizeof($websiteIds) < 2) {
                 $websiteIds = explode(',', $websiteIdsString);
             }
         }
+
         if (!empty($websiteIds)) {
             $product->setWebsiteIds($websiteIds);
         }
@@ -337,7 +343,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                     $this->messages .= 'SKU ' . $sku . ': created';
                 }
             } else {
-                $this->messages .= 'SKU ' . $sku . ': skipped';
+                $this->messages .= 'SKU ' . $sku . ': skipped - no changes detected for this product';
             }
 
             $this->setEntityId($product->getId());
