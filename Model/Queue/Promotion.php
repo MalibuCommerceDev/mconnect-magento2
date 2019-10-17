@@ -93,7 +93,7 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
             return false;
         }
 
-        if(is_string($product)) {
+        if (is_string($product)) {
             $sku = $product;
         } else {
             $sku = $product->getSku();

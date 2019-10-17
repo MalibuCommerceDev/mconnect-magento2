@@ -53,7 +53,7 @@
                 <import_tax_class>2</import_tax_class>
                 <set_in_stock>1</set_in_stock>
                 <disable_new_products>0</disable_new_products>
-                <apply_product_to_all_websites>0</apply_product_to_all_websites>
+                <is_assign_to_all_websites>0</is_assign_to_all_websites>
             </product>
             <inventory>
                 <import_enabled>1</import_enabled>

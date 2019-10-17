@@ -252,9 +252,9 @@
                     <label>Disable New Imported Products</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="apply_product_to_all_websites" sortOrder="90" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                    <label>Assign imported product to the all existing websites</label>
-                    <comment><![CDATA[This is general configuration for all websites.]]></comment>
+                <field id="is_assign_to_all_websites" sortOrder="90" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Assign imported products to all websites by default</label>
+                    <comment><![CDATA[Whether to assign products synced from NAV to all Magento Websites by default ignoring shop assignments on NAV side]]></comment>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
@@ -423,6 +423,7 @@
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Source\CustomerGroups</source_model>
                 </field>
             </group>
+
             <group id="promotion" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>Live Promotional Price</label>
                 <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
@@ -434,8 +435,9 @@
                     <comment><![CDATA[Time for storing promotional price in the magento cache]]></comment>
                 </field>
             </group>
+
             <group id="tier_price" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                <label>Tier Price</label>
+                <label>Product Tier Price</label>
                 <field id="is_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>

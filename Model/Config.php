@@ -355,9 +355,9 @@ class Config
      *
      * @return bool
      */
-    public function isApplyProductToAllWebsites($websiteId = null)
+    public function isAssignProductToAllWebsites($websiteId = null)
     {
-        return (bool)$this->getWebsiteData('product/apply_product_to_all_websites', $websiteId);
+        return (bool)$this->getWebsiteData('product/is_assign_to_all_websites', $websiteId);
     }
 
 
