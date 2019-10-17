@@ -226,6 +226,16 @@ class Config
      *
      * @return array
      */
+    public function getCreditmemoExportDisallowedCustomerGroups($websiteId = null)
+    {
+        return explode(',', $this->getWebsiteData('creditmemo/export_disallowed_customer_groups', $websiteId));
+    }
+
+    /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return array
+     */
     public function getNAVReportsCustomerGroups($websiteId = null)
     {
         return explode(',', $this->getWebsiteData('customer/nav_reports_allowed_customer_groups', $websiteId));

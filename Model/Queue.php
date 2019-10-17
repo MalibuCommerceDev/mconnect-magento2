@@ -233,7 +233,8 @@ class Queue extends \Magento\Framework\Model\AbstractModel
 
         try {
             if (($code == \MalibuCommerce\MConnect\Model\Queue\Customer::CODE
-                 || $code == \MalibuCommerce\MConnect\Model\Queue\Order::CODE) && ($action == self::ACTION_EXPORT)
+                 || $code == \MalibuCommerce\MConnect\Model\Queue\Order::CODE
+                 || $code == \MalibuCommerce\MConnect\Model\Queue\Creditmemo::CODE) && ($action == self::ACTION_EXPORT)
             ) {
                 $model->{$method}($this->getEntityId());
             } else {

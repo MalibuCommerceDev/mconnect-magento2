@@ -72,10 +72,7 @@
                 <gift_wrapping_force_enabled>0</gift_wrapping_force_enabled>
             </order>
             <creditmemo>
-                <import_enabled>1</import_enabled>
                 <export_enabled>1</export_enabled>
-                <cron_expr>0 * * * *</cron_expr>
-                <max_rows>50</max_rows>
             </creditmemo>
             <invoice>
                 <import_enabled>1</import_enabled>

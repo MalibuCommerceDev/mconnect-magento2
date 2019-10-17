@@ -9,19 +9,14 @@ class Creditmemo extends \MalibuCommerce\MConnect\Model\Queue
     const CODE = 'creditmemo';
 
     /**
-     * @var \Magento\Sales\Api\OrderRepositoryInterface
+     * @var \Magento\Sales\Api\CreditmemoRepositoryInterface
      */
-    protected $orderRepository;
+    protected $creditmemoRepository;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Navision\Order
+     * @var \MalibuCommerce\MConnect\Model\Navision\Creditmemo
      */
-    protected $navOrder;
-
-    /**
-     * @var \Magento\Sales\Model\OrderFactory
-     */
-    protected $orderFactory;
+    protected $navCreditMemo;
 
     /**
      * @var \MalibuCommerce\MConnect\Model\Queue\FlagFactory
@@ -39,16 +34,14 @@ class Creditmemo extends \MalibuCommerce\MConnect\Model\Queue
     protected $storeManager;
 
     public function __construct(
-        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
-        \MalibuCommerce\MConnect\Model\Navision\Order $navOrder,
-        \Magento\Sales\Model\OrderFactory $orderFactory,
+        \Magento\Sales\Api\CreditmemoRepositoryInterface $creditmemoRepository,
+        \MalibuCommerce\MConnect\Model\Navision\Creditmemo $navCreditMemo,
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
         \MalibuCommerce\MConnect\Model\Config $config,
         \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
-        $this->orderRepository = $orderRepository;
-        $this->navOrder = $navOrder;
-        $this->orderFactory = $orderFactory;
+        $this->creditmemoRepository = $creditmemoRepository;
+        $this->navCreditMemo = $navCreditMemo;
         $this->queueFlagFactory = $queueFlagFactory;
         $this->config = $config;
         $this->storeManager = $storeManager;
@@ -57,21 +50,16 @@ class Creditmemo extends \MalibuCommerce\MConnect\Model\Queue
     public function exportAction($entityId)
     {
         try {
-            $orderEntity = $this->orderRepository->get($entityId);
-            $orderDataModel = $this->orderFactory->create()->load($entityId);
+            $creditMemoEntity = $this->creditmemoRepository->get($entityId);
         } catch (NoSuchEntityException $e) {
-            throw new LocalizedException(__('Order ID "%1" does not exist', $entityId));
+            throw new LocalizedException(__('Creditmemo ID "%1" does not exist', $entityId));
         } catch (\Exception $e) {
-            throw new LocalizedException(__('Order ID "' . $entityId . '" loading error: %1', $e->getMessage()));
+            throw new LocalizedException(__('Creditmemo ID "' . $entityId . '" loading error: %1', $e->getMessage()));
         }
 
-        $websiteId = $this->storeManager->getStore($orderEntity->getStoreId())->getWebsiteId();
-        if (!in_array($orderEntity->getStatus(), $this->config->getOrderStatuesAllowedForExportToNav($websiteId))) {
-            $message = sprintf('Order "%s" (ID: %s) was not exported because its status is: %s', $orderEntity->getIncrementId(), $entityId, $orderEntity->getStatus());
-            throw new \LogicException($message);
-        }
+        $websiteId = $this->storeManager->getStore($creditMemoEntity->getStoreId())->getWebsiteId();
 
-        $response = $this->navOrder->import($orderEntity, $websiteId);
+        $response = $this->navCreditMemo->import($creditMemoEntity, $websiteId);
         $status = (string) $response->result->status;
 
         if ($status === 'Processed') {
@@ -95,7 +83,7 @@ class Creditmemo extends \MalibuCommerce\MConnect\Model\Queue
 
         if ($status == 'Error') {
             $errors = array();
-            foreach ($response->result->Order as $order) {
+            foreach ($response->result->Creditmemo as $order) {
                 foreach ($order->error as $error) {
                     $errors[] = (string) $error->message;
                 }
