@@ -63,20 +63,12 @@ class Creditmemo extends \MalibuCommerce\MConnect\Model\Queue
         $status = (string) $response->result->status;
 
         if ($status === 'Processed') {
-            $navId = (string) $response->result->Order->nav_record_id;
-            if ($orderDataModel->getNavId() != $navId) {
-                if (!$orderDataModel->getNavId() && $this->config->getIsHoldNewOrdersExport($websiteId)) {
-                    $newStatus = $this->config->getOrderStatusWhenSyncedToNav($websiteId);
-                    $orderState = \Magento\Sales\Model\Order::STATE_NEW;
-                    $orderDataModel->setState($orderState)
-                        ->setStatus($newStatus);
-                    $orderDataModel->addStatusToHistory($orderDataModel->getStatus(), 'Order exported to NAV successfully with reference ID ' . $navId);
-                }
-                $orderDataModel->setNavId($navId);
-                $orderDataModel->setSkipMconnect(true)
-                    ->save();
+            $navId = (string) $response->result->creditMemo->nav_record_id;
+            if ($navId) {
+                $this->messages .= sprintf('CreditMemo exported, NAV ID: %s', $navId);
+            } else {
+                $this->messages .= sprintf('CreditMemo exported, NAV ID is empty');
             }
-            $this->messages .= sprintf('Order exported, NAV ID: %s', $navId);
 
             return true;
         }

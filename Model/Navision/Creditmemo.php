@@ -17,9 +17,7 @@ class Creditmemo extends AbstractModel
     public function import(\Magento\Sales\Model\Order\Creditmemo $creditMemoEntity, $websiteId = 0)
     {
         $root = new \simpleXMLElement('<sale_creditMemo_import />');
-
         $orderObject = $root->addChild('creditMemo');
-
 
         $orderObject->mag_order_id       = $creditMemoEntity->getOrderId();
         $orderObject->mag_invoice_id     = $creditMemoEntity->getInvoiceId();
