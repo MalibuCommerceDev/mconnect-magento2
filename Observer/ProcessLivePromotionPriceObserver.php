@@ -64,7 +64,8 @@ class ProcessLivePromotionPriceObserver implements \Magento\Framework\Event\Obse
      *
      * @param \Magento\Framework\Event\Observer $observer
      *
-     * @return $this
+     * @return $this|void
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
@@ -107,7 +108,7 @@ class ProcessLivePromotionPriceObserver implements \Magento\Framework\Event\Obse
             $this->registry->register($productsRegistryKey, $this->collectedProducts);
             $store = $this->storeManager->getStore($collection->getStoreId());
             $websiteId = $store->getWebsiteId();
-            $this->promotion->runMultiplePromoPriceImport($websiteId);
+            $this->promotion->importAction($websiteId);
         }
 
         //Save products without promo price to cache

@@ -53,6 +53,7 @@
                 <import_tax_class>2</import_tax_class>
                 <set_in_stock>1</set_in_stock>
                 <disable_new_products>0</disable_new_products>
+                <is_assign_to_all_websites>0</is_assign_to_all_websites>
             </product>
             <inventory>
                 <import_enabled>1</import_enabled>
@@ -98,6 +99,9 @@
                 <import_enabled>0</import_enabled>
                 <price_ttl>60</price_ttl>
             </promotion>
+            <tier_price>
+                <is_enable>0</is_enable>
+            </tier_price>
         </malibucommerce_mconnect>
     </default>
 </config>
