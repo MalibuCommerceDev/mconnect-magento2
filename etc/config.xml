@@ -74,6 +74,9 @@
             <creditmemo>
                 <export_enabled>1</export_enabled>
             </creditmemo>
+            <rma>
+                <export_enabled>1</export_enabled>
+            </rma>
             <invoice>
                 <import_enabled>1</import_enabled>
                 <ignore_magento_errors>1</ignore_magento_errors>

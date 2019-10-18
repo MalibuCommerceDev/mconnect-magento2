@@ -52,11 +52,6 @@ class Cron
         return $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Pricerule::CODE);
     }
 
-    public function queueCreditmemoImport()
-    {
-        return $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Creditmemo::CODE);
-    }
-
     protected function queueImportItem($code)
     {
         if (!$this->config->isModuleEnabled()) {

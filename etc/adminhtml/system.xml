@@ -336,6 +336,14 @@
                 </field>
             </group>
 
+            <group id="rma" type="text" sortOrder="77" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <label>RMA</label>
+                <field id="export_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Export Enabled</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+
             <group id="invoice" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>Invoice</label>
                 <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">

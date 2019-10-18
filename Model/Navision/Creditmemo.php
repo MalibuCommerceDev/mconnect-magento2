@@ -25,7 +25,7 @@ class Creditmemo extends AbstractModel
 
         $this->addItems($creditMemoEntity, $orderObject);
 
-        return $this->_import('order_import', $root, $websiteId);
+        return $this->_import('creditmemo_import', $root, $websiteId);
     }
 
     public function export($page = 0, $lastUpdated = false, $websiteId = 0)
