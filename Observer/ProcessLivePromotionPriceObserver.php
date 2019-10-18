@@ -104,10 +104,7 @@ class ProcessLivePromotionPriceObserver implements \Magento\Framework\Event\Obse
         foreach ($this->collectedProducts as $itemKey => $itemValue) {
             if (!$this->promotion->getPriceFromCache($itemKey, self::PRODUCT_QTY_FOR_IMPORT)) {
                 $this->promotion->savePromoPriceToCache(
-                    [
-                        'price'    => 'NULL',
-                        'quantity' => self::PRODUCT_QTY_FOR_IMPORT
-                    ],
+                    [self::PRODUCT_QTY_FOR_IMPORT => 'NULL'],
                     $itemKey,
                     $websiteId
                 );
