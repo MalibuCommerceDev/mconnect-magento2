@@ -31,32 +31,16 @@ class ProcessLivePromotionPriceObserver implements \Magento\Framework\Event\Obse
      */
     protected $collectedProducts = [];
 
-    /**
-     * @var \MalibuCommerce\MConnect\Model\Config
-     */
-    protected $config;
-
-    /**
-     * ProcessLivePromotionPriceObserver constructor.
-     *
-     * @param \Magento\Framework\Registry                    $registry
-     * @param \Magento\Framework\App\ResourceConnection      $resourceConnection
-     * @param \MalibuCommerce\MConnect\Model\Queue\Promotion $promotion
-     * @param \Magento\Store\Model\StoreManagerInterface     $storeManager
-     * @param \MalibuCommerce\MConnect\Model\Config          $config
-     */
     public function __construct(
         \Magento\Framework\Registry $registry,
         \Magento\Framework\App\ResourceConnection $resourceConnection,
         \MalibuCommerce\MConnect\Model\Queue\Promotion $promotion,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \MalibuCommerce\MConnect\Model\Config $config
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->registry = $registry;
         $this->resourceConnection = $resourceConnection;
         $this->promotion = $promotion;
         $this->storeManager = $storeManager;
-        $this->config = $config;
     }
 
     /**
@@ -69,11 +53,16 @@ class ProcessLivePromotionPriceObserver implements \Magento\Framework\Event\Obse
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
+        if (!$this->promotion->getConfig()->isModuleEnabled()) {
+
+            return $this;
+        }
+
         /* @var $collection \Magento\Catalog\Model\ResourceModel\Product\Collection */
         $collection = $observer->getEvent()->getCollection();
 
         $websiteId = $this->storeManager->getStore($collection->getStoreId())->getWebsiteId();
-        $promoEnabled = $this->config->getWebsiteData(
+        $promoEnabled = $this->promotion->getConfig()->getWebsiteData(
             \MalibuCommerce\MConnect\Model\Queue\Promotion::CODE . '/import_enabled',
             $websiteId
         );

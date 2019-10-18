@@ -12,32 +12,29 @@ class AggregateCatalogProductTierPriceObserver implements \Magento\Framework\Eve
     protected $rule;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Config
-     */
-    protected $config;
-
-    /**
      * @var \MalibuCommerce\MConnect\Model\Queue\Promotion
      */
     protected $promotion;
 
     public function __construct(
         \MalibuCommerce\MConnect\Model\Pricerule $rule,
-        \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\Queue\Promotion $promotion
     ) {
         $this->rule = $rule;
-        $this->config = $config;
         $this->promotion = $promotion;
     }
 
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
+        if (!$this->promotion->getConfig()->isModuleEnabled()) {
+
+            return $this;
+        }
         $product = $observer->getEvent()->getProduct();
         $websiteId = $product->getStore()->getWebsiteId();
-        if (!$this->config->isTierPriceLogicEnabled($websiteId)) {
+        if (!$this->promotion->getConfig()->isTierPriceLogicEnabled($websiteId)) {
 
-            return false;
+            return $this;
         }
 
         $tierPrices = [];

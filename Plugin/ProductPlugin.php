@@ -49,6 +49,11 @@ class ProductPlugin
      */
     public function afterGetPrice(\Magento\Catalog\Model\Product $product, $originalFinalPrice)
     {
+        if (!$this->promotion->getConfig()->isModuleEnabled()) {
+
+            return $originalFinalPrice;
+        }
+
         $finalPrice = null;
         try {
             $websiteId = $product->getStore()->getWebsiteId();
