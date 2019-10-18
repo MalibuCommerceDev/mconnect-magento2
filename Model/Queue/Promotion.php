@@ -119,32 +119,33 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
 
     public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
+        $productPromoInfo = [];
         foreach ($data->item as $item) {
             if (isset($item->price)) {
-                $productPromoInfo = ['price' => (float)$item->price, 'quantity' => (int)$item->quantity];
-                $this->savePromoPriceToCache($productPromoInfo, (string)$item->sku, $websiteId);
+                $productPromoInfo[(int)$item->quantity] = (float)$item->price;
             }
+        }
+        if (count($productPromoInfo) > 0) {
+            $this->savePromoPriceToCache($productPromoInfo, (string)$item->sku, $websiteId);
         }
 
         return true;
     }
 
-    public function getCacheId($sku, $qty)
+    public function getCacheId($sku)
     {
-        return self::CACHE_ID . $sku . '_' . $qty;
+        return self::CACHE_ID . $sku;
     }
 
     public function getPriceFromCache($sku, $qty = 1)
     {
-        $cache = $this->cache->load($this->getCacheId($sku, $qty));
-        if (($qty > 1) && ($cache == false)) {
-            $cache = $this->cache->load($this->getCacheId($sku, 1));
-        }
+        $cache = $this->cache->load($this->getCacheId($sku));
         if ($cache != false) {
             $productPromoInfo = $this->serializer->unserialize($cache);
-            if (isset($productPromoInfo['quantity']) && isset($productPromoInfo['price'])) {
-                if ($qty >= $productPromoInfo['quantity']) {
-                    return $productPromoInfo['price'];
+            krsort($productPromoInfo);
+            foreach ($productPromoInfo as $promoPriceQty => $promoPricePrice) {
+                if ($qty >= $promoPriceQty) {
+                    return $promoPricePrice;
                 }
             }
         }
@@ -157,7 +158,7 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         $lifeTime = $this->config->getWebsiteData(self::CODE . '/price_ttl', $websiteId);
         $this->cache->save(
             $this->serializer->serialize($productPromoInfo),
-            $this->getCacheId($sku, $productPromoInfo['quantity']),
+            $this->getCacheId($sku),
             [self::CACHE_TAG], $lifeTime
         );
     }
@@ -165,5 +166,49 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     public function runMultiplePromoPriceImport($website = 0)
     {
         $this->processMagentoImport($this->navPromotion, $this, $website, self::NAV_PAGE_NUMBER);
+    }
+
+    /**
+     * @param \Magento\Catalog\Model\Product|string $product
+     * @param int                                   $websiteId
+     *
+     * @return bool
+     */
+    public function getAllPromoPrices($sku, $websiteId = 0)
+    {
+        if (!(bool)$this->config->getWebsiteData(self::CODE . '/import_enabled', $websiteId)) {
+
+            return false;
+        }
+
+        $allPromoPrices = $this->getAllPricesFromCache($sku);
+        if ($allPromoPrices == 'NULL') {
+            return false;
+        }
+        if (!empty($allPromoPrices)) {
+            return $allPromoPrices;
+        }
+
+        $prepareProducts = $this->registry->registry(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
+        $prepareProducts[$sku] = 1;
+        $this->registry->unregister(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
+        $this->registry->register(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS, $prepareProducts);
+        $navPageNumber = 0;
+        $this->processMagentoImport($this->navPromotion, $this, $websiteId, $navPageNumber);
+
+        return $this->getAllPricesFromCache($sku);
+    }
+
+
+    public function getAllPricesFromCache($sku)
+    {
+        $cache = $this->cache->load($this->getCacheId($sku));
+        if ($cache != false) {
+            $productPromoInfo = $this->serializer->unserialize($cache);
+            ksort($productPromoInfo);
+            return $productPromoInfo;
+        }
+
+        return false;
     }
 }
