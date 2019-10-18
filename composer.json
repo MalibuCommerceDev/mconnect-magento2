@@ -5,7 +5,8 @@
     "version": "2.5.0",
     "require": {
         "magento/framework": ">=100.0.0",
-        "php": ">=7.0.0"
+        "php": ">=7.0.0",
+        "ext-simplexml": "*"
     },
     "autoload": {
         "files": ["registration.php"],

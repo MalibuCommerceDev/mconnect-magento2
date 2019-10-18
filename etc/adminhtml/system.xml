@@ -400,7 +400,7 @@
             </group>
 
             <group id="price_rule" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                <label>Price Rule</label>
+                <label>Malibu Connect Price Rule</label>
                 <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -437,11 +437,11 @@
             </group>
 
             <group id="tier_price" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                <label>Product Tier Price</label>
+                <label>Malibu Connect Tier Price</label>
                 <field id="is_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[Mconnect Tier Pricing is based on Mconnect Price Rules and will override standard Magento Tier Pricing logic]]></comment>
+                    <comment><![CDATA[Note: This functionality will override standard Magento Tier Pricing logic. Malibu Connect Tier Price Logic works for ALL customer groups by default. Malibu Connect Tier Pricing logic is based on Malibu Connect Promotion Prices if available, if not it will load tier pricing from Malibu Connect Price Rules]]></comment>
                 </field>
             </group>
         </section>
