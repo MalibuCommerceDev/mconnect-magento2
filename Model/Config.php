@@ -355,11 +355,20 @@ class Config
      *
      * @return bool
      */
-    public function isApplyProductToAllWebsites($websiteId = null)
+    public function isAssignProductToAllWebsites($websiteId = null)
     {
-        return (bool)$this->getWebsiteData('product/apply_product_to_all_websites', $websiteId);
+        return (bool)$this->getWebsiteData('product/is_assign_to_all_websites', $websiteId);
     }
 
+    /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return bool
+     */
+    public function isTierPriceLogicEnabled($websiteId = null)
+    {
+        return (bool)$this->getWebsiteData('tier_price/is_enabled', $websiteId);
+    }
 
     /**
      * Get Malibu Mconnect config value per store

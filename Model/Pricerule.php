@@ -45,6 +45,8 @@ class Pricerule extends \Magento\Framework\Model\AbstractModel
      * @param int $websiteId
      *
      * @return string|bool
+     *
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function matchDiscountPrice($product, $qty, $websiteId = 0)
     {
