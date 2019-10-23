@@ -2,6 +2,9 @@
 
 namespace MalibuCommerce\MConnect\Model\Queue;
 
+use Magento\Framework\Registry;
+use MalibuCommerce\MConnect\Model\QueueFactory;
+
 class Pricerule extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
 {
     const CODE                   = 'price_rule';
@@ -22,14 +25,35 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue implements Importab
      */
     protected $config;
 
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Queue\FlagFactory
+     */
+    protected $queueFlagFactory;
+
+    /**
+     * @var \MalibuCommerce\MConnect\Model\QueueFactory
+     */
+    protected $queueFactory;
+
+    /**
+     * @var \Magento\Framework\Registry
+     */
+    protected $registry;
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\Navision\Pricerule $navPriceRule,
         \MalibuCommerce\MConnect\Model\Config $config,
-        \MalibuCommerce\MConnect\Model\Pricerule $rule
+        \MalibuCommerce\MConnect\Model\Pricerule $rule,
+        FlagFactory $queueFlagFactory,
+        QueueFactory $queueFactory,
+        Registry $registry
     ) {
         $this->navPriceRule = $navPriceRule;
         $this->config = $config;
         $this->rule = $rule;
+        $this->queueFlagFactory = $queueFlagFactory;
+        $this->queueFactory = $queueFactory;
+        $this->registry = $registry;
     }
 
     public function importAction($websiteId, $navPageNumber = 0)

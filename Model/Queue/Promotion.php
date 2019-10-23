@@ -9,6 +9,7 @@ use Magento\Framework\App\CacheInterface;
 use Magento\Customer\Model\SessionFactory;
 use MalibuCommerce\MConnect\Model\Queue;
 use MalibuCommerce\MConnect\Model\Config;
+use MalibuCommerce\MConnect\Model\QueueFactory;
 
 class Promotion extends Queue implements ImportableEntity
 {
@@ -32,6 +33,16 @@ class Promotion extends Queue implements ImportableEntity
      * @var \MalibuCommerce\MConnect\Model\Config
      */
     protected $config;
+
+    /**
+     * @var \MalibuCommerce\MConnect\Model\Queue\FlagFactory
+     */
+    protected $queueFlagFactory;
+
+    /**
+     * @var \MalibuCommerce\MConnect\Model\QueueFactory
+     */
+    protected $queueFactory;
 
     /**
      * @var \Magento\Framework\App\CacheInterface
@@ -59,7 +70,9 @@ class Promotion extends Queue implements ImportableEntity
         Config $config,
         CacheInterface $cache,
         Json $serializer,
-        SessionFactory $customerSessionFactory
+        SessionFactory $customerSessionFactory,
+        FlagFactory $queueFlagFactory,
+        QueueFactory $queueFactory
     ) {
         $this->registry = $registry;
         $this->navPromotion = $navPromotion;
@@ -67,6 +80,8 @@ class Promotion extends Queue implements ImportableEntity
         $this->cache = $cache;
         $this->customerSessionFactory = $customerSessionFactory;
         $this->serializer = $serializer;
+        $this->queueFlagFactory = $queueFlagFactory;
+        $this->queueFactory = $queueFactory;
     }
 
     /**
