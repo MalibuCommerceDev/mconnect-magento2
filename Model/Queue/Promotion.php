@@ -2,13 +2,18 @@
 
 namespace MalibuCommerce\MConnect\Model\Queue;
 
-use Magento\Framework\App\ObjectManager;
+use Magento\Customer\Model\Group;
+use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Framework\App\CacheInterface;
+use Magento\Customer\Model\SessionFactory;
+use MalibuCommerce\MConnect\Model\Queue;
+use MalibuCommerce\MConnect\Model\Config;
 
-class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
+class Promotion extends Queue implements ImportableEntity
 {
     const CODE                            = 'promotion';
-    const CACHE_ID                        = 'mconnect_promotion_price';
+    const CACHE_ID_PREFIX                 = 'mconnect_promo_';
     const CACHE_TAG                       = 'mconnect_promotion';
     const REGISTRY_KEY_NAV_PROMO_PRODUCTS = 'mconnect_promotion';
     const NAV_XML_NODE_ITEM_NAME          = 'items';
@@ -29,50 +34,39 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     protected $config;
 
     /**
-     * Date
-     *
-     * @var \Magento\Framework\Stdlib\DateTime\DateTime
-     */
-    protected $date;
-
-    /**
-     * @var \MalibuCommerce\MConnect\Model\Queue\FlagFactory
-     */
-    protected $queueFlagFactory;
-
-    /**
      * @var \Magento\Framework\App\CacheInterface
      */
     protected $cache;
-
-    /**
-     * @var \Magento\Framework\DataObjectFactory
-     */
-    protected $dataObjectFactory;
 
     /**
      * @var Json
      */
     protected $serializer;
 
+    /**
+     * @var \Magento\Customer\Model\SessionFactory
+     */
+    protected $customerSessionFactory;
+
+    /**
+     * @var int
+     */
+    protected $customerId = null;
+
     public function __construct(
-        \Magento\Framework\Registry $registry,
+        Registry $registry,
         \MalibuCommerce\MConnect\Model\Navision\Promotion $navPromotion,
-        \MalibuCommerce\MConnect\Model\Config $config,
-        \Magento\Framework\Stdlib\DateTime\DateTime $date,
-        \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
-        \Magento\Framework\App\CacheInterface $cache,
-        \Magento\Framework\DataObjectFactory $dataObjectFactory,
-        Json $serializer = null
+        Config $config,
+        CacheInterface $cache,
+        Json $serializer,
+        SessionFactory $customerSessionFactory
     ) {
         $this->registry = $registry;
         $this->navPromotion = $navPromotion;
         $this->config = $config;
-        $this->date = $date;
-        $this->queueFlagFactory = $queueFlagFactory;
         $this->cache = $cache;
-        $this->dataObjectFactory = $dataObjectFactory;
-        $this->serializer = $serializer ? : ObjectManager::getInstance()->get(Json::class);
+        $this->customerSessionFactory = $customerSessionFactory;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -90,9 +84,10 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
 
     /**
      * @param \SimpleXMLElement $data
-     * @param int $websiteId
+     * @param int               $websiteId
      *
      * @return bool
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
@@ -110,13 +105,35 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     }
 
     /**
-     * @param string $sku
+     * @param $sku
      *
      * @return string
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getCacheId($sku)
     {
-        return self::CACHE_ID . $sku;
+        return sprintf('%s%s__%s', self::CACHE_ID_PREFIX, $this->getCustomerId(), md5($sku));
+    }
+
+    /**
+     * Return logged in customer ID
+     *
+     * @return \Magento\Customer\Api\Data\CustomerInterface|\Magento\Customer\Model\Customer|null
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function getCustomerId()
+    {
+        if ($this->customerId === null) {
+            /** @var \Magento\Customer\Model\Session $customer */
+            $customer = $this->customerSessionFactory->create();
+            if ($customer->getCustomer() && $customer->getCustomer()->getId()) {
+                $this->customerId = $customer->getCustomer()->getId();
+            } else {
+                $this->customerId = Group::NOT_LOGGED_IN_ID;
+            }
+        }
+
+        return $this->customerId;
     }
 
     /**
@@ -124,7 +141,8 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
      * @param int                                   $qty
      * @param int                                   $websiteId
      *
-     * @return bool|float
+     * @return bool
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getPromoPrice($product, $qty = 1, $websiteId = 0)
     {
@@ -160,10 +178,11 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     }
 
     /**
-     * @param string $sku
+     * @param     $sku
      * @param int $qty
      *
-     * @return bool|float
+     * @return bool
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getPriceFromCache($sku, $qty = 1)
     {
@@ -183,9 +202,11 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     }
 
     /**
-     * @param array $productPromoInfo
+     * @param array  $productPromoInfo
      * @param string $sku
-     * @param int $websiteId
+     * @param int    $websiteId
+     *
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function savePromoPriceToCache($productPromoInfo, $sku, $websiteId = 0)
     {
@@ -199,9 +220,10 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
 
     /**
      * @param string $sku
-     * @param int $websiteId
+     * @param int    $websiteId
      *
-     * @return array|bool|null
+     * @return array|bool|float|int|mixed|string|null
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getAllPromoPrices($sku, $websiteId = 0)
     {
@@ -233,7 +255,8 @@ class Promotion extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     /**
      * @param string $sku
      *
-     * @return array|bool|null
+     * @return array|bool|float|int|mixed|string|null
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getAllPricesFromCache($sku)
     {
