@@ -290,4 +290,20 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ['entity_id', 'code', 'status', 'action']
         );
     }
+
+    protected function upgrade2_6_0(SchemaSetupInterface $setup)
+    {
+        $entityTables = ['sales_creditmemo'];
+        foreach ($entityTables as $table) {
+            $setup->getConnection()->addColumn(
+                $setup->getTable($table),
+                'nav_id',
+                array(
+                    'type'    => Table::TYPE_TEXT,
+                    'length'  => 255,
+                    'comment' => 'NAV ID'
+                )
+            );
+        }
+    }
 }

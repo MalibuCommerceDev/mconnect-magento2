@@ -40,7 +40,8 @@ class Promotion extends AbstractModel
      * @param bool $lastUpdated
      * @param int  $websiteId
      *
-     * @return \simpleXMLElement|bool
+     * @return bool|\simpleXMLElement
+     * @throws \Throwable
      */
     public function export($page = 0, $lastUpdated = false, $websiteId = 0)
     {

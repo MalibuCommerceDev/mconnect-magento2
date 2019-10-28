@@ -33,24 +33,39 @@ class Creditmemo extends \MalibuCommerce\MConnect\Model\Queue
      */
     protected $storeManager;
 
+    /**
+     * @var \Magento\Sales\Model\Order\Creditmemo
+     */
+    protected $creditMemoModel;
+
     public function __construct(
         \Magento\Sales\Api\CreditmemoRepositoryInterface $creditmemoRepository,
         \MalibuCommerce\MConnect\Model\Navision\Creditmemo $navCreditMemo,
+        \Magento\Sales\Model\Order\Creditmemo $creditMemoModel,
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
         \MalibuCommerce\MConnect\Model\Config $config,
         \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->creditmemoRepository = $creditmemoRepository;
         $this->navCreditMemo = $navCreditMemo;
+        $this->creditMemoModel = $creditMemoModel;
         $this->queueFlagFactory = $queueFlagFactory;
         $this->config = $config;
         $this->storeManager = $storeManager;
     }
 
+    /**
+     * @param int $entityId
+     *
+     * @return bool
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
     public function exportAction($entityId)
     {
         try {
             $creditMemoEntity = $this->creditmemoRepository->get($entityId);
+            $creditMemoDataModel = $this->creditMemoModel->load($entityId);
         } catch (NoSuchEntityException $e) {
             throw new LocalizedException(__('Creditmemo ID "%1" does not exist', $entityId));
         } catch (\Exception $e) {
@@ -64,18 +79,20 @@ class Creditmemo extends \MalibuCommerce\MConnect\Model\Queue
 
         if ($status === 'Processed') {
             $navId = (string) $response->result->creditMemo->nav_record_id;
-            if ($navId) {
-                $this->messages .= sprintf('CreditMemo exported, NAV ID: %s', $navId);
-            } else {
-                $this->messages .= sprintf('CreditMemo exported, NAV ID is empty');
+
+            if ($creditMemoDataModel->getNavId() != $navId) {
+                $creditMemoDataModel->setNavId($navId);
+                $creditMemoDataModel->setSkipMconnect(true)
+                    ->save();
             }
+            $this->messages .= sprintf('CreditMemo exported, NAV ID: %s', $navId);
 
             return true;
         }
 
         if ($status == 'Error') {
             $errors = array();
-            foreach ($response->result->Creditmemo as $order) {
+            foreach ($response->result->creditMemo as $order) {
                 foreach ($order->error as $error) {
                     $errors[] = (string) $error->message;
                 }

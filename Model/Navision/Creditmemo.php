@@ -2,30 +2,29 @@
 
 namespace MalibuCommerce\MConnect\Model\Navision;
 
-
 class Creditmemo extends AbstractModel
 {
-
     /**
-     * Export order to NAV (or if from NAV side - this is actually an order import from Magento)
+     * Export Credit Memo to NAV
      *
-     * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
-     * @param int $websiteId
+     * @param \Magento\Sales\Api\Data\CreditmemoInterface $creditMemoEntity
+     * @param int                                        $websiteId
      *
      * @return \simpleXMLElement
      */
-    public function import(\Magento\Sales\Model\Order\Creditmemo $creditMemoEntity, $websiteId = 0)
+    public function import(\Magento\Sales\Api\Data\CreditmemoInterface $creditMemoEntity, $websiteId = 0)
     {
-        $root = new \simpleXMLElement('<sale_creditMemo_import />');
-        $orderObject = $root->addChild('creditMemo');
+        $root = new \simpleXMLElement('<sales_credit_memo_import />');
+        $creditMemoObject = $root->addChild('creditMemo');
 
-        $orderObject->mag_order_id       = $creditMemoEntity->getOrderId();
-        $orderObject->mag_invoice_id     = $creditMemoEntity->getInvoiceId();
-        $orderObject->mag_credit_memo_id = $creditMemoEntity->getId();
+        $creditMemoObject->mag_order_id = $creditMemoEntity->getOrderId();
+        $creditMemoObject->mag_invoice_id = $creditMemoEntity->getInvoiceId();
+        $creditMemoObject->mag_credit_memo_id = $creditMemoEntity->getId();
+        $creditMemoObject->store_id = $creditMemoEntity->getStoreId();
 
-        $this->addItems($creditMemoEntity, $orderObject);
+        $this->addItems($creditMemoEntity, $creditMemoObject);
 
-        return $this->_import('creditmemo_import', $root, $websiteId);
+        return $this->_import('sales_credit_memo_import', $root, $websiteId);
     }
 
     public function export($page = 0, $lastUpdated = false, $websiteId = 0)
@@ -36,12 +35,12 @@ class Creditmemo extends AbstractModel
     /**
      * Add creditmemo items to NAV payload XML
      *
-     * @param \Magento\Sales\Model\Order\Creditmemo
+     * @param \Magento\Sales\Api\Data\CreditmemoInterface $creditMemoEntity
      * @param \simpleXMLElement $root
      */
     protected function addItems($creditMemoEntity, &$root)
     {
-        foreach ($creditMemoEntity->getItems() as $item) {
+        foreach ($creditMemoEntity->getAllItems() as $item) {
             $this->addItem($item, $root);
         }
     }
@@ -50,8 +49,8 @@ class Creditmemo extends AbstractModel
      * Construct NAV item XML and set item data
      *
      *
-     * @param \Magento\Sales\Model\Order\Creditmemo $item
-     * @param \simpleXMLElement $root
+     * @param \Magento\Sales\Model\Order\Creditmemo\Item $item
+     * @param \simpleXMLElement                     $root
      *
      * @return $this
      */
@@ -60,12 +59,9 @@ class Creditmemo extends AbstractModel
         $child = $root->addChild('item');
         $child->qty = $item->getQty();
         $child->mag_item_id = $item->getSku();
-        $child->order_item_unit_price = ($item->getParentItem() && ($item->getParentItem()->getProductType() != \Magento\Catalog\Model\Product\Type::TYPE_BUNDLE))
-            ? $item->getParentItem()->getBasePrice()
-            : $item->getBasePrice();
+        $child->order_item_unit_price = $item->getBasePrice();
 
         return $this;
     }
-
 
 }

@@ -39,6 +39,14 @@
             </argument>
         </arguments>
     </virtualType>
+    <virtualType name="CreditmemoGridAggregator" type="Magento\Sales\Model\ResourceModel\Grid">
+        <arguments>
+            <argument name="columns" xsi:type="array">
+                <item name="nav_id" xsi:type="string">sales_creditmemo.nav_id</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
     <type name="Magento\Rma\Model\Rma">
         <plugin name="rma" type="MalibuCommerce\MConnect\Plugin\RmaPlugin" sortOrder="100" disabled="false"/>
     </type>

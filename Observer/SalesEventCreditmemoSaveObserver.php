@@ -51,7 +51,7 @@ class SalesEventCreditmemoSaveObserver implements \Magento\Framework\Event\Obser
         }
 
         $creditmemo = $observer->getEvent()->getCreditmemo();
-        if ($creditmemo) {
+        if ($creditmemo && !$creditmemo->getSkipMconnect()) {
             $this->queueNewItem(
                 \MalibuCommerce\MConnect\Model\Queue\Creditmemo::CODE,
                 \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT,
@@ -65,17 +65,16 @@ class SalesEventCreditmemoSaveObserver implements \Magento\Framework\Event\Obser
     /**
      * @param $code
      * @param $action
-     * @param \Magento\Sales\Model\Order $order
+     * @param \Magento\Sales\Model\Order\Creditmemo $creditmemo
      *
-     * @return bool|\MalibuCommerce\MConnect\Model\Queue
+     * @return bool|\Magento\Framework\DataObject|\MalibuCommerce\MConnect\Model\Queue
      */
     protected function queueNewItem($code, $action, $creditmemo)
     {
         try {
-            $scheduledAt = null;
             $websiteId = $this->storeManager->getStore($creditmemo->getStoreId())->getWebsiteId();
 
-            return $this->queue->create()->add($code, $action, $websiteId, 0, $creditmemo->getId(), [], $scheduledAt);
+            return $this->queue->create()->add($code, $action, $websiteId, 0, $creditmemo->getId());
         } catch (\Throwable $e) {
             $this->logger->critical($e);
         }
