@@ -210,16 +210,13 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                 ->setTaxClassId($this->getDefaultTaxClass());
 
             if (isset($data->item_qty_on_hand)) {
+                $stockStatus = (int)(bool)$data->item_qty_on_hand;
+
                 $stockData = array(
                     'use_config_manage_stock' => 1,
-                    'qty'                     => (int)$data->item_qty_on_hand,
-                    'is_in_stock'             => 1,
+                    'qty'          => (int)$data->item_qty_on_hand,
+                    'is_in_stock'  => $stockStatus,
                 );
-
-                $stockStatus = (int)(bool)$data->item_qty_on_hand;
-                if ($stockStatus && $this->getConfig()->isProductInStockStatusMandatory($websiteId)) {
-                    $stockItem['is_in_stock'] = $stockStatus;
-                }
 
                 $product->setStockData($stockData);
             }

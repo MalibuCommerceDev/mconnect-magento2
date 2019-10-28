@@ -2,6 +2,7 @@
 
 namespace MalibuCommerce\MConnect\Model\Queue;
 
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\CatalogInventory\Api\StockConfigurationInterface;
 
 class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
@@ -30,41 +31,25 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     protected $queueFlagFactory;
 
     /**
-     * @var \Magento\CatalogInventory\Api\StockStateInterface
-     */
-    protected $_stockStateInterface;
-
-    /**
-     * @var \Magento\CatalogInventory\Api\StockRegistryInterface
-     */
-    protected $_stockRegistry;
-
-    /**
      * @var StockConfigurationInterface
      */
-    private $configuration;
+    protected $configuration;
 
     /**
      * Inventory constructor.
      *
      * @param \Magento\Catalog\Api\ProductRepositoryInterface      $productRepository
-     * @param \Magento\CatalogInventory\Api\StockStateInterface    $stockStateInterface ,
-     * @param \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry
      * @param \MalibuCommerce\MConnect\Model\Navision\Inventory    $navInventory
      * @param \MalibuCommerce\MConnect\Model\Config                $config
      */
     public function __construct(
         \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
-        \Magento\CatalogInventory\Api\StockStateInterface $stockStateInterface,
-        \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
         \MalibuCommerce\MConnect\Model\Navision\Inventory $navInventory,
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
         StockConfigurationInterface $configuration
     ) {
         $this->productRepository = $productRepository;
-        $this->_stockStateInterface = $stockStateInterface;
-        $this->_stockRegistry = $stockRegistry;
         $this->navInventory = $navInventory;
         $this->config = $config;
         $this->queueFlagFactory = $queueFlagFactory;
@@ -97,6 +82,9 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         }
 
         try {
+            /** @var ProductInterface $product */
+            $product = $this->productRepository->get($sku, true, null, true);
+
             if (isset($data->quantity)) {
                 $quantity = (int)$data->quantity;
             } elseif (isset($data->item_qty_on_hand)) {
@@ -106,25 +94,43 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
                 return false;
             }
 
-            $stockItem = $this->_stockRegistry->getStockItemBySku($sku);
-            $globalManageStock = $this->configuration->getManageStock();
-            if ((bool)$stockItem->getData('manage_stock') || (
-                    $stockItem->getUseConfigManageStock() == 1 &&
-                    $globalManageStock == 1
-                )
+            $stockStatus = (bool)$quantity;
+            $globalIsManageStock = $this->configuration->getManageStock();
+            $forcedInStock = $this->getConfig()->isInventoryInStockStatusMandatory($websiteId);
+
+            /** @var \Magento\CatalogInventory\Api\Data\StockItemInterface $stockItem */
+            $stockItem = $product->getExtensionAttributes()->getStockItem();
+            if (!$stockItem || !$stockItem->getId() || !$stockItem->getManageStock()
+                || ($stockItem->getUseConfigManageStock() && !$globalIsManageStock)
             ) {
-                $stockStatus = (bool)$quantity;
-                if ($stockStatus && $this->getConfig()->isInventoryInStockStatusMandatory($websiteId)) {
-                    $stockItem->setData('is_in_stock', $stockStatus);
-                }
-                $stockItem->setData('qty', $quantity);
-                $stockItem->save();
-                $this->messages .= $sku . ': qty changed to ' . $quantity;
-            } else {
                 $this->messages .= $sku . ': skipped - stock for this product is not managed';
+
+                return false;
             }
+
+            // Magento >= 2.3.x logic
+            if (class_exists('\Magento\InventoryConfigurationApi\Api\GetStockItemConfigurationInterface')) {
+                $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+                /** @var \MalibuCommerce\MConnect\Model\Queue\Inventory\SourceItemsProcessor $inventoryProcessor */
+                $inventoryProcessor = $objectManager->create(
+                    '\MalibuCommerce\MConnect\Model\Queue\Inventory\SourceItemsProcessor'
+                );
+
+                $inventoryProcessor->process($product, $quantity, $stockStatus && $forcedInStock ? true : null);
+
+                return true;
+            }
+
+            // Magento <= 2.2.x logic
+            if ($stockStatus && $forcedInStock) {
+                $stockItem->setIsInStock($stockStatus);
+            }
+            $stockItem->setQty($quantity);
+            $stockItem->save();
+
+            $this->messages .= $sku . ': qty changed to ' . $quantity;
         } catch (\Throwable $e) {
-            $this->messages .= $sku . ': ' . $e->getMessage() . PHP_EOL;
+            $this->messages .= $sku . ': skipped - ' . $e->getMessage() . PHP_EOL;
 
             return false;
         }
