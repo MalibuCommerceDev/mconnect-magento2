@@ -1,19 +1,28 @@
 <!--@subject Malibu Connect: Navision Error@-->
 <!--@vars
-"var title":"Title of email",
+"var error_title":"Error title",
+"var queue_item_id":"Sync Queue Item/Process ID",
 "var request":"Navision request",
-"var response":"Navision response"
+"var action":"Action",
+"var entity_type":"Entity Type",
+"var entity_id":"Entity ID",
+"var error":"API Call Response/Error",
+"var nav_url":"NAV URL"
 @-->
 
 <table cellpadding="0" cellspacing="0" border="0">
     <tr>
         <td class="action-content">
-            <h1>{{var title}}</h1>
-            <strong>Request:</strong><br />
-            <pre class="highlighted-text">{{var request|escape}}</pre>
+            <h1>{{var error_title}}</h1>
+            <strong>Sync Queue Item/Process ID:</strong>&nbsp;{{var queue_item_id}}<br />
+            <strong>Action:</strong>&nbsp;{{var action}}<br />
+            <strong>Entity Type:</strong>&nbsp;{{var entity_type}}<br />
+            <strong>Entity ID:</strong>&nbsp;{{var entity_id}}<br />
+            <strong>NAV URL:</strong>&nbsp;{{var nav_url}}<br />
             <strong>Response:</strong><br />
             <pre class="highlighted-text">{{var response|escape}}</pre>
-            <p>You can disable this notification in <strong>Admin Panel</strong> > <strong>Stores</strong> > <strong>Configuration</strong> > <strong>Services</strong> > <strong>Malibu Connect</strong> > <strong>NAV Connection</strong>.</p>
+            <br />
+            <p>You can disable this notification in <strong>Admin Panel</strong> -> <strong>Stores</strong> -> <strong>Configuration</strong> -> <strong>Services</strong> > <strong>Malibu Connect</strong> -> <strong>NAV Connection</strong>.</p>
         </td>
     </tr>
 </table>

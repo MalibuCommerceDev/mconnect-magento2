@@ -2,11 +2,12 @@
     "name": "malibucommerce/mconnect-magento2",
     "description": "Connect NAV with Magento 2",
     "type": "magento2-module",
-    "version": "2.5.2",
+    "version": "2.5.3",
     "require": {
         "magento/framework": ">=100.0.0",
         "php": ">=7.0.0",
-        "ext-simplexml": "*"
+        "ext-simplexml": "*",
+        "ext-mbstring": "*"
     },
     "autoload": {
         "files": ["registration.php"],

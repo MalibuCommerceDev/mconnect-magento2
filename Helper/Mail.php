@@ -62,13 +62,13 @@ class Mail extends \Magento\Framework\App\Helper\AbstractHelper
         \MalibuCommerce\MConnect\Model\Config $config,
         \Magento\User\Helper\Data $customerHelper
     ) {
-        $this->transportBuilder     = $transportBuilder;
+        $this->transportBuilder = $transportBuilder;
         $this->emailTemplateFactory = $emailTemplateFactory;
-        $this->storeManager         = $storeManager;
-        $this->context              = $context;
-        $this->inlineTranslation    = $inlineTranslation;
-        $this->config               = $config;
-        $this->customerHelper       = $customerHelper;
+        $this->storeManager = $storeManager;
+        $this->context = $context;
+        $this->inlineTranslation = $inlineTranslation;
+        $this->config = $config;
+        $this->customerHelper = $customerHelper;
 
         parent::__construct($context);
     }
@@ -82,13 +82,11 @@ class Mail extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param $errorTitle
-     * @param $request
-     * @param $response
+     * @param array $variables
      *
      * @return bool|null
      */
-    public function sendErrorEmail($errorTitle, $request, $response)
+    public function sendErrorEmail(array $variables)
     {
         if (!$this->config->isErrorEmailingEnabled()) {
             return null;
@@ -100,11 +98,7 @@ class Mail extends \Magento\Framework\App\Helper\AbstractHelper
                 null,
                 $this->config->getErrorEmailTemplate(),
                 $this->config->getErrorEmailSender(),
-                [
-                    'title' => $errorTitle,
-                    'request' => is_array($request) ? print_r($request, true) : $request,
-                    'response' => is_array($response) ? print_r($response, true) : $response
-                ],
+                $variables,
                 $this->config->getErrorRecipients()
             );
         } catch (\Exception $e) {
@@ -115,7 +109,10 @@ class Mail extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @param \Magento\Customer\Model\Customer $customer
      *
-     * @return null|bool
+     * @return bool|null
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\MailException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function resetPasswordForNewCustomer($customer)
     {
@@ -154,8 +151,10 @@ class Mail extends \Magento\Framework\App\Helper\AbstractHelper
      * Get either first store ID from a set website or the provided as default
      *
      * @param \Magento\Customer\Model\Customer $customer
-     * @param int|string|null $defaultStoreId
+     * @param int|string|null                  $defaultStoreId
+     *
      * @return int
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     protected function getCustomerWebsiteStoreId($customer, $defaultStoreId = null)
     {
@@ -163,6 +162,7 @@ class Mail extends \Magento\Framework\App\Helper\AbstractHelper
             $storeIds = $this->storeManager->getWebsite($customer->getWebsiteId())->getStoreIds();
             $defaultStoreId = reset($storeIds);
         }
+
         return $defaultStoreId;
     }
 
@@ -181,7 +181,8 @@ class Mail extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return bool
      *
-     * @throws \LogicException
+     * @throws \Magento\Framework\Exception\MailException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function sendTemplateEmail(
         $mainEmail,

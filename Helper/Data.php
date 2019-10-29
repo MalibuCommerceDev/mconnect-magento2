@@ -5,6 +5,7 @@ namespace MalibuCommerce\MConnect\Helper;
 use \Magento\Framework\App\Filesystem\DirectoryList;
 use \Magento\Framework\App\ObjectManager;
 use \Magento\Framework\Serialize\Serializer\Json;
+use MalibuCommerce\MConnect\Model\Queue;
 
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
 {
@@ -247,13 +248,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
     /**
      * @param            $request
-     * @param            $location
+     * @param            $navUrl
      * @param            $action
      * @param \Throwable $e
      *
      * @return bool
      */
-    public function logRequestError($request, $location, $action, \Throwable $e)
+    public function logRequestError($request, $navUrl, $action, \Throwable $e)
     {
         if (!$this->mConnectConfig->get('nav_connection/log')) {
             return false;
@@ -261,19 +262,27 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
         $this->logRequest(
             $request,
-            $location,
+            $navUrl,
             $action,
             500,
             null,
             'Error: ' . $e->getMessage() . "\n\n" . $e->getTraceAsString()
         );
 
-        $request = $this->prepareLogRequest($request, $location, $action);
-        $this->mConnectMailer->sendErrorEmail(
-            'An error occurred when connecting to Navision.',
-            $request,
-            $e->getMessage()
-        );
+        $request = $this->prepareLogRequest($request, $navUrl, $action);
+        /** @var Queue $queueItem */
+        $queueItem = $this->registry->registry('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM');
+
+        $this->mConnectMailer->sendErrorEmail([
+            'error_title'   => 'An error occurred when processing Navision API call',
+            'queue_item_id' => $queueItem ? $queueItem->getId() : 'N/A',
+            'action'        => $queueItem ? $queueItem->getAction() : 'N/A',
+            'entity_type'   => $queueItem ? $queueItem->getCode() : 'N/A',
+            'entity_id'     => $queueItem ? $queueItem->getEntityId() : 'N/A',
+            'nav_url'       => $navUrl,
+            'request'       => is_array($request) ? print_r($request, true) : $request,
+            'error'         => $e->getMessage()
+        ]);
 
         return true;
     }
@@ -294,7 +303,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             return false;
         }
 
-        $queueItemId = $this->registry->registry('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM_ID');
+        /** @var Queue $queueItem */
+        $queueItem = $this->registry->registry('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM');
+        if (!$queueItem || !$queueItem->getId()) {
+
+            return false;
+        }
 
         $request = $this->prepareLogRequest($request, $location, $action);
         $response = [
@@ -308,9 +322,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         );
 
         if ($this->isLogDataToDb()) {
-            $this->queueResourceModel->saveLog($queueItemId, $this->serializer->serialize($logData));
+            $this->queueResourceModel->saveLog($queueItem->getId(), $this->serializer->serialize($logData));
         } else {
-            $logFile = $this->getLogFile($queueItemId, true, true);
+            $logFile = $this->getLogFile($queueItem->getId(), true, true);
             $writer = new \Zend\Log\Writer\Stream($logFile);
             $logger = new \Zend\Log\Logger();
             $logger->addWriter($writer);
