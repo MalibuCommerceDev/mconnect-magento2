@@ -76,6 +76,9 @@
             </creditmemo>
             <rma>
                 <export_enabled>1</export_enabled>
+                <cron_expr>*/10 * * * *</cron_expr>
+                <max_rows>50</max_rows>
+                <default_rma_status>pending</default_rma_status>
             </rma>
             <invoice>
                 <import_enabled>1</import_enabled>

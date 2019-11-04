@@ -231,6 +231,17 @@ class Config
         return explode(',', $this->getWebsiteData('customer/nav_reports_allowed_customer_groups', $websiteId));
     }
 
+
+    /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return array
+     */
+    public function getDefaultRmaStatus($websiteId = null)
+    {
+        return explode(',', $this->getWebsiteData('rma/default_rma_status', $websiteId));
+    }
+
     /**
      * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *

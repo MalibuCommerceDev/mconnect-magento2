@@ -339,8 +339,20 @@
             <group id="rma" type="text" sortOrder="77" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>RMA</label>
                 <field id="export_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                    <label>Export Enabled</label>
+                    <label>Import Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Schedule (cron syntax)</label>
+                    <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
+                </field>
+                <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Entity Limit Per Request</label>
+                </field>
+                <field id="default_rma_status" sortOrder="50" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Default RMA status</label>
+                    <source_model>Magento\Rma\Model\Rma\Source\Status</source_model>
                 </field>
             </group>
 

@@ -2,15 +2,23 @@
 
 namespace MalibuCommerce\MConnect\Model\Queue;
 
+
+use Magento\Rma\Model\Rma\Source\Status;
+
 class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
 {
-    const CODE = 'inventory';
-    const NAV_XML_NODE_ITEM_NAME = 'item_inventory';
+    const CODE = 'rma';
+    const NAV_XML_NODE_ITEM_NAME = 'rma';
+    /**
+     * @var \Magento\Sales\Api\Data\OrderInterfaceFactory
+     */
+
+    protected $orderFactory;
 
     /**
-     * @var \Magento\Catalog\Api\ProductRepositoryInterface|ProductRepositoryInterface
+     * @var \Magento\Rma\Model\RmaFactory
      */
-    protected $productRepository;
+    protected $rmaModelFactory;
 
     /**
      * @var \MalibuCommerce\MConnect\Model\Navision\Rma
@@ -18,37 +26,42 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
     protected $navRma;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Config|Config
-     */
-    protected $config;
-
-    /**
      * @var \MalibuCommerce\MConnect\Model\Queue\FlagFactory
      */
     protected $queueFlagFactory;
 
     /**
-     * Rma constructor.
-     *
-     * @param \Magento\Catalog\Api\ProductRepositoryInterface      $productRepository
-     * @param \Magento\CatalogInventory\Api\StockStateInterface    $stockStateInterface
-     * @param \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry
-     * @param \MalibuCommerce\MConnect\Model\Navision\Rma          $navRma
-     * @param \MalibuCommerce\MConnect\Model\Config                $config
-     * @param FlagFactory                                          $queueFlagFactory
+     * @var \MalibuCommerce\MConnect\Model\Config
      */
+    protected $config;
+
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storeManager;
+
+    /**
+     * @var \Magento\Eav\Api\AttributeRepositoryInterface
+     */
+    protected $eavAttributeRepository;
+
+
     public function __construct(
-        \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
-        \Magento\CatalogInventory\Api\StockStateInterface $stockStateInterface,
-        \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
+        \Magento\Sales\Api\Data\OrderInterfaceFactory $orderFactory,
+        \Magento\Rma\Model\RmaFactory $rmaModelFactory,
         \MalibuCommerce\MConnect\Model\Navision\Rma $navRma,
+        \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
         \MalibuCommerce\MConnect\Model\Config $config,
-        \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Eav\Api\AttributeRepositoryInterface $eavAttributeRepositoryInterface
     ) {
-        $this->productRepository = $productRepository;
+        $this->orderFactory = $orderFactory;
+        $this->rmaModelFactory = $rmaModelFactory;
         $this->navRma = $navRma;
-        $this->config = $config;
         $this->queueFlagFactory = $queueFlagFactory;
+        $this->config = $config;
+        $this->storeManager = $storeManager;
+        $this->eavAttributeRepository = $eavAttributeRepositoryInterface;
     }
 
     public function importAction($websiteId, $navPageNumber = 0)
@@ -58,46 +71,74 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
 
     public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
-        $sku = (string)$data->nav_item_id;
-        $sku = trim($sku);
-        if (empty($sku)) {
-            $this->messages .= 'SKU is missing' . PHP_EOL;
-            return false;
-        }
+        $data->mag_order_id = '000000008';
+        if ((int)$data->mag_order_id) {
+            $order = $this->orderFactory->create()->loadByIncrementId((string)$data->mag_order_id);
 
-        try {
-            if (isset($data->quantity)) {
-                $quantity = (int)$data->quantity;
-            } elseif (isset($data->item_qty_on_hand)) {
-                $quantity = (int)$data->item_qty_on_hand;
-            } else {
-                $this->messages .= $sku . ': ' . 'QTY is missing' . PHP_EOL;
-                return false;
+            /** @var RmaInterface $rmaModel */
+            $rmaModel = $this->rmaModelFactory->create();
+            $rmaModel->setData(
+                [
+                    'status' => $this->config->getDefaultRmaStatus($websiteId),
+                    'date_requested' => (string)$data->posting_date,
+                    'order_id' => $order->getId(),
+                    'order_increment_id' => $order->getIncrementId(),
+                    'store_id' => $order->getStoreId(),
+                    'customer_id' => $order->getCustomerId(),
+                    'order_date' => $order->getCreatedAt(),
+                    'customer_name' => $order->getCustomerName(),
+                    'customer_custom_email' => '',
+                ]
+            );
+
+            $orderItems = [];
+            foreach ($order->getAllVisibleItems() as $product) {
+                //$orderItems[$product->getSku()] = $product->getItemId();
+                $orderItems['663313'] = $product->getItemId();
+
+
             }
 
-            $stockItem = $this->_stockRegistry->getStockItemBySku($sku);
-            $globalManageStock = $this->configuration->getManageStock();
-            if ((bool)$stockItem->getData('manage_stock') || (
-                    $stockItem->getUseConfigManageStock() == 1 &&
-                    $globalManageStock == 1
-                )
-            ) {
-                $stockStatus = (bool)$quantity;
-                if ($stockStatus && $this->getConfig()->isInventoryInStockStatusMandatory($websiteId)) {
-                    $stockItem->setData('is_in_stock', $stockStatus);
+            foreach ($data->item as $item) {
+                if (isset($orderItems[(string)$item->mag_sku])) {
+                    $post['items'][] = [
+                        'reason' => $this->getOptionId('reason', (string)$item->reason),
+                        'condition' => $this->getOptionId('condition', (string)$item->condition),
+                        'resolution' => $this->getOptionId('resolution', (string)$item->resolution),
+                        'qty_requested' =>  (int)$item->qty,
+                        'order_item_id' => $orderItems[(string)$item->mag_sku]
+                ];
                 }
-                $stockItem->setData('qty', $quantity);
-                $stockItem->save();
-                $this->messages .= $sku . ': qty changed to ' . $quantity;
-            } else {
-                $this->messages .= $sku . ': skipped - stock for this product is not managed';
-            }
-        } catch (\Throwable $e) {
-            $this->messages .= $sku . ': ' . $e->getMessage() . PHP_EOL;
 
-            return false;
+            }
+            $result = $rmaModel->saveRma($post);
+
         }
 
-        return true;
+        return false;
+
+
+    }
+
+
+    /**
+     * Return option Value
+     *
+     * @param int $optionValue
+     *
+     * @return string
+     */
+    public function getOptionId($attributeCode, $optionLabel)
+    {
+        $attribute = $this->eavAttributeRepository->get('rma_item', $attributeCode);
+
+        foreach ($attribute->getOptions() as $option) {
+            if (strtolower($option->getLabel()) == strtolower($optionLabel)) {
+                return $option->getValue();
+            }
+        }
+
+        return '';
+
     }
 }
