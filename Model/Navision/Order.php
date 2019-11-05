@@ -90,7 +90,7 @@ class Order extends AbstractModel
      * Export order to NAV (or if from NAV side - this is actually an order import from Magento)
      *
      * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
-     * @param int $websiteId
+     * @param int                                    $websiteId
      *
      * @return \simpleXMLElement
      */
@@ -123,10 +123,10 @@ class Order extends AbstractModel
 
         $payment = $orderEntity->getPayment();
         $orderObject->payment_method = $payment !== false ? $payment->getMethod() : '';
-        $orderObject->po_number      = $payment !== false ? $payment->getPoNumber() : '';
+        $orderObject->po_number = $payment !== false ? $payment->getPoNumber() : '';
 
-        $orderObject->order_discount_amount = number_format((float) $orderEntity->getBaseDiscountAmount(), 2, '.', '');
-        $orderObject->order_tax = number_format((float) $orderEntity->getBaseTaxAmount(), 2, '.', '');
+        $orderObject->order_discount_amount = number_format((float)$orderEntity->getBaseDiscountAmount(), 2, '.', '');
+        $orderObject->order_tax = number_format((float)$orderEntity->getBaseTaxAmount(), 2, '.', '');
 
         $this->addAddresses($orderEntity, $orderObject);
         $this->addItems($orderEntity, $orderObject);
@@ -138,8 +138,8 @@ class Order extends AbstractModel
      * Add rewards options to NAV export XML
      *
      * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
-     * @param \simpleXMLElement $root
-     * @param int $websiteId
+     * @param \simpleXMLElement                      $root
+     * @param int                                    $websiteId
      *
      * @return $this
      */
@@ -170,8 +170,8 @@ class Order extends AbstractModel
      * Add gift options to NAV export XML
      *
      * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
-     * @param \simpleXMLElement $root
-     * @param int $websiteId
+     * @param \simpleXMLElement                      $root
+     * @param int                                    $websiteId
      *
      * @return $this
      */
@@ -215,7 +215,7 @@ class Order extends AbstractModel
                     $giftWrappingAmount += $orderEntity->getGwCardBasePrice();
                 }
                 if ($isGiftWrappingAmountSet) {
-                    $root->gift_wrap_charge = number_format((float) $giftWrappingAmount, 4, '.', '');
+                    $root->gift_wrap_charge = number_format((float)$giftWrappingAmount, 4, '.', '');
                 }
             }
 
@@ -234,7 +234,7 @@ class Order extends AbstractModel
                     }
 
                     $root->gift_card_number = implode(', ', $codes);
-                    $root->gift_card_amt_used = number_format((float) $baseAmount, 4, '.', '');
+                    $root->gift_card_amt_used = number_format((float)$baseAmount, 4, '.', '');
                 }
             }
         } catch (\Throwable $e) {
@@ -248,7 +248,7 @@ class Order extends AbstractModel
      * Add order addresses to NAV payload XML
      *
      * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
-     * @param \simpleXMLElement $root
+     * @param \simpleXMLElement                      $root
      */
     protected function addAddresses(\Magento\Sales\Api\Data\OrderInterface $orderEntity, &$root)
     {
@@ -261,8 +261,8 @@ class Order extends AbstractModel
      * Construct NAV address XML and set address data
      *
      * @param \Magento\Sales\Api\Data\OrderAddressInterface $address
-     * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
-     * @param \simpleXMLElement $root
+     * @param \Magento\Sales\Api\Data\OrderInterface        $orderEntity
+     * @param \simpleXMLElement                             $root
      */
     protected function addAddress(\Magento\Sales\Api\Data\OrderAddressInterface $address, $orderEntity, &$root)
     {
@@ -285,8 +285,8 @@ class Order extends AbstractModel
 
     /**
      * @param \Magento\Sales\Api\Data\OrderAddressInterface $address
-     * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
-     * @param \simpleXMLElement $childElement
+     * @param \Magento\Sales\Api\Data\OrderInterface        $orderEntity
+     * @param \simpleXMLElement                             $childElement
      *
      * @return \simpleXMLElement
      */
@@ -316,7 +316,7 @@ class Order extends AbstractModel
      * Add order items to NAV payload XML
      *
      * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
-     * @param \simpleXMLElement $root
+     * @param \simpleXMLElement                      $root
      */
     protected function addItems(\Magento\Sales\Api\Data\OrderInterface $orderEntity, &$root)
     {
@@ -328,12 +328,12 @@ class Order extends AbstractModel
     /**
      * Construct NAV item XML and set item data
      *
-     * @todo currently only simple and giftcard products are supported
-     *
      * @param \Magento\Sales\Api\Data\OrderItemInterface $item
-     * @param \simpleXMLElement $root
+     * @param \simpleXMLElement                          $root
      *
      * @return $this
+     * @todo currently only simple, virtual and giftcard products are supported
+     *
      */
     protected function addItem(\Magento\Sales\Api\Data\OrderItemInterface $item, &$root)
     {
@@ -341,6 +341,7 @@ class Order extends AbstractModel
             || ($this->moduleManager->isEnabled('Magento_GiftCard')
                 && $item->getProductType() == \Magento\GiftCard\Model\Catalog\Product\Type\Giftcard::TYPE_GIFTCARD
             )
+            || $item->getProductType() == ProductType::TYPE_VIRTUAL
         ) {
             $child = $root->addChild('order_item');
 
@@ -362,7 +363,7 @@ class Order extends AbstractModel
      * Construct NAV shipping information XML
      *
      * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
-     * @param \simpleXMLElement $root
+     * @param \simpleXMLElement                      $root
      *
      * @return $this
      */
@@ -370,7 +371,7 @@ class Order extends AbstractModel
     {
         $shippingAssignments = $orderEntity->getExtensionAttributes()->getShippingAssignments();
         /** @var \Magento\Sales\Api\Data\ShippingAssignmentInterface $shippingAssignment */
-        if(isset($shippingAssignments)) {
+        if (isset($shippingAssignments)) {
             foreach ($shippingAssignments as $shippingAssignment) {
                 $method = $shippingAssignment->getShipping()->getMethod();
             }
