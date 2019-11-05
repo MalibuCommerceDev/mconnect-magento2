@@ -116,6 +116,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
      * @param bool   $retrieveIfExists
      *
      * @return $this|\Magento\Framework\DataObject
+     * @throws \Exception
      */
     public function add(
         $code,
@@ -229,7 +230,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
 
             return $this;
         }
-        $this->registry->register('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM_ID', $this->getId());
+        $this->registry->register('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM', $this);
 
         try {
             if (($code == \MalibuCommerce\MConnect\Model\Queue\Customer::CODE
@@ -257,7 +258,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
             $this->endProcess(self::STATUS_ERROR, $message);
         }
 
-        $this->registry->unregister('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM_ID');
+        $this->registry->unregister('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM');
 
         return $this;
     }
@@ -286,6 +287,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
      * @param int                    $navPageNumber
      *
      * @return $this|bool|\Magento\Framework\DataObject
+     * @throws \Exception
      */
     public function processMagentoImport(
         Navision\AbstractModel $navExporter,
