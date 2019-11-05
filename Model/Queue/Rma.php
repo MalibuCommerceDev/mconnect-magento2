@@ -2,6 +2,9 @@
 
 namespace MalibuCommerce\MConnect\Model\Queue;
 
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Rma\Model\Item;
 use Magento\Rma\Model\Rma\Source\Status;
 
 class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
@@ -45,12 +48,39 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
     protected $eavAttributeRepository;
 
     /**
-     * Message manager
+     * Rma item factory
      *
-     * @var \Magento\Framework\Message\ManagerInterface
+     * @var \Magento\Rma\Model\ItemFactory
      */
-    protected $messageManager;
+    protected $rmaItemFactory;
 
+    /**
+     * Rma data
+     *
+     * @var \Magento\Rma\Helper\Data
+     */
+    protected $rmaData;
+
+    /**
+     * Escaper
+     *
+     * @var \Magento\Framework\Escaper
+     */
+    protected $escaper;
+
+    /**
+     * Rma item factory
+     *
+     * @var \Magento\Rma\Model\ResourceModel\ItemFactory
+     */
+    protected $itemFactory;
+
+    /**
+     * Serializer instance.
+     *
+     * @var Json
+     */
+    private $serializer;
 
     public function __construct(
         \Magento\Sales\Api\Data\OrderInterfaceFactory $orderFactory,
@@ -60,8 +90,13 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         \MalibuCommerce\MConnect\Model\Config $config,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Eav\Api\AttributeRepositoryInterface $eavAttributeRepositoryInterface,
-        \Magento\Framework\Message\ManagerInterface $messageManager
+        \Magento\Rma\Model\ItemFactory $rmaItemFactory,
+        \Magento\Rma\Helper\Data $rmaData,
+        \Magento\Framework\Escaper $escaper,
+        \Magento\Rma\Model\ResourceModel\ItemFactory $itemFactory,
+        Json $serializer = null
     ) {
+        $objectManager = ObjectManager::getInstance();
         $this->orderFactory = $orderFactory;
         $this->rmaModelFactory = $rmaModelFactory;
         $this->navRma = $navRma;
@@ -69,7 +104,13 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         $this->config = $config;
         $this->storeManager = $storeManager;
         $this->eavAttributeRepository = $eavAttributeRepositoryInterface;
-        $this->messageManager = $messageManager;
+        $this->rmaItemFactory = $rmaItemFactory;
+        $this->rmaData = $rmaData;
+        $this->escaper = $escaper;
+        $this->itemFactory = $itemFactory;
+        $this->serializer = $serializer ?: $objectManager->get(Json::class);
+
+
     }
 
     public function importAction($websiteId, $navPageNumber = 0)
@@ -119,14 +160,25 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
                 }
 
             }
-            $result = $rmaModel->saveRma($post);
-            if($result === false) {
-                $message = $this->messageManager->getMessages(true)->getLastAddedMessage();
-                $this->messages .= 'RMA not created, error: ' . $message->getText();
+
+            if (!$post) {
+                $this->messages .= 'No products found for RMA ';
+
+                return false;
+            }
+
+            $result = $this->saveRmaItems($post, $order);
+            if(is_string($result)) {
+                $this->messages .= 'RMA not created, error: ' . $result;
 
                 return false;
             } else {
-                $this->messages .= 'RMA ' . $result->getId() . ': created';
+                try {
+                    $rmaModel->setItems($result)->save();
+                    $this->messages .= 'RMA created';
+                } catch (\Exception $e) {
+                    $this->messages .= 'RMA doesn\'t created. Error: ' . $e->getMessage();
+                }
 
                 return true;
             }
@@ -157,4 +209,196 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
 
         return '';
     }
+
+
+    /**
+     * Creates rma items collection by passed data
+     *
+     * @param array $data
+     * @param object $order
+     * @return Item[]
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
+    protected function saveRmaItems($data, $order)
+    {
+        if (!is_array($data)) {
+            $data = (array)$data;
+        }
+        $itemModels = [];
+        $errors = [];
+        $errorKeys = [];
+
+        foreach ($data['items'] as $key => $item) {
+            /** @var $itemModel Item */
+            $itemModel = $this->rmaItemFactory->create();
+
+            $itemPost = $this->_preparePost($item, $order);
+
+            if (!is_array($itemPost)) {
+
+                // return error string
+                return $itemPost;
+            }
+
+            $itemModel->setData($itemPost)->prepareAttributes($itemPost, $key);
+            $errors = array_merge($itemModel->getErrors(), $errors);
+            if ($errors) {
+                $errorKeys['tabs'] = 'items_section';
+            }
+
+            $itemModels[] = $itemModel;
+        }
+
+        $result = $this->_checkPost($itemModels, $order->getId());
+
+        if ($result !== true) {
+            list($result, $errorKey) = $result;
+            $errors = array_merge($result, $errors);
+            $errors = implode(',', $errors);
+
+            // return error string
+            return $errors;
+        }
+
+        return $itemModels;
+    }
+
+    /**
+     * Checks Items Quantity in Return
+     *
+     * @param  Item $itemModels
+     * @param  int $orderId
+     * @return array|bool
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
+    protected function _checkPost($itemModels, $orderId)
+    {
+        $errors = [];
+        $errorKeys = [];
+
+        /** @var $itemResource \Magento\Rma\Model\ResourceModel\Item */
+        $itemResource = $this->itemFactory->create();
+        $availableItems = $itemResource->getOrderItemsCollection($orderId);
+
+        $itemsArray = [];
+        foreach ($itemModels as $item) {
+            if (!isset($itemsArray[$item->getOrderItemId()])) {
+                $itemsArray[$item->getOrderItemId()] = $item->getQtyRequested();
+            } else {
+                $itemsArray[$item->getOrderItemId()] += $item->getQtyRequested();
+            }
+        }
+        ksort($itemsArray);
+
+        $availableItemsArray = [];
+        foreach ($availableItems as $item) {
+            $availableItemsArray[$item->getId()] = [
+                'name' => $item->getName(),
+                'qty' => $item->getAvailableQty(),
+            ];
+        }
+
+        foreach ($itemsArray as $key => $qty) {
+            $escapedProductName = $this->escaper->escapeHtml($availableItemsArray[$key]['name']);
+            if (!array_key_exists($key, $availableItemsArray)) {
+                $errors[] = __('You cannot return %1.', $escapedProductName);
+            }
+            if (isset($availableItemsArray[$key]) && $availableItemsArray[$key]['qty'] < $qty) {
+                $errors[] = __('A quantity of %1 is greater than you can return.', $escapedProductName);
+                $errorKeys[$key] = 'qty_requested';
+                $errorKeys['tabs'] = 'items_section';
+            }
+        }
+
+        if (!empty($errors)) {
+            return [$errors, $errorKeys];
+        }
+        return true;
+    }
+
+
+    /**
+     * Prepares Item's data
+     *
+     * @param array $item
+     * @param object $order
+     * @return array
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     */
+    protected function _preparePost($item, $order)
+    {
+        $errors = false;
+        $preparePost = [];
+        $qtyKeys = ['qty_authorized', 'qty_returned', 'qty_approved'];
+
+        ksort($item);
+        foreach ($item as $key => $value) {
+            if ($key == 'order_item_id') {
+                $preparePost['order_item_id'] = (int)$value;
+            } elseif ($key == 'qty_requested') {
+                $preparePost['qty_requested'] = is_numeric($value) ? $value : 0;
+            } elseif (in_array($key, $qtyKeys)) {
+                if (is_numeric($value)) {
+                    $preparePost[$key] = (double)$value;
+                } else {
+                    $preparePost[$key] = '';
+                }
+            } elseif ($key == 'resolution') {
+                $preparePost['resolution'] = (int)$value;
+            } elseif ($key == 'condition') {
+                $preparePost['condition'] = (int)$value;
+            } elseif ($key == 'reason') {
+                $preparePost['reason'] = (int)$value;
+            } elseif ($key == 'reason_other' && !empty($value)) {
+                $preparePost['reason_other'] = $value;
+            } else {
+                $preparePost[$key] = $value;
+            }
+        }
+
+        $realItem = $order->getItemById($preparePost['order_item_id']);
+
+        $preparePost['status'] = \Magento\Rma\Model\Item\Attribute\Source\Status::STATE_PENDING;
+        $preparePost['entity_id'] = null;
+        $preparePost['product_name'] = $realItem->getName();
+        $preparePost['product_sku'] = $realItem->getSku();
+        $preparePost['product_admin_name'] = $this->rmaData->getAdminProductName($realItem);
+        $preparePost['product_admin_sku'] = $this->rmaData->getAdminProductSku($realItem);
+        $preparePost['product_options'] = $this->serializer->serialize($realItem->getProductOptions());
+        $preparePost['is_qty_decimal'] = $realItem->getIsQtyDecimal();
+
+        if ($preparePost['is_qty_decimal']) {
+            $preparePost['qty_requested'] = (double)$preparePost['qty_requested'];
+        } else {
+            $preparePost['qty_requested'] = (int)$preparePost['qty_requested'];
+
+            foreach ($qtyKeys as $key) {
+                if (!empty($preparePost[$key])) {
+                    $preparePost[$key] = (int)$preparePost[$key];
+                }
+            }
+        }
+
+        if (isset($preparePost['qty_requested']) && $preparePost['qty_requested'] <= 0) {
+            $errors = true;
+        }
+
+        foreach ($qtyKeys as $key) {
+            if (isset($preparePost[$key]) && !is_string($preparePost[$key]) && $preparePost[$key] <= 0) {
+                $errors = true;
+            }
+        }
+
+        if ($errors) {
+            return __('There is an error in quantities for item %1.', $preparePost['product_name']);
+        }
+
+        return $preparePost;
+    }
+
 }
