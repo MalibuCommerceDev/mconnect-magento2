@@ -338,7 +338,7 @@
 
             <group id="rma" type="text" sortOrder="77" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>RMA</label>
-                <field id="export_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>

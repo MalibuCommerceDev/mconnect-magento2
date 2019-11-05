@@ -2,7 +2,6 @@
 
 namespace MalibuCommerce\MConnect\Model\Queue;
 
-
 use Magento\Rma\Model\Rma\Source\Status;
 
 class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
@@ -45,6 +44,13 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
      */
     protected $eavAttributeRepository;
 
+    /**
+     * Message manager
+     *
+     * @var \Magento\Framework\Message\ManagerInterface
+     */
+    protected $messageManager;
+
 
     public function __construct(
         \Magento\Sales\Api\Data\OrderInterfaceFactory $orderFactory,
@@ -53,7 +59,8 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
         \MalibuCommerce\MConnect\Model\Config $config,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Eav\Api\AttributeRepositoryInterface $eavAttributeRepositoryInterface
+        \Magento\Eav\Api\AttributeRepositoryInterface $eavAttributeRepositoryInterface,
+        \Magento\Framework\Message\ManagerInterface $messageManager
     ) {
         $this->orderFactory = $orderFactory;
         $this->rmaModelFactory = $rmaModelFactory;
@@ -62,6 +69,7 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         $this->config = $config;
         $this->storeManager = $storeManager;
         $this->eavAttributeRepository = $eavAttributeRepositoryInterface;
+        $this->messageManager = $messageManager;
     }
 
     public function importAction($websiteId, $navPageNumber = 0)
@@ -71,15 +79,18 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
 
     public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
-        $data->mag_order_id = '000000008';
         if ((int)$data->mag_order_id) {
             $order = $this->orderFactory->create()->loadByIncrementId((string)$data->mag_order_id);
+            if (!$order->getId()) {
+                $this->messages .= 'RMA not created, Magento orderID #' . (int)$data->mag_order_id . ' doesn\'t exist';
 
+                return false;
+            }
             /** @var RmaInterface $rmaModel */
             $rmaModel = $this->rmaModelFactory->create();
             $rmaModel->setData(
                 [
-                    'status' => $this->config->getDefaultRmaStatus($websiteId),
+                    'status' => current($this->config->getDefaultRmaStatus($websiteId)),
                     'date_requested' => (string)$data->posting_date,
                     'order_id' => $order->getId(),
                     'order_increment_id' => $order->getIncrementId(),
@@ -93,10 +104,7 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
 
             $orderItems = [];
             foreach ($order->getAllVisibleItems() as $product) {
-                //$orderItems[$product->getSku()] = $product->getItemId();
-                $orderItems['663313'] = $product->getItemId();
-
-
+                $orderItems[$product->getSku()] = $product->getItemId();
             }
 
             foreach ($data->item as $item) {
@@ -107,38 +115,46 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
                         'resolution' => $this->getOptionId('resolution', (string)$item->resolution),
                         'qty_requested' =>  (int)$item->qty,
                         'order_item_id' => $orderItems[(string)$item->mag_sku]
-                ];
+                    ];
                 }
 
             }
             $result = $rmaModel->saveRma($post);
+            if($result === false) {
+                $message = $this->messageManager->getMessages(true)->getLastAddedMessage();
+                $this->messages .= 'RMA not created, error: ' . $message->getText();
 
+                return false;
+            } else {
+                $this->messages .= 'RMA ' . $result->getId() . ': created';
+
+                return true;
+            }
         }
 
         return false;
-
-
     }
 
 
     /**
      * Return option Value
      *
-     * @param int $optionValue
+     * @param string $attributeCode
+     * @param string $optionLabel
      *
      * @return string
      */
     public function getOptionId($attributeCode, $optionLabel)
     {
-        $attribute = $this->eavAttributeRepository->get('rma_item', $attributeCode);
+        $attribute = $this->eavAttributeRepository->get(\Magento\Rma\Api\RmaAttributesManagementInterface::ENTITY_TYPE, $attributeCode);
 
         foreach ($attribute->getOptions() as $option) {
             if (strtolower($option->getLabel()) == strtolower($optionLabel)) {
+
                 return $option->getValue();
             }
         }
 
         return '';
-
     }
 }

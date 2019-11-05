@@ -52,6 +52,11 @@ class Cron
         return $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Pricerule::CODE);
     }
 
+    public function queueRmaImport()
+    {
+        return $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Rma::CODE);
+    }
+
     protected function queueImportItem($code)
     {
         if (!$this->config->isModuleEnabled()) {
