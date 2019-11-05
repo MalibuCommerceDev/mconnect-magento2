@@ -17,11 +17,13 @@ class Creditmemo extends AbstractModel
         $root = new \simpleXMLElement('<sales_credit_memo_import />');
         $creditMemoObject = $root->addChild('creditMemo');
 
-        $creditMemoObject->mag_order_id = $creditMemoEntity->getOrderId();
+        $creditMemoObject->mag_order_id = $creditMemoEntity->getIncrementId();
         $creditMemoObject->mag_invoice_id = $creditMemoEntity->getInvoiceId();
         $creditMemoObject->mag_credit_memo_id = $creditMemoEntity->getId();
         $creditMemoObject->store_id = $creditMemoEntity->getStoreId();
-
+        $creditMemoObject->shipping_amount = number_format((float)$creditMemoEntity->getBaseShippingAmount(), 2, '.', '');
+        $creditMemoObject->order_discount_amount = number_format((float)$creditMemoEntity->getBaseDiscountAmount(), 2, '.', '');
+        $creditMemoObject->order_tax = number_format((float)$creditMemoEntity->getBaseTaxAmount(), 2, '.', '');
         $this->addItems($creditMemoEntity, $creditMemoObject);
 
         return $this->_import('sales_credit_memo_import', $root, $websiteId);

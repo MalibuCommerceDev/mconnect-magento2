@@ -46,8 +46,4 @@
             </argument>
         </arguments>
     </virtualType>
-
-    <type name="Magento\Rma\Model\Rma">
-        <plugin name="rma" type="MalibuCommerce\MConnect\Plugin\RmaPlugin" sortOrder="100" disabled="false"/>
-    </type>
 </config>
