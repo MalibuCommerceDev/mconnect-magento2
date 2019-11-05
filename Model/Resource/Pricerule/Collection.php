@@ -218,7 +218,8 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     /**
      * Return logged in customer model
      *
-     * @return \Magento\Customer\Model\Customer|null
+     * @return \Magento\Customer\Api\Data\CustomerInterface|\Magento\Customer\Model\Customer|null
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getCustomer()
     {

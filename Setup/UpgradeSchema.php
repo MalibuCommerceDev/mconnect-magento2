@@ -45,6 +45,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->upgrade2_4_6($setup);
         }
 
+        if (version_compare($context->getVersion(), '2.6.0', '<=')) {
+            $this->upgrade2_6_0($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -289,5 +293,21 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $setup->getIdxName('malibucommerce_mconnect_queue', ['entity_id', 'code', 'status', 'action']),
             ['entity_id', 'code', 'status', 'action']
         );
+    }
+
+    protected function upgrade2_6_0(SchemaSetupInterface $setup)
+    {
+        $entityTables = ['sales_creditmemo', 'sales_creditmemo_grid'];
+        foreach ($entityTables as $table) {
+            $setup->getConnection()->addColumn(
+                $setup->getTable($table),
+                'nav_id',
+                array(
+                    'type'    => Table::TYPE_TEXT,
+                    'length'  => 255,
+                    'comment' => 'NAV ID'
+                )
+            );
+        }
     }
 }
