@@ -63,7 +63,6 @@
                 <set_in_stock>1</set_in_stock>
             </inventory>
             <order>
-                <import_enabled>1</import_enabled>
                 <export_enabled>1</export_enabled>
                 <hold_new_orders_export>0</hold_new_orders_export>
                 <hold_new_orders_delay>60</hold_new_orders_delay>

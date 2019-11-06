@@ -109,8 +109,13 @@ class ProcessItemCommand extends Command
                 }
 
                 foreach ($websiteIds as $websiteId) {
-                    if (!(bool)$this->config->getWebsiteData($code . '/import_enabled', $websiteId)) {
+                    if ($action == Queue::ACTION_IMPORT && !(bool)$this->config->getWebsiteData($code . '/import_enabled', $websiteId)) {
                         $message = sprintf('Import functionality is disabled for %s at Website ID %s', $code, $websiteId);
+                        $output->writeln('<warning>' . $message . ' </warning>');
+                        continue;
+                    }
+                    if ($action == Queue::ACTION_EXPORT && !(bool)$this->config->getWebsiteData($code . '/export_enabled', $websiteId)) {
+                        $message = sprintf('Export functionality is disabled for %s at Website ID %s', $code, $websiteId);
                         $output->writeln('<warning>' . $message . ' </warning>');
                         continue;
                     }

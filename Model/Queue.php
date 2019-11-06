@@ -136,7 +136,12 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         if ($action == self::ACTION_IMPORT
             && !(bool)$this->getConfig()->getWebsiteData($code . '/import_enabled', $websiteId)
         ) {
+            return $this;
+        }
 
+        if ($action == self::ACTION_EXPORT
+            && !(bool)$this->getConfig()->getWebsiteData($code . '/export_enabled', $websiteId)
+        ) {
             return $this;
         }
 
