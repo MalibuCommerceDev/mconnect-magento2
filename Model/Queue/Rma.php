@@ -144,13 +144,21 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
                 continue;
             }
 
-            $rmaData['items'][] = [
-                'reason'        => $this->getOptionId('reason', (string)$item->reason),
+            $itemData = [
                 'condition'     => $this->getOptionId('condition', (string)$item->condition),
                 'resolution'    => $this->getOptionId('resolution', (string)$item->resolution),
                 'qty_requested' => (int)$item->qty,
                 'order_item_id' => $orderItems[(string)$item->mag_sku]
             ];
+
+            $reason = (string)$item->reason;
+            if (strtolower($reason) == 'other') {
+                $itemData['reason_other'] = $reason;
+            } else {
+                $itemData['reason'] = $this->getOptionId('reason', (string)$item->reason);
+            }
+
+            $rmaData['items'][] = $itemData;
         }
 
         if (!$rmaData) {
