@@ -94,6 +94,7 @@
             </creditmemo>
             <rma>
                 <import_enabled>0</import_enabled>
+                <ignore_magento_errors>1</ignore_magento_errors>
                 <cron_expr>*/10 * * * *</cron_expr>
                 <max_rows>50</max_rows>
                 <default_rma_status>pending</default_rma_status>
