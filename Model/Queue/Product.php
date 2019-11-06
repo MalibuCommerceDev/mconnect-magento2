@@ -144,7 +144,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         $this->importEntity($data, $websiteId);
     }
 
-    protected function getFormattedExceptionString(\Exception $e, $code, $sku)
+    protected function getFormattedExceptionString(\Throwable $e, $code, $sku)
     {
         $shortTrace = explode("\n", $e->getTraceAsString());
         $shortTrace = count($shortTrace) > 3
@@ -177,7 +177,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         } catch (NoSuchEntityException $e) {
             /** @var \Magento\Catalog\Model\Product $product */
             $product = $this->productFactory->create();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->messages .= $this->getFormattedExceptionString($e, __LINE__, $sku);
 
             return false;
@@ -344,7 +344,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
             }
 
             $this->setEntityId($product->getId());
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
 
             if ($e instanceof AlreadyExistsException || $e instanceof UrlAlreadyExistsException) {
                 $urlKey = $product->formatUrlKey($product->getName() . '-' . $product->getSku());
@@ -361,7 +361,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                     } else {
                         $this->messages .= 'SKU ' . $sku . ': created';
                     }
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     $this->messages .= $this->getFormattedExceptionString($e, __LINE__, $sku);
 
                     return false;
@@ -412,7 +412,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
             try {
                 $product->addAttributeUpdate('price', $value, $storeId);
                 $this->messages .= 'Set price "' . $value . '" for SKU ' . $sku . ' at store "' . $storeId . '"' . "\n";
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->messages .= $this->getFormattedExceptionString($e, __LINE__, $sku);
             }
         }
@@ -466,7 +466,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         try {
             /** @var \Magento\Catalog\Api\Data\ProductInterface $product */
             $product = $this->productRepository->get($sku, true, null, true);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return false;
         }
 
@@ -476,7 +476,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
             $id = (int)$id;
             try {
                 $connection->query('INSERT INTO ' . $tableName . ' (product_id, website_id) VALUES (' . $productId . ', ' . $id . ')');
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 // ignore Integrity constraint violation error in Magento 2.3.2
             }
         }

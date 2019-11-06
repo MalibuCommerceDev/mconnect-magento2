@@ -59,7 +59,7 @@ class Statementview extends \MalibuCommerce\MConnect\Controller\Navision
             $resultRedirect->setPath('*/*/statement');
 
             return $resultRedirect;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->messageManager->addException($e, __('NAV statement retrieving error: %1', $e->getMessage()));
             $resultRedirect->setPath('*/*/statement');
 

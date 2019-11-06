@@ -57,7 +57,7 @@ class Invoiceview extends \MalibuCommerce\MConnect\Controller\Navision
             $resultRedirect->setPath('*/*/invoice');
 
             return $resultRedirect;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->messageManager->addException($e, __('NAV invoice retrieving error: %1', $e->getMessage()));
             $resultRedirect->setPath('*/*/invoice');
 

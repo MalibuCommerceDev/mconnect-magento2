@@ -68,7 +68,7 @@ class ImportAllCommand extends Command
             });
 
             return Cli::RETURN_SUCCESS;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $output->writeln(
                 sprintf('<error>%s</error>', $e->getMessage() . "\n\n" . $e->getTraceAsString())
             );

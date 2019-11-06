@@ -64,7 +64,7 @@ class AfterCustomerAddressSaveObserver implements \Magento\Framework\Event\Obser
     {
         try {
             return $this->queue->create()->add($code, $action, $websiteId, 0, $id);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->logger->critical($e);
         }
 

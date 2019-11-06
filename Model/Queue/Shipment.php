@@ -142,7 +142,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 } catch (\LogicException $e) {
                     // Ignore logical exceptions when attempting to create an invoice.
                     // This is needed when for ex. an invoice already exists and "Create Invoice With Shipment" is ON.
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     throw $e;
                 }
             }
@@ -182,7 +182,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 if (isset($invoice) && $this->config->get('invoice/send_email_enabled')) {
                     $this->invoiceSender->send($invoice);
                 }
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->messages .= $e->getMessage() . "\n";
             }
 
@@ -191,7 +191,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 if ($shipment && $this->config->get($this->getQueueCode() . '/send_email_enabled')) {
                     $this->shipmentSender->send($shipment);
                 }
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->messages .= $e->getMessage() . "\n";
             }
 
@@ -206,10 +206,10 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                         $this->messages .= 'Order #' . $incrementId . ' was completed, remaining not shipped items were canceled' . "\n";
                     }
                 }
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->messages .= $e->getMessage() . "\n";
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             throw $e;
         }
 
@@ -404,7 +404,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
 
                 return $order;
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->messages .= 'Error while loading Order #' . $incrementId . ': ' . $e->getMessage();
         }
 

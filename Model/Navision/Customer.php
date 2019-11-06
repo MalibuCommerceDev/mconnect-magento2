@@ -125,7 +125,7 @@ class Customer extends AbstractModel
 
         try {
             $groupCode = $this->groupRepository->getById($groupId)->getCode();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
 
         }
 

@@ -247,7 +247,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
 
         try {
             $groupCode = $this->groupRepository->getById($this->getCurrentCustomerGroupId())->getCode();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
 
         }
 
@@ -267,7 +267,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
             if ($this->getCustomer()) {
                 return $this->getCustomer()->getGroupId();
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
 
         }
 

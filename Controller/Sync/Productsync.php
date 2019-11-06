@@ -118,7 +118,7 @@ class Productsync extends Action
                     $data['message'] = $message;
                     $data['detail'] = $this->getLogHtml($queue->getId());
                 }
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $data['error']   = 1;
                 $data['message'] = $e->getMessage();
             }

@@ -101,7 +101,7 @@ class Mail extends \Magento\Framework\App\Helper\AbstractHelper
                 $variables,
                 $this->config->getErrorRecipients()
             );
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return false;
         }
     }

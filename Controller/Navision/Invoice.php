@@ -67,7 +67,7 @@ class Invoice extends \MalibuCommerce\MConnect\Controller\Navision
             $resultRedirect->setPath('*/*/invoice');
 
             return $resultRedirect;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->messageManager->addException($e, __('NAV customer invoices retrieving error: %1', $e->getMessage()));
             $resultRedirect->setPath('*/*/invoice');
 
@@ -81,6 +81,7 @@ class Invoice extends \MalibuCommerce\MConnect\Controller\Navision
      * Retrieve invoices from NAV
      *
      * @return array|bool
+     * @throws \Exception
      */
     public function getInvoices()
     {

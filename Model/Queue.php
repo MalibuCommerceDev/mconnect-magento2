@@ -313,7 +313,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
                     if ($importResult) {
                         $count++;
                     }
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     $detectedErrors = true;
                     $magentoImporter->addMessage($e->getMessage());
                 }

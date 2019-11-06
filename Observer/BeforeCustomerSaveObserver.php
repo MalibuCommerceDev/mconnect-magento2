@@ -50,7 +50,7 @@ class BeforeCustomerSaveObserver implements \Magento\Framework\Event\ObserverInt
                 return $this;
             }
             $customer->setNavId($navId);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->logger->critical($e);
         }
 

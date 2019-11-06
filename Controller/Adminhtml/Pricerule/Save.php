@@ -64,7 +64,7 @@ class Save extends \MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule\Price
                 return $resultRedirect->setPath('*/*/');
             } catch (LocalizedException $e) {
                 $this->messageManager->addError($e->getMessage());
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->messageManager->addException($e, __('Something went wrong while saving the mconnect price rule.'));
             }
 

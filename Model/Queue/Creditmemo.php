@@ -68,7 +68,7 @@ class Creditmemo extends \MalibuCommerce\MConnect\Model\Queue
             $creditMemoDataModel = $this->creditMemoModel->load($entityId);
         } catch (NoSuchEntityException $e) {
             throw new LocalizedException(__('Creditmemo ID "%1" does not exist', $entityId));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             throw new LocalizedException(__('Creditmemo ID "' . $entityId . '" loading error: %1', $e->getMessage()));
         }
 

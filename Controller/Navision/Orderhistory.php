@@ -67,7 +67,7 @@ class Orderhistory extends \MalibuCommerce\MConnect\Controller\Navision
             $resultRedirect->setPath('*/*/orderhistory');
 
             return $resultRedirect;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->messageManager->addException($e, __('NAV orders retrieving error: %1', $e->getMessage()));
             $resultRedirect->setPath('*/*/orderhistory');
 

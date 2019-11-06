@@ -19,7 +19,7 @@ class Delete extends \MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule\Pri
                 $model->delete();
                 $this->messageManager->addSuccess(__('Mconnect Price Rule was deleted successfully.'));
                 return $resultRedirect->setPath('*/*/');
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->messageManager->addError($e->getMessage());
                 return $resultRedirect->setPath('*/*/edit', ['id' => $model->getId()]);
             }

@@ -64,7 +64,7 @@ class AfterCustomerSaveObserver implements \Magento\Framework\Event\ObserverInte
     {
         try {
             return $this->queue->create()->add($code, $action, $websiteId, 0, $id);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->logger->critical($e);
         }
 

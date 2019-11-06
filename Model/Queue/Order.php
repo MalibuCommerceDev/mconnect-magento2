@@ -61,7 +61,7 @@ class Order extends \MalibuCommerce\MConnect\Model\Queue
             $orderDataModel = $this->orderFactory->create()->load($entityId);
         } catch (NoSuchEntityException $e) {
             throw new LocalizedException(__('Order ID "%1" does not exist', $entityId));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             throw new LocalizedException(__('Order ID "' . $entityId . '" loading error: %1', $e->getMessage()));
         }
 

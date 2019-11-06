@@ -2,8 +2,6 @@
 
 namespace MalibuCommerce\MConnect\Controller\Navision;
 
-use Braintree\Exception;
-
 class Orderview extends \MalibuCommerce\MConnect\Controller\Navision
 {
     /**
@@ -59,7 +57,7 @@ class Orderview extends \MalibuCommerce\MConnect\Controller\Navision
             $resultRedirect->setPath('*/*/orderhistory');
 
             return $resultRedirect;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->messageManager->addException($e, __('NAV order retrieving error: %1', $e->getMessage()));
             $resultRedirect->setPath('*/*/orderhistory');
 

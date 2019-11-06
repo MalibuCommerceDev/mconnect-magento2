@@ -123,7 +123,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             $customerDataModel = $this->customerFactory->create()->load($entityId);
         } catch (NoSuchEntityException $e) {
             throw new LocalizedException(__('Customer ID "%1" does not exist', $entityId));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             throw new LocalizedException(__('Customer ID "' . $entityId . '" loading error: %s', $e->getMessage()));
         }
 
@@ -197,7 +197,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             if ($customer->getId()) {
                 $customerExists = true;
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->messages .= $email . ': ' . $e->getMessage();
 
             return false;
@@ -284,7 +284,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             } else {
                 $this->messages .= $id . ': SKIPPED';
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->messages .= $id . ': ERROR - ' . $e->getMessage();
         }
 
@@ -400,7 +400,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             } else {
                 $this->messages .= PHP_EOL . "\t" . 'Address "' . $addressData->addr_nav_id . '": SKIPPED' . PHP_EOL;
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->messages .= PHP_EOL . "\t" . 'Address "' . $addressData->addr_nav_id . '": ERROR - ' . $e->getMessage() . PHP_EOL;
         }
     }
