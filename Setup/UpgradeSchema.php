@@ -49,6 +49,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->upgrade2_6_0($setup);
         }
 
+        if (version_compare($context->getVersion(), '2.6.1', '<=')) {
+            $this->upgrade2_6_1($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -306,6 +310,23 @@ class UpgradeSchema implements UpgradeSchemaInterface
                     'type'    => Table::TYPE_TEXT,
                     'length'  => 255,
                     'comment' => 'NAV ID'
+                )
+            );
+        }
+    }
+
+    protected function upgrade2_6_1(SchemaSetupInterface $setup)
+    {
+        $entityTables = ['malibucommerce_mconnect_queue'];
+        foreach ($entityTables as $table) {
+            $setup->getConnection()->addColumn(
+                $setup->getTable($table),
+                'retry_count',
+                array(
+                    'type'    => Table::TYPE_INTEGER,
+                    'after'  => 'logs',
+                    'comment' => 'Retry count',
+                    'default' => 0
                 )
             );
         }

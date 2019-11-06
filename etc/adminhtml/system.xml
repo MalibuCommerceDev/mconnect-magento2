@@ -294,6 +294,12 @@
                     <label>Export Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="export_retry_amount" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Maximum NAV Export Requests Retry Attempts for Orders with Error status</label>
+                    <depends>
+                        <field id="export_enabled">1</field>
+                    </depends>
+                </field>
                 <field id="hold_new_orders_export" sortOrder="20" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Hold New Orders Export</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
