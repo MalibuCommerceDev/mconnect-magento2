@@ -124,13 +124,12 @@ class ProcessItemCommand extends Command
                         $message = sprintf('Failed to add new %s item added to queue for Website ID %s', $code, $websiteId);
                         $output->writeln('<error>' . $message . ' </error>');
                     }
-                }
 
-
-                if ($sync) {
-                    $output->writeln('Syncing...');
-                    $this->queue->process();
-                    $output->writeln('Sync Completed!');
+                    if ($sync) {
+                        $output->writeln('Syncing...');
+                        $queue->process();
+                        $output->writeln('Sync Completed!');
+                    }
                 }
             });
 

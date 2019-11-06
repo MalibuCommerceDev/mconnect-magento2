@@ -59,11 +59,6 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
      */
     protected $moduleManager;
 
-    /**
-     * @var \Magento\Framework\App\ObjectManager
-     */
-    protected $objectManager;
-
     public function __construct(
         \Magento\Sales\Api\Data\OrderInterfaceFactory $orderFactory,
         \MalibuCommerce\MConnect\Model\Navision\Rma $navRma,
@@ -73,8 +68,7 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         \Magento\Eav\Api\AttributeRepositoryInterface $eavAttributeRepositoryInterface,
         \Magento\Framework\Escaper $escaper,
         Json $serializer,
-        \Magento\Framework\Module\Manager $moduleManager,
-        \Magento\Framework\App\ObjectManager $objectManager
+        \Magento\Framework\Module\Manager $moduleManager
     ) {
         $this->orderFactory = $orderFactory;
         $this->navRma = $navRma;
@@ -85,7 +79,6 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         $this->escaper = $escaper;
         $this->serializer = $serializer;
         $this->moduleManager = $moduleManager;
-        $this->objectManager = $objectManager;
     }
 
     /**
@@ -123,7 +116,8 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
             );
         }
 
-        $rmaModelFactory = $this->objectManager->create('\Magento\Rma\Model\RmaFactory');
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $rmaModelFactory = $objectManager->create('\Magento\Rma\Model\RmaFactory');
         $rmaModel = $rmaModelFactory->create();
         $rmaModel->setData(
             [
@@ -232,7 +226,8 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         $errors = [];
         $errorKeys = [];
 
-        $rmaItemFactory = $this->objectManager->create('\Magento\Rma\Model\ItemFactory');
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $rmaItemFactory = $objectManager->create('\Magento\Rma\Model\ItemFactory');
         foreach ($data['items'] as $key => $item) {
             /** @var $itemModel \Magento\Rma\Model\Item */
             $itemModel = $rmaItemFactory->create();
@@ -283,7 +278,8 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
     {
         $errors = [];
         $errorKeys = [];
-        $itemFactory = $this->objectManager->create('\Magento\Rma\Model\ResourceModel\ItemFactory');
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $itemFactory = $objectManager->create('\Magento\Rma\Model\ResourceModel\ItemFactory');
 
         /** @var $itemResource \Magento\Rma\Model\ResourceModel\Item */
         $itemResource = $itemFactory->create();
@@ -342,7 +338,8 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         $errors = false;
         $preparePost = [];
         $qtyKeys = ['qty_authorized', 'qty_returned', 'qty_approved'];
-        $rmaData = $this->objectManager->create('\Magento\Rma\Helper\Data');
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $rmaData = $objectManager->create('\Magento\Rma\Helper\Data');
 
         ksort($item);
         foreach ($item as $key => $value) {
