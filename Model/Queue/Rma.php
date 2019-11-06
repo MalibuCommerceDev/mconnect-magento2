@@ -12,7 +12,6 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
     /**
      * @var \Magento\Sales\Api\Data\OrderInterfaceFactory
      */
-
     protected $orderFactory;
 
     /**

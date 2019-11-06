@@ -5,6 +5,40 @@ namespace MalibuCommerce\MConnect\Model\Navision;
 class Creditmemo extends AbstractModel
 {
     /**
+     * @var \Magento\Customer\Model\CustomerFactory
+     */
+    protected $customerFactory;
+
+    /**
+     * @var \Magento\Sales\Api\Data\OrderInterfaceFactory
+     */
+    protected $orderFactory;
+
+    /**
+     * Creditmemo constructor.
+     *
+     * @param \Magento\Sales\Api\Data\OrderInterfaceFactory $orderFactory
+     * @param \Magento\Customer\Model\CustomerFactory       $customerFactory
+     * @param \MalibuCommerce\MConnect\Model\Config         $config
+     * @param Connection                                    $mConnectNavisionConnection
+     * @param \Psr\Log\LoggerInterface                      $logger
+     * @param array                                         $data
+     */
+    public function __construct(
+        \Magento\Sales\Api\Data\OrderInterfaceFactory $orderFactory,
+        \Magento\Customer\Model\CustomerFactory $customerFactory,
+        \MalibuCommerce\MConnect\Model\Config $config,
+        \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection,
+        \Psr\Log\LoggerInterface $logger,
+        array $data = []
+    ) {
+        $this->customerFactory = $customerFactory;
+        $this->orderFactory = $orderFactory;
+
+        parent::__construct($config, $mConnectNavisionConnection, $logger, $data);
+    }
+
+    /**
      * Export Credit Memo to NAV
      *
      * @param \Magento\Sales\Api\Data\CreditmemoInterface $creditMemoEntity
@@ -17,7 +51,22 @@ class Creditmemo extends AbstractModel
         $root = new \simpleXMLElement('<sales_credit_memo_import />');
         $creditMemoObject = $root->addChild('creditMemo');
 
-        $creditMemoObject->mag_order_id = $creditMemoEntity->getIncrementId();
+        $defaultNavId = $this->config->getWebsiteData('customer/default_nav_id_magento_guest', $websiteId);
+
+        /** @var \Magento\Sales\Model\Order $order */
+        $orderEntity = $this->orderFactory->create();
+        $orderEntity->load($creditMemoEntity->getOrderId());
+
+        $customerDataModel = $this->customerFactory->create()->load($orderEntity->getCustomerId());
+        if ($customerDataModel && $customerDataModel->getId()) {
+            $defaultNavId = $this->config->getWebsiteData('customer/default_nav_id_magento_registered', $websiteId);
+        }
+
+        $creditMemoObject->nav_customer_id = $customerDataModel && !empty($customerDataModel->getNavId())
+            ? $customerDataModel->getNavId()
+            : $defaultNavId;
+
+        $creditMemoObject->mag_order_id = $orderEntity->getIncrementId();
         $creditMemoObject->mag_invoice_id = $creditMemoEntity->getInvoiceId();
         $creditMemoObject->mag_credit_memo_id = $creditMemoEntity->getIncrementId();
         $creditMemoObject->store_id = $creditMemoEntity->getStoreId();

@@ -78,7 +78,7 @@ class Order extends AbstractModel
         $this->serializer = $serializer;
         $this->moduleManager = $moduleManager;
 
-        parent::__construct($config, $mConnectNavisionConnection, $logger);
+        parent::__construct($config, $mConnectNavisionConnection, $logger, $data);
     }
 
     public function export($page = 0, $lastUpdated = false, $websiteId = 0)
