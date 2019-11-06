@@ -14,12 +14,19 @@ class Cron
      */
     protected $queue;
 
+    /**
+     * @var \Magento\Framework\Module\Manager
+     */
+    protected $moduleManager;
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $config,
-        \MalibuCommerce\MConnect\Model\QueueFactory $queue
+        \MalibuCommerce\MConnect\Model\QueueFactory $queue,
+        \Magento\Framework\Module\Manager $moduleManager
     ) {
         $this->config = $config;
         $this->queue = $queue;
+        $this->moduleManager = $moduleManager;
     }
 
     public function queueCustomerImport()
@@ -54,7 +61,11 @@ class Cron
 
     public function queueRmaImport()
     {
-        return $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Rma::CODE);
+        if ($this->moduleManager->isEnabled('Magento_Rma')) {
+            return $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Rma::CODE);
+        }
+
+        return;
     }
 
     protected function queueImportItem($code)
