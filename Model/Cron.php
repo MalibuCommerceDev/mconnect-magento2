@@ -62,10 +62,8 @@ class Cron
     public function queueRmaImport()
     {
         if ($this->moduleManager->isEnabled('Magento_Rma')) {
-            return $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Rma::CODE);
+            $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Rma::CODE);
         }
-
-        return;
     }
 
     protected function queueImportItem($code)

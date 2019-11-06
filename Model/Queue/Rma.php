@@ -3,23 +3,17 @@
 namespace MalibuCommerce\MConnect\Model\Queue;
 
 use Magento\Framework\Serialize\Serializer\Json;
-use Magento\Rma\Model\Item;
-use Magento\Rma\Model\Rma\Source\Status;
 
 class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
 {
-    const CODE = 'rma';
+    const CODE                   = 'rma';
     const NAV_XML_NODE_ITEM_NAME = 'rma';
+
     /**
      * @var \Magento\Sales\Api\Data\OrderInterfaceFactory
      */
 
     protected $orderFactory;
-
-    /**
-     * @var \Magento\Rma\Model\RmaFactory
-     */
-    protected $rmaModelFactory;
 
     /**
      * @var \MalibuCommerce\MConnect\Model\Navision\Rma
@@ -47,20 +41,6 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
     protected $eavAttributeRepository;
 
     /**
-     * Rma item factory
-     *
-     * @var \Magento\Rma\Model\ItemFactory
-     */
-    protected $rmaItemFactory;
-
-    /**
-     * Rma data
-     *
-     * @var \Magento\Rma\Helper\Data
-     */
-    protected $rmaData;
-
-    /**
      * Escaper
      *
      * @var \Magento\Framework\Escaper
@@ -68,20 +48,21 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
     protected $escaper;
 
     /**
-     * Rma item factory
-     *
-     * @var \Magento\Rma\Model\ResourceModel\ItemFactory
-     */
-    protected $itemFactory;
-
-    /**
      * Serializer instance.
      *
      * @var Json
      */
-    private $serializer;
+    protected $serializer;
 
+    /**
+     * @var \Magento\Framework\Module\Manager
+     */
+    protected $moduleManager;
 
+    /**
+     * @var \Magento\Framework\App\ObjectManager
+     */
+    protected $objectManager;
 
     public function __construct(
         \Magento\Sales\Api\Data\OrderInterfaceFactory $orderFactory,
@@ -91,7 +72,9 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Eav\Api\AttributeRepositoryInterface $eavAttributeRepositoryInterface,
         \Magento\Framework\Escaper $escaper,
-        Json $serializer
+        Json $serializer,
+        \Magento\Framework\Module\Manager $moduleManager,
+        \Magento\Framework\App\ObjectManager $objectManager
     ) {
         $this->orderFactory = $orderFactory;
         $this->navRma = $navRma;
@@ -101,89 +84,105 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         $this->eavAttributeRepository = $eavAttributeRepositoryInterface;
         $this->escaper = $escaper;
         $this->serializer = $serializer;
+        $this->moduleManager = $moduleManager;
+        $this->objectManager = $objectManager;
     }
 
+    /**
+     * @param int $websiteId
+     * @param int $navPageNumber
+     *
+     * @return bool|\Magento\Framework\DataObject|Rma
+     * @throws \Exception
+     */
     public function importAction($websiteId, $navPageNumber = 0)
     {
+        if (!$this->moduleManager->isEnabled('Magento_Rma')) {
+
+            return  false;
+        }
+
         return $this->processMagentoImport($this->navRma, $this, $websiteId, $navPageNumber);
     }
 
+    /**
+     * @param \SimpleXMLElement $data
+     * @param int $websiteId
+     *
+     * @return bool
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
     public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
-        if ((int)$data->mag_order_id) {
-            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-            $this->rmaModelFactory = $objectManager->create('\Magento\Rma\Model\RmaFactory');
-            $this->rmaItemFactory = $objectManager->create('\Magento\Rma\Model\ItemFactory');
-            $this->rmaData = $objectManager->create('\Magento\Rma\Helper\Data');
-            $this->itemFactory = $objectManager->create('\Magento\Rma\Model\ResourceModel\ItemFactory');
-
-            $order = $this->orderFactory->create()->loadByIncrementId((string)$data->mag_order_id);
-            if (!$order->getId()) {
-                $this->messages .= 'RMA not created, Magento orderID #' . (int)$data->mag_order_id . ' doesn\'t exist';
-
-                return false;
-            }
-            /** @var RmaInterface $rmaModel */
-            $rmaModel = $this->rmaModelFactory->create();
-            $rmaModel->setData(
-                [
-                    'status' => current($this->config->getDefaultRmaStatus($websiteId)),
-                    'date_requested' => (string)$data->posting_date,
-                    'order_id' => $order->getId(),
-                    'order_increment_id' => $order->getIncrementId(),
-                    'store_id' => $order->getStoreId(),
-                    'customer_id' => $order->getCustomerId(),
-                    'order_date' => $order->getCreatedAt(),
-                    'customer_name' => $order->getCustomerName(),
-                    'customer_custom_email' => '',
-                ]
+        $orderIncrementId = (string)$data->mag_order_id;
+        /** @var \Magento\Sales\Model\Order $order */
+        $order = $this->orderFactory->create()->loadByIncrementId($orderIncrementId);
+        if (!$order || !$order->getId()) {
+            throw new \LogicException(
+                __('RMA cannot be processed, order #' . $orderIncrementId . ' does not exist')
             );
-
-            $orderItems = [];
-            foreach ($order->getAllVisibleItems() as $product) {
-                $orderItems[$product->getSku()] = $product->getItemId();
-            }
-
-            $rmaData = [];
-            foreach ($data->item as $item) {
-                if (isset($orderItems[(string)$item->mag_sku])) {
-                    $rmaData['items'][] = [
-                        'reason' => $this->getOptionId('reason', (string)$item->reason),
-                        'condition' => $this->getOptionId('condition', (string)$item->condition),
-                        'resolution' => $this->getOptionId('resolution', (string)$item->resolution),
-                        'qty_requested' =>  (int)$item->qty,
-                        'order_item_id' => $orderItems[(string)$item->mag_sku]
-                    ];
-                }
-
-            }
-
-            if (!$rmaData) {
-                $this->messages .= 'No products found for RMA ';
-
-                return false;
-            }
-
-            $result = $this->saveRmaItems($rmaData, $order);
-            if (is_string($result)) {
-                $this->messages .= 'RMA not created, error: ' . $result;
-
-                return false;
-            } else {
-                try {
-                    $rmaModel->setItems($result)->save();
-                    $this->messages .= 'RMA created';
-                } catch (\Exception $e) {
-                    $this->messages .= 'RMA doesn\'t created. Error: ' . $e->getMessage();
-                }
-
-                return true;
-            }
         }
 
-        return false;
-    }
+        $rmaModelFactory = $this->objectManager->create('\Magento\Rma\Model\RmaFactory');
+        $rmaModel = $rmaModelFactory->create();
+        $rmaModel->setData(
+            [
+                'status'                => current($this->config->getDefaultRmaStatus($websiteId)),
+                'date_requested'        => (string)$data->posting_date,
+                'order_id'              => $order->getId(),
+                'order_increment_id'    => $order->getIncrementId(),
+                'store_id'              => $order->getStoreId(),
+                'customer_id'           => $order->getCustomerId(),
+                'order_date'            => $order->getCreatedAt(),
+                'customer_name'         => $order->getCustomerName(),
+                'customer_custom_email' => '',
+            ]
+        );
 
+        $orderItems = [];
+        /** @var \Magento\Sales\Model\Order\Item $product */
+        foreach ($order->getAllVisibleItems() as $product) {
+            $orderItems[$product->getSku()] = $product->getItemId();
+        }
+
+        $rmaData = [];
+        foreach ($data->item as $item) {
+            if (empty($orderItems[(string)$item->mag_sku])) {
+                continue;
+            }
+
+            $rmaData['items'][] = [
+                'reason'        => $this->getOptionId('reason', (string)$item->reason),
+                'condition'     => $this->getOptionId('condition', (string)$item->condition),
+                'resolution'    => $this->getOptionId('resolution', (string)$item->resolution),
+                'qty_requested' => (int)$item->qty,
+                'order_item_id' => $orderItems[(string)$item->mag_sku]
+            ];
+        }
+
+        if (!$rmaData) {
+            throw new \LogicException(
+                __('Can\'t create an RMA for order #%1 - no available items to return.', $orderIncrementId)
+            );
+        }
+
+        $result = $this->createRmaItemModels($rmaData, $order);
+        if (is_string($result)) {
+            throw new \LogicException(
+                __('Can\'t create an RMA for order #%1 - error "%2".', $orderIncrementId, $result)
+            );
+        }
+
+        try {
+            $rmaModel->setItems($result)->save();
+
+            $this->messages .= 'RMA created: #' . $rmaModel->getIncrementId();
+        } catch (\Throwable $e) {
+            throw new \LogicException('RMA was not created: ' . $e->getMessage());
+        }
+
+        return true;
+    }
 
     /**
      * Return option Value
@@ -192,10 +191,14 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
      * @param string $optionLabel
      *
      * @return string
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getOptionId($attributeCode, $optionLabel)
     {
-        $attribute = $this->eavAttributeRepository->get(\Magento\Rma\Api\RmaAttributesManagementInterface::ENTITY_TYPE, $attributeCode);
+        $attribute = $this->eavAttributeRepository->get(
+            \Magento\Rma\Api\RmaAttributesManagementInterface::ENTITY_TYPE,
+            $attributeCode
+        );
 
         foreach ($attribute->getOptions() as $option) {
             if (strtolower($option->getLabel()) == strtolower($optionLabel)) {
@@ -207,29 +210,32 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         return '';
     }
 
-
     /**
      * Creates rma items collection by passed data
      *
-     * @param array $data
+     * @param array  $data
      * @param object $order
-     * @return Item[]
+     *
+     * @return \Magento\Rma\Model\Item[]
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
-    protected function saveRmaItems($data, $order)
+    protected function createRmaItemModels($data, $order)
     {
         if (!is_array($data)) {
             $data = (array)$data;
         }
+
+        /** @var \Magento\Rma\Model\Item[] $itemModels */
         $itemModels = [];
         $errors = [];
         $errorKeys = [];
 
+        $rmaItemFactory = $this->objectManager->create('\Magento\Rma\Model\ItemFactory');
         foreach ($data['items'] as $key => $item) {
-            /** @var $itemModel Item */
-            $itemModel = $this->rmaItemFactory->create();
+            /** @var $itemModel \Magento\Rma\Model\Item */
+            $itemModel = $rmaItemFactory->create();
 
             $itemPost = $this->prepareRmaItemData($item, $order);
 
@@ -265,8 +271,9 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
     /**
      * Checks Items Quantity in Return
      *
-     * @param  Item $itemModels
-     * @param  int $orderId
+     * @param \Magento\Rma\Model\Item[] $itemModels
+     * @param int  $orderId
+     *
      * @return array|bool
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
@@ -276,9 +283,10 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
     {
         $errors = [];
         $errorKeys = [];
+        $itemFactory = $this->objectManager->create('\Magento\Rma\Model\ResourceModel\ItemFactory');
 
         /** @var $itemResource \Magento\Rma\Model\ResourceModel\Item */
-        $itemResource = $this->itemFactory->create();
+        $itemResource = $itemFactory->create();
         $availableItems = $itemResource->getOrderItemsCollection($orderId);
 
         $itemsArray = [];
@@ -295,7 +303,7 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         foreach ($availableItems as $item) {
             $availableItemsArray[$item->getId()] = [
                 'name' => $item->getName(),
-                'qty' => $item->getAvailableQty(),
+                'qty'  => $item->getAvailableQty(),
             ];
         }
 
@@ -312,17 +320,19 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         }
 
         if (!empty($errors)) {
+            
             return [$errors, $errorKeys];
         }
+
         return true;
     }
-
 
     /**
      * Prepares Item's data
      *
-     * @param array $item
+     * @param array  $item
      * @param object $order
+     *
      * @return array
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
@@ -332,6 +342,7 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         $errors = false;
         $preparePost = [];
         $qtyKeys = ['qty_authorized', 'qty_returned', 'qty_approved'];
+        $rmaData = $this->objectManager->create('\Magento\Rma\Helper\Data');
 
         ksort($item);
         foreach ($item as $key => $value) {
@@ -364,8 +375,8 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         $preparePost['entity_id'] = null;
         $preparePost['product_name'] = $realItem->getName();
         $preparePost['product_sku'] = $realItem->getSku();
-        $preparePost['product_admin_name'] = $this->rmaData->getAdminProductName($realItem);
-        $preparePost['product_admin_sku'] = $this->rmaData->getAdminProductSku($realItem);
+        $preparePost['product_admin_name'] = $rmaData->getAdminProductName($realItem);
+        $preparePost['product_admin_sku'] = $rmaData->getAdminProductSku($realItem);
         $preparePost['product_options'] = $this->serializer->serialize($realItem->getProductOptions());
         $preparePost['is_qty_decimal'] = $realItem->getIsQtyDecimal();
 
@@ -397,5 +408,4 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
 
         return $preparePost;
     }
-
 }

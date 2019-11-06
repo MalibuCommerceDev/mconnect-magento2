@@ -174,7 +174,8 @@ class Queue extends \Magento\Framework\Model\AbstractModel
     /**
      * Requeue current item
      *
-     * @return Queue
+     * @return $this|\Magento\Framework\DataObject
+     * @throws \Exception
      */
     public function reQueue()
     {
@@ -192,6 +193,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
      * Process current queue item
      *
      * @return $this
+     * @throws \Exception
      */
     public function process()
     {
@@ -253,8 +255,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
             );
         } catch (\Throwable $e) {
             $this->_logger->critical($e);
-            $message = 'Processing interrupted!' . "\n" . 'Error: ' . $e->getMessage() . "\n\nProcessing Messages:"
-                       . $model->getMessages();
+            $message = 'Processing interrupted!' . "\n" . 'Error: ' . $e->getMessage() . "\n\nProcessing Messages: " . $model->getMessages();
             $this->endProcess(self::STATUS_ERROR, $message);
         }
 

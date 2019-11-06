@@ -2,7 +2,6 @@
 
 namespace MalibuCommerce\MConnect\Model\Navision;
 
-
 class Rma extends AbstractModel
 {
     /**

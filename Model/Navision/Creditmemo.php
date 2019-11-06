@@ -19,7 +19,7 @@ class Creditmemo extends AbstractModel
 
         $creditMemoObject->mag_order_id = $creditMemoEntity->getIncrementId();
         $creditMemoObject->mag_invoice_id = $creditMemoEntity->getInvoiceId();
-        $creditMemoObject->mag_credit_memo_id = $creditMemoEntity->getId();
+        $creditMemoObject->mag_credit_memo_id = $creditMemoEntity->getIncrementId();
         $creditMemoObject->store_id = $creditMemoEntity->getStoreId();
         $creditMemoObject->shipping_amount = number_format((float)$creditMemoEntity->getBaseShippingAmount(), 2, '.', '');
         $creditMemoObject->order_discount_amount = number_format((float)$creditMemoEntity->getBaseDiscountAmount(), 2, '.', '');

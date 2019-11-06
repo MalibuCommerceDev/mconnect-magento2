@@ -71,15 +71,6 @@
                 <allowed_order_statuses_to_export>pending</allowed_order_statuses_to_export>
                 <gift_wrapping_force_enabled>0</gift_wrapping_force_enabled>
             </order>
-            <creditmemo>
-                <export_enabled>1</export_enabled>
-            </creditmemo>
-            <rma>
-                <export_enabled>1</export_enabled>
-                <cron_expr>*/10 * * * *</cron_expr>
-                <max_rows>50</max_rows>
-                <default_rma_status>pending</default_rma_status>
-            </rma>
             <invoice>
                 <import_enabled>1</import_enabled>
                 <ignore_magento_errors>1</ignore_magento_errors>
@@ -98,6 +89,15 @@
                 <skip_shipment_but_invoice_for_virtual_orders>0</skip_shipment_but_invoice_for_virtual_orders>
                 <cancel_remaining_not_shipped_items>0</cancel_remaining_not_shipped_items>
             </shipment>
+            <creditmemo>
+                <export_enabled>1</export_enabled>
+            </creditmemo>
+            <rma>
+                <import_enabled>0</import_enabled>
+                <cron_expr>*/10 * * * *</cron_expr>
+                <max_rows>50</max_rows>
+                <default_rma_status>pending</default_rma_status>
+            </rma>
             <price_rule>
                 <import_enabled>1</import_enabled>
                 <ignore_magento_errors>1</ignore_magento_errors>

@@ -60,6 +60,13 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         $this->queueFlagFactory = $queueFlagFactory;
     }
 
+    /**
+     * @param int $websiteId
+     * @param int $navPageNumber
+     *
+     * @return bool|\Magento\Framework\DataObject|Invoice
+     * @throws \Exception
+     */
     public function importAction($websiteId, $navPageNumber = 0)
     {
         return $this->processMagentoImport($this->navInvoice, $this, $websiteId, $navPageNumber);
@@ -70,6 +77,8 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue implements Importable
      *
      * @param \SimpleXMLElement $data
      * @param int $websiteId
+     *
+     * @throws \Throwable
      */
     public function importInvoice($data, $websiteId = 0)
     {
@@ -128,7 +137,7 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue implements Importable
      * @param array $qtys
      *
      * @return \Magento\Sales\Model\Order\Invoice
-     * @throws \LogicException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function createInvoice($order, $qtys = [])
     {

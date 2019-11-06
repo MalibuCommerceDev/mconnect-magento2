@@ -82,10 +82,8 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue implements Importab
             'qty_min'              => (int)$data->min_quantity,
             'price'                => (float)$data->unit_price,
             'customer_price_group' => (string)$data->cust_price_group,
-            'date_start'           => ((string)$data->start_date) ? date('Y:m:d H:i:s',
-                strtotime((string)$data->start_date)) : null,
-            'date_end'             => ((string)$data->end_date) ? date('Y:m:d H:i:s',
-                strtotime((string)$data->end_date)) : null,
+            'date_start'           => ((string)$data->start_date) ? date('Y:m:d H:i:s', strtotime((string)$data->start_date)) : null,
+            'date_end'             => ((string)$data->end_date) ? date('Y:m:d H:i:s', strtotime((string)$data->end_date)) : null,
         ];
 
         /** @var \MalibuCommerce\MConnect\Model\Resource\Pricerule\Collection $collection */

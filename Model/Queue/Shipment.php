@@ -357,6 +357,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
      * @param \SimpleXMLElement $navEntity
      *
      * @return \Magento\Sales\Model\Order\Invoice
+     * @throws LocalizedException
      */
     protected function initInvoice($order, $navEntity)
     {

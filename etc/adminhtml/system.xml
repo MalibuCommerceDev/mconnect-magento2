@@ -284,7 +284,7 @@
                 </field>
             </group>
 
-            <group id="order" type="text" sortOrder="75" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+            <group id="order" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>Order</label>
                 <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Enabled</label>
@@ -328,7 +328,78 @@
                 </field>
             </group>
 
-            <group id="creditmemo" type="text" sortOrder="77" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+            <group id="invoice" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <label>Invoice</label>
+                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Import Enabled</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="ignore_magento_errors" sortOrder="10" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Ignore Magento Logical Errors</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Will allow continuation of NAV sync process by changing last sync date even if there were any Magento Logical Exceptions during the sync process]]></comment>
+                </field>
+                <field id="cron_expr" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Schedule (cron syntax)</label>
+                    <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
+                </field>
+                <field id="max_rows" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Entity Limit Per Request</label>
+                </field>
+                <field id="capture_type" sortOrder="40" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Default invoice capture type</label>
+                    <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\System\Config\Sales\Invoice\Capture\Type</source_model>
+                </field>
+                <field id="send_email_enabled" sortOrder="50" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Send invoice email to customers</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+
+            <group id="shipment" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <label>Shipment</label>
+                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Import Enabled</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="ignore_magento_errors" sortOrder="10" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Ignore Magento Logical Errors</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Will allow continuation of NAV sync process by changing last sync date even if there were any Magento Logical Exceptions during the sync process]]></comment>
+                </field>
+                <field id="cron_expr" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Schedule (cron syntax)</label>
+                    <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
+                </field>
+                <field id="max_rows" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Entity Limit Per Request</label>
+                </field>
+                <field id="send_email_enabled" sortOrder="40" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Send Shipment Email To Customers</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="create_invoice_with_shipment" sortOrder="50" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Create Invoice When Shipment Is Created</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Refer to "Invoice" configuration section on this page for invoicing settings.]]></comment>
+                </field>
+                <field id="skip_shipment_but_invoice_for_virtual_orders" sortOrder="60" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Skip Shipment and still Create Invoice for Virtual Orders</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="create_invoice_with_shipment">1</field>
+                    </depends>
+                </field>
+                <field id="cancel_remaining_not_shipped_items" sortOrder="70" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Cancel Remaining Order Items For Partial Shipments</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[If set to "Yes" then for any partial shipment remaining not shipped order items will be canceled and order status will changed to Complete.]]></comment>
+                </field>
+            </group>
+
+            <group id="creditmemo" type="text" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>CreditMemo</label>
                 <field id="export_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Export Enabled</label>
@@ -336,7 +407,7 @@
                 </field>
             </group>
 
-            <group id="rma" type="text" sortOrder="77" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+            <group id="rma" type="text" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>RMA</label>
                 <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Enabled</label>
@@ -350,84 +421,13 @@
                 <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
                 </field>
-                <field id="default_rma_status" sortOrder="50" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="default_rma_status" sortOrder="30" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default RMA status</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Source\RmaStatus</source_model>
                 </field>
             </group>
 
-            <group id="invoice" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                <label>Invoice</label>
-                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                    <label>Import Enabled</label>
-                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="ignore_magento_errors" sortOrder="8" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                    <label>Ignore Magento Logical Errors</label>
-                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[Will allow continuation of NAV sync process by changing last sync date even if there were any Magento Logical Exceptions during the sync process]]></comment>
-                </field>
-                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Import Schedule (cron syntax)</label>
-                    <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
-                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
-                </field>
-                <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Import Entity Limit Per Request</label>
-                </field>
-                <field id="capture_type" sortOrder="30" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Default invoice capture type</label>
-                    <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\System\Config\Sales\Invoice\Capture\Type</source_model>
-                </field>
-                <field id="send_email_enabled" sortOrder="40" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Send invoice email to customers</label>
-                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-            </group>
-
-            <group id="shipment" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                <label>Shipment</label>
-                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                    <label>Import Enabled</label>
-                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="ignore_magento_errors" sortOrder="8" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                    <label>Ignore Magento Logical Errors</label>
-                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[Will allow continuation of NAV sync process by changing last sync date even if there were any Magento Logical Exceptions during the sync process]]></comment>
-                </field>
-                <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Import Schedule (cron syntax)</label>
-                    <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
-                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
-                </field>
-                <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Import Entity Limit Per Request</label>
-                </field>
-                <field id="send_email_enabled" sortOrder="30" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Send Shipment Email To Customers</label>
-                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="create_invoice_with_shipment" sortOrder="40" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Create Invoice When Shipment Is Created</label>
-                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[Refer to "Invoice" configuration section on this page for invoicing settings.]]></comment>
-                </field>
-                <field id="skip_shipment_but_invoice_for_virtual_orders" sortOrder="50" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Skip Shipment and still Create Invoice for Virtual Orders</label>
-                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="create_invoice_with_shipment">1</field>
-                    </depends>
-                </field>
-                <field id="cancel_remaining_not_shipped_items" sortOrder="60" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Cancel Remaining Order Items For Partial Shipments</label>
-                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[If set to "Yes" then for any partial shipment remaining not shipped order items will be canceled and order status will changed to Complete.]]></comment>
-                </field>
-            </group>
-
-            <group id="price_rule" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+            <group id="price_rule" type="text" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>Malibu Connect Price Rule</label>
                 <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Enabled</label>
@@ -452,7 +452,7 @@
                 </field>
             </group>
 
-            <group id="promotion" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+            <group id="promotion" type="text" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>Live Promotional Price</label>
                 <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Enabled</label>
@@ -464,7 +464,7 @@
                 </field>
             </group>
 
-            <group id="tier_price" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+            <group id="tier_price" type="text" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>Malibu Connect Tier Price</label>
                 <field id="is_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Enabled</label>
