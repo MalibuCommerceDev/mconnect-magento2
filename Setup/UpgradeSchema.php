@@ -55,10 +55,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->upgrade2_6_1($setup);
         }
 
-        if (version_compare($context->getVersion(), '2.6.2', '<=')) {
-            $this->upgrade2_6_2($setup);
-        }
-
         $setup->endSetup();
     }
 
@@ -336,9 +332,13 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 )
             );
         }
-    }
-    protected function upgrade2_6_2(SchemaSetupInterface $setup)
-    {
+
+        $setup->getConnection()->addIndex(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            $setup->getIdxName('malibucommerce_mconnect_queue', ['status', 'code', 'action', 'retry_count']),
+            ['status', 'code', 'action', 'retry_count']
+        );
+
         $monthAgo = date("y-m-d",strtotime("-1 month"));
         $setup->getConnection()->update($setup->getTable('malibucommerce_mconnect_queue'), ['retry_count' => 5],
             [
@@ -348,10 +348,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'created_at <= ?' => $monthAgo
             ]);
 
-        $setup->getConnection()->addIndex(
-        $setup->getTable('malibucommerce_mconnect_queue'),
-        $setup->getIdxName('malibucommerce_mconnect_queue', ['status', 'code', 'action', 'retry_count']),
-        ['status', 'code', 'action', 'retry_count']
-        );
+
+
     }
 }
