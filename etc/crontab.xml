@@ -11,7 +11,7 @@
             <schedule>*/5 * * * *</schedule>
         </job>
         <job name="malibucommerce_mconnect_queue_error" instance="MalibuCommerce\MConnect\Model\Cron\Queue" method="resyncErrorOrders">
-            <schedule>0 0 * * *</schedule>
+            <schedule>0 * * * *</schedule>
         </job>
         <job name="malibucommerce_mconnect_navision_customer_import" instance="MalibuCommerce\MConnect\Model\Cron" method="queueCustomerImport">
             <config_path>malibucommerce_mconnect/customer/cron_expr</config_path>

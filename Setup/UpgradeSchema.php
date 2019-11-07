@@ -6,6 +6,8 @@ use Magento\Framework\Setup\UpgradeSchemaInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
 use Magento\Framework\DB\Ddl\Table;
+use MalibuCommerce\MConnect\Model\Queue as QueueModel;
+use MalibuCommerce\MConnect\Model\Queue\Order as OrderModel;
 
 class UpgradeSchema implements UpgradeSchemaInterface
 {
@@ -51,6 +53,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
         if (version_compare($context->getVersion(), '2.6.1', '<=')) {
             $this->upgrade2_6_1($setup);
+        }
+
+        if (version_compare($context->getVersion(), '2.6.2', '<=')) {
+            $this->upgrade2_6_2($setup);
         }
 
         $setup->endSetup();
@@ -323,12 +329,29 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 $setup->getTable($table),
                 'retry_count',
                 array(
-                    'type'    => Table::TYPE_INTEGER,
+                    'type'    => Table::TYPE_SMALLINT,
                     'after'  => 'logs',
                     'comment' => 'Retry count',
                     'default' => 0
                 )
             );
         }
+    }
+    protected function upgrade2_6_2(SchemaSetupInterface $setup)
+    {
+        $monthAgo = date("y-m-d",strtotime("-1 month"));
+        $setup->getConnection()->update($setup->getTable('malibucommerce_mconnect_queue'), ['retry_count' => 5],
+            [
+                'status = ?' => QueueModel::STATUS_ERROR,
+                'code = ?' => OrderModel::CODE,
+                'action = ?' => QueueModel::ACTION_EXPORT,
+                'created_at <= ?' => $monthAgo
+            ]);
+
+        $setup->getConnection()->addIndex(
+        $setup->getTable('malibucommerce_mconnect_queue'),
+        $setup->getIdxName('malibucommerce_mconnect_queue', ['status', 'code', 'action', 'retry_count']),
+        ['status', 'code', 'action', 'retry_count']
+        );
     }
 }
