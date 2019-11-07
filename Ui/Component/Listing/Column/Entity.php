@@ -26,9 +26,15 @@ class Entity extends \Magento\Ui\Component\Listing\Columns\Column
      */
     protected $salesOrderFactory;
 
+    /**
+     * @var \Magento\Sales\Api\CreditmemoRepositoryInterface
+     */
+    protected $creditmemoRepository;
+
     protected $customers = [];
     protected $products = [];
     protected $orders = [];
+    protected $creditmemos = [];
 
     /**
      * Entity constructor
@@ -39,6 +45,7 @@ class Entity extends \Magento\Ui\Component\Listing\Columns\Column
      * @param \Magento\Customer\Model\CustomerFactory                      $customerFactory
      * @param \Magento\Catalog\Model\ProductFactory                        $catalogProductFactory
      * @param \Magento\Sales\Model\OrderFactory                            $salesOrderFactory
+     * @param \Magento\Sales\Api\CreditmemoRepositoryInterface             $creditmemoRepository,
      * @param array                                                        $components
      * @param array                                                        $data
      */
@@ -49,6 +56,7 @@ class Entity extends \Magento\Ui\Component\Listing\Columns\Column
         \Magento\Customer\Model\CustomerFactory $customerFactory,
         \Magento\Catalog\Model\ProductFactory $catalogProductFactory,
         \Magento\Sales\Model\OrderFactory $salesOrderFactory,
+        \Magento\Sales\Api\CreditmemoRepositoryInterface $creditmemoRepository,
         array $components = [],
         array $data = []
     ) {
@@ -56,6 +64,7 @@ class Entity extends \Magento\Ui\Component\Listing\Columns\Column
         $this->customerFactory = $customerFactory;
         $this->catalogProductFactory = $catalogProductFactory;
         $this->salesOrderFactory = $salesOrderFactory;
+        $this->creditmemoRepository = $creditmemoRepository;
 
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
@@ -113,6 +122,18 @@ class Entity extends \Magento\Ui\Component\Listing\Columns\Column
                     $entity = $this->orders[$item['entity_id']];
                     if ($entity->getId()) {
                         $link = $this->urlBuilder->getUrl('sales/order/view', array('order_id' => $item['entity_id']));
+                        $title = '#' . $entity->getIncrementId();
+                    }
+                }
+            } else if ($item['code'] === \MalibuCommerce\MConnect\Model\Queue\Creditmemo::CODE) {
+                if ($item['action'] === \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT) {
+                    if (!array_key_exists($item['entity_id'], $this->creditmemos)) {
+                        $this->creditmemos[$item['entity_id']] = $this->creditmemoRepository->get($item['entity_id']);
+                    }
+
+                    $entity = $this->creditmemos[$item['entity_id']];
+                    if ($entity->getId()) {
+                        $link = $this->urlBuilder->getUrl('sales/creditmemo/view', array('creditmemo_id' => $item['entity_id']));
                         $title = '#' . $entity->getIncrementId();
                     }
                 }
