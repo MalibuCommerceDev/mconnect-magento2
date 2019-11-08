@@ -3,6 +3,7 @@
 namespace MalibuCommerce\MConnect\Model\Cron;
 
 use \MalibuCommerce\Mconnect\Model\Queue as QueueModel;
+use \MalibuCommerce\MConnect\Model\Queue\Order as OrderModel;
 
 class Queue
 {
@@ -141,5 +142,36 @@ class Queue
         }
 
         return sprintf('Marked %d item(s) in queue.', $count);
+    }
+
+    public function resyncErrorOrders()
+    {
+        $config         = $this->config;
+        if (!$config->isModuleEnabled()) {
+
+            return 'Module is disabled.';
+        }
+        $maxRetryAmount = $config->get('order/export_retry_amount');
+        if (!$maxRetryAmount) {
+            return 'Max amount of retry is not set.';
+        }
+
+        $queues = $this->queueCollectionFactory->create();
+        $queues = $queues->addFieldToFilter('status', ['eq' => QueueModel::STATUS_ERROR])
+            ->addFieldToFilter('code', ['eq' => OrderModel::CODE])
+            ->addFieldToFilter('action', ['eq' => QueueModel::ACTION_EXPORT])
+            ->addFieldToFilter('retry_count', ['lt' => $maxRetryAmount]);
+        $count = $queues->getSize();
+        if (!$count) {
+            return 'No items in queue to mark with error status.';
+        }
+
+        foreach ($queues as $queue) {
+            $queue->process();
+            $queue->setRetryCount($queue->getRetryCount() + 1)
+                ->save();
+        }
+
+        return sprintf('Resync %d order(s) in queue.', $count);
     }
 }
