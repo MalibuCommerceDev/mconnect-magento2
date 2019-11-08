@@ -17,6 +17,8 @@ namespace MalibuCommerce\MConnect\Model;
  * @method int getWebsiteId()
  * @method int getNavPageNum()
  * @method string getDetails()
+ * @method string getMessage()
+ * @method Queue setMessage(string $message)
  *
  * @package MalibuCommerce\MConnect\Model
  */
@@ -272,7 +274,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
     protected function endProcess($status, $message = null)
     {
         $message = mb_strimwidth(
-            $message,
+            $message . "\n\n" . $this->getMessage(),
             0,
             \MalibuCommerce\MConnect\Helper\Data::QUEUE_ITEM_MAX_MESSAGE_SIZE,
             '...'

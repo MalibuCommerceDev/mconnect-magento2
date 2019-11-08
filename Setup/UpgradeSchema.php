@@ -231,7 +231,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $setup->getTable('malibucommerce_mconnect_queue'),
             'message',
             [
-                'type' => Table::TYPE_TEXT,
+                'type'   => Table::TYPE_TEXT,
                 'length' => 16777200
             ]
         );
@@ -291,7 +291,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
         );
         $setup->getConnection()->addIndex(
             $setup->getTable('malibucommerce_mconnect_queue'),
-            $setup->getIdxName('malibucommerce_mconnect_queue', ['code', 'action', 'website_id', 'status', 'nav_page_num']),
+            $setup->getIdxName('malibucommerce_mconnect_queue',
+                ['code', 'action', 'website_id', 'status', 'nav_page_num']),
             ['code', 'action', 'website_id', 'status', 'nav_page_num']
         );
         $setup->getConnection()->addIndex(
@@ -326,7 +327,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'retry_count',
                 array(
                     'type'    => Table::TYPE_SMALLINT,
-                    'after'  => 'logs',
+                    'after'   => 'logs',
                     'comment' => 'Retry count',
                     'default' => 0
                 )
@@ -339,16 +340,13 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ['status', 'code', 'action', 'retry_count']
         );
 
-        $monthAgo = date("y-m-d",strtotime("-1 month"));
+        $monthAgo = date("y-m-d", strtotime("-1 month"));
         $setup->getConnection()->update($setup->getTable('malibucommerce_mconnect_queue'), ['retry_count' => 5],
             [
-                'status = ?' => QueueModel::STATUS_ERROR,
-                'code = ?' => OrderModel::CODE,
-                'action = ?' => QueueModel::ACTION_EXPORT,
+                'status = ?'      => QueueModel::STATUS_ERROR,
+                'code = ?'        => OrderModel::CODE,
+                'action = ?'      => QueueModel::ACTION_EXPORT,
                 'created_at <= ?' => $monthAgo
             ]);
-
-
-
     }
 }
