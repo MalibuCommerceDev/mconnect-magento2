@@ -7,7 +7,7 @@ use \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
 use \Magento\Backend\App\Action\Context;
 use \Magento\Ui\Component\MassAction\Filter;
 
-class MassQueue extends \Magento\Backend\App\Action
+class MassProceed extends \Magento\Backend\App\Action
 {
     /**
        * @var \Magento\Sales\Model\ResourceModel\Order\CollectionFactory
@@ -35,13 +35,19 @@ class MassQueue extends \Magento\Backend\App\Action
     protected $storeManager;
 
     /**
+     * @var \MalibuCommerce\MConnect\Model\Resource\Queue\Collection
+     */
+    protected $queueCollectionFactory;
+
+    /**
      * @param \Magento\Backend\App\Action\Context                        $context
      * @param \Magento\Ui\Component\MassAction\Filter                    $filter
      * @param \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory
      * @param \MalibuCommerce\MConnect\Model\QueueFactory                $queue
-     * @param \MalibuCommerce\MConnect\Model\Config                      $config
-     * @param \Psr\Log\LoggerInterface                                   $logger
-     * @param \Magento\Store\Model\StoreManagerInterface                 $storeManager
+     * @param \MalibuCommerce\MConnect\Model\Config                     vibмшимшvi $config
+     * @param \Psr\Log\LoggerInterface                      $logger
+     * @param \Magento\Store\Model\StoreManagerInterface    $storeManager
+     * @param \MalibuCommerce\MConnect\Model\Resource\Queue\Collection
      */
     public function __construct(
         Context $context,
@@ -50,7 +56,8 @@ class MassQueue extends \Magento\Backend\App\Action
         \MalibuCommerce\MConnect\Model\QueueFactory $queue,
         \MalibuCommerce\MConnect\Model\Config $config,
         \Psr\Log\LoggerInterface $logger,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \MalibuCommerce\MConnect\Model\Resource\Queue\CollectionFactory $queueCollectionFactory
     ) {
         parent::__construct($context);
         $this->filter = $filter;
@@ -59,6 +66,7 @@ class MassQueue extends \Magento\Backend\App\Action
         $this->config = $config;
         $this->logger = $logger;
         $this->storeManager = $storeManager;
+        $this->queueCollectionFactory = $queueCollectionFactory;
     }
 
 
@@ -66,6 +74,7 @@ class MassQueue extends \Magento\Backend\App\Action
     {
         $countMassQueue = 0;
         $collection = $this->filter->getCollection($this->collectionFactory->create());
+        $ordersInQueue = [];
         foreach ($collection->getItems() as $order) {
 
             try {
@@ -84,24 +93,32 @@ class MassQueue extends \Magento\Backend\App\Action
 
                 $this->queue->create()->add(\MalibuCommerce\MConnect\Model\Queue\Order::CODE,
                     \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT, $websiteId, 0, $order->getId(), [], $scheduledAt);
+                $ordersInQueue[] = $order->getId();
+
             } catch (\Throwable $e) {
                 $this->logger->critical($e);
             }
+        }
 
+        $queues = $this->queueCollectionFactory->create();
+        $queues = $queues->addFieldToFilter('entity_id', ['in' => $ordersInQueue]);
+
+        foreach ($queues as $queue) {
+            $queue->process();
             $countMassQueue++;
         }
 
         $countNonAddedOrder = $collection->count() - $countMassQueue;
 
         if ($countNonAddedOrder && $countMassQueue) {
-            $this->messageManager->addErrorMessage(__('%1 order(s) cannot be added to queue.', $countNonAddedOrder));
+            $this->messageManager->addErrorMessage(__('%1 order(s) cannot be synced.', $countNonAddedOrder));
         } elseif ($countNonAddedOrder) {
-            $this->messageManager->addErrorMessage(__('You cannot added to queue the order(s).'));
+            $this->messageManager->addErrorMessage(__('You cannot sync the order(s).'));
         }
 
 
         if ($countMassQueue) {
-            $this->messageManager->addSuccessMessage(__('We added to queue %1 order(s).', $countMassQueue));
+            $this->messageManager->addSuccessMessage(__('We synced %1 order(s).', $countMassQueue));
         }
         $resultRedirect = $this->resultRedirectFactory->create();
         $resultRedirect->setPath('sales/*/');
