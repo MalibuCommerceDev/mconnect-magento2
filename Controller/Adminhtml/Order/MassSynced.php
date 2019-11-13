@@ -6,6 +6,7 @@ use \Magento\Framework\App\Action\HttpPostActionInterface as HttpPostActionInter
 use \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
 use \Magento\Backend\App\Action\Context;
 use \Magento\Ui\Component\MassAction\Filter;
+use MalibuCommerce\MConnect\Model\Queue as QueueModel;
 
 class massSynced extends \Magento\Backend\App\Action
 {
@@ -104,21 +105,22 @@ class massSynced extends \Magento\Backend\App\Action
         $queues = $queues->addFieldToFilter('entity_id', ['in' => $ordersInQueue]);
 
         foreach ($queues as $queue) {
-            $queue->process();
+            $queue->setStatus(QueueModel::STATUS_SUCCESS)
+                ->save();
             $countMassQueue++;
         }
 
         $countNonAddedOrder = $collection->count() - $countMassQueue;
 
         if ($countNonAddedOrder && $countMassQueue) {
-            $this->messageManager->addErrorMessage(__('%1 order(s) cannot be synced.', $countNonAddedOrder));
+            $this->messageManager->addErrorMessage(__('%1 order(s) cannot be marked as synced.', $countNonAddedOrder));
         } elseif ($countNonAddedOrder) {
-            $this->messageManager->addErrorMessage(__('You cannot sync the order(s).'));
+            $this->messageManager->addErrorMessage(__('You cannot mark the order(s) synced.'));
         }
 
 
         if ($countMassQueue) {
-            $this->messageManager->addSuccessMessage(__('We synced %1 order(s).', $countMassQueue));
+            $this->messageManager->addSuccessMessage(__('We marked as synced %1 order(s).', $countMassQueue));
         }
         $resultRedirect = $this->resultRedirectFactory->create();
         $resultRedirect->setPath('sales/*/');
