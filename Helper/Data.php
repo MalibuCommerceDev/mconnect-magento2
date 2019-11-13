@@ -39,19 +39,26 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     protected $serializer;
 
+    /**
+     * @var \Magento\Sales\Model\OrderFactory
+     */
+    protected $salesOrderFactory;
+
     protected $logDataCache = [];
 
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
         \MalibuCommerce\MConnect\Model\Resource\Queue $queueResourceModel,
         \MalibuCommerce\MConnect\Helper\Mail $mConnectMailer,
+        \Magento\Sales\Model\OrderFactory $salesOrderFactory,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Framework\Serialize\Serializer\Json $serializer = null
     ) {
-        $this->mConnectMailer = $mConnectMailer;
         $this->mConnectConfig = $mConnectConfig;
         $this->queueResourceModel = $queueResourceModel;
+        $this->mConnectMailer = $mConnectMailer;
+        $this->salesOrderFactory = $salesOrderFactory;
         $this->registry = $registry;
         $this->serializer = $serializer ? : ObjectManager::getInstance()->get(Json::class);
 
@@ -63,7 +70,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @param bool $absolute
      * @param bool $nameOnly
      *
-     * @return bool|string
+     * @return bool|mixed|string
+     * @throws \Magento\Framework\Exception\FileSystemException
      */
     public function getLog($queueItemId, $absolute = true, $nameOnly = false)
     {
@@ -101,6 +109,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @param bool $nameOnly
      *
      * @return bool|string
+     * @throws \Magento\Framework\Exception\FileSystemException
      */
     public function getLogFile($queueItemId, $absolute = true, $nameOnly = false)
     {
@@ -273,12 +282,21 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         /** @var Queue $queueItem */
         $queueItem = $this->registry->registry('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM');
 
+        $entityId = $queueItem ? $queueItem->getEntityId() : 'N/A';
+        if ($queueItem && $queueItem->getCode() == \MalibuCommerce\MConnect\Model\Queue\Order::CODE
+            && $queueItem->getAction() == \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT
+        ) {
+            /** @var \Magento\Sales\Model\Order $order */
+            $order = $this->salesOrderFactory->create()->load($entityId);
+            $entityId = '#' . $order->getIncrementId();
+        }
+
         $this->mConnectMailer->sendErrorEmail([
             'error_title'   => 'An error occurred when processing Navision API call',
             'queue_item_id' => $queueItem ? $queueItem->getId() : 'N/A',
             'action'        => $queueItem ? $queueItem->getAction() : 'N/A',
             'entity_type'   => $queueItem ? $queueItem->getCode() : 'N/A',
-            'entity_id'     => $queueItem ? $queueItem->getEntityId() : 'N/A',
+            'entity_id'     => $entityId,
             'nav_url'       => $navUrl,
             'request'       => is_array($request) ? print_r($request, true) : $request,
             'error'         => $e->getMessage()
