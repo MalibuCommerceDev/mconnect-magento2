@@ -1,5 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <listingToolbar name="listing_top">
+        <massaction name="listing_massaction" component="Magento_Ui/js/grid/tree-massactions">
+            <action name="addToQueue">
+                <settings>
+                    <url path="mconnect/order/massQueue"/>
+                    <type>addToQueue</type>
+                    <label translate="true">Add To NAV Sync Queue</label>
+                </settings>
+            </action>
+            <action name="proceed">
+                <settings>
+                    <url path="mconnect/order/massProceed"/>
+                    <type>proceed</type>
+                    <label translate="true">Sync to NAV Now</label>
+                </settings>
+            </action>
+            <action name="synced">
+                <settings>
+                    <url path="mconnect/order/massSynced"/>
+                    <type>synced</type>
+                    <label translate="true">Mark as Synced to NAV</label>
+                </settings>
+            </action>
+        </massaction>
+    </listingToolbar>
     <columns name="sales_order_columns">
         <column name="nav_id">
             <argument name="data" xsi:type="array">
