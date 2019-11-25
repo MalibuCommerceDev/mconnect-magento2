@@ -56,7 +56,10 @@ class Queue
             ->from(['q1' => 'malibucommerce_mconnect_queue'], '*')
             ->joinLeft(
                 ['q2' => 'malibucommerce_mconnect_queue'],
-                $queues->getConnection()->quoteInto('q1.code = q2.code AND q1.action = q2.action AND q1.website_id = q2.website_id AND q2.status = ?', QueueModel::STATUS_RUNNING),
+                $queues->getConnection()->quoteInto(
+                    'q1.code = q2.code AND q1.action = q2.action AND q1.website_id = q2.website_id AND q2.status = ?',
+                    QueueModel::STATUS_RUNNING
+                ),
                 []
             )
             ->where('q1.status = ?', QueueModel::STATUS_PENDING)
@@ -144,34 +147,40 @@ class Queue
         return sprintf('Marked %d item(s) in queue.', $count);
     }
 
+    /**
+     * @return string
+     * @throws \Exception
+     */
     public function resyncErrorOrders()
     {
-        $config         = $this->config;
+        $config = $this->config;
         if (!$config->isModuleEnabled()) {
 
             return 'Module is disabled.';
         }
         $maxRetryAmount = $config->get('order/export_retry_amount');
         if (!$maxRetryAmount) {
+
             return 'Max amount of retry is not set.';
         }
 
-        $queues = $this->queueCollectionFactory->create();
-        $queues = $queues->addFieldToFilter('status', ['eq' => QueueModel::STATUS_ERROR])
+        $items = $this->queueCollectionFactory->create();
+        $items = $items->addFieldToFilter('status', ['eq' => QueueModel::STATUS_ERROR])
             ->addFieldToFilter('code', ['eq' => OrderModel::CODE])
             ->addFieldToFilter('action', ['eq' => QueueModel::ACTION_EXPORT])
             ->addFieldToFilter('retry_count', ['lt' => $maxRetryAmount]);
-        $count = $queues->getSize();
+        $count = $items->getSize();
         if (!$count) {
-            return 'No items in queue to mark with error status.';
+
+            return 'No items in queue to retry.';
         }
 
-        foreach ($queues as $queue) {
-            $queue->process();
-            $queue->setRetryCount($queue->getRetryCount() + 1)
-                ->save();
+        /** @var \MalibuCommerce\MConnect\Model\Queue $item */
+        foreach ($items as $item) {
+            $item->process();
+            $item->getResource()->incrementRetryCount($item->getId());
         }
 
-        return sprintf('Resync %d order(s) in queue.', $count);
+        return sprintf('Resynced %d errored previously order(s) in the queue.', $count);
     }
 }

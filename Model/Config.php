@@ -52,6 +52,14 @@ class Config
     }
 
     /**
+     * @return bool
+     */
+    public function getIsSoapDebugEnabled()
+    {
+        return $this->getFlag('nav_connection/soap_debug');
+    }
+
+    /**
      * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return string

@@ -116,11 +116,18 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         return $this->customAttributesMap;
     }
 
+    /**
+     * @param $entityId
+     *
+     * @return bool
+     * @throws LocalizedException
+     */
     public function exportAction($entityId)
     {
         try {
             $customerEntity = $this->customerRepository->getById($entityId);
             $customerDataModel = $this->customerFactory->create()->load($entityId);
+            $customerMageCustomAttributes = $customerEntity->getCustomAttributes();
         } catch (NoSuchEntityException $e) {
             throw new LocalizedException(__('Customer ID "%1" does not exist', $entityId));
         } catch (\Throwable $e) {
@@ -136,6 +143,17 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 $customerDataModel->setNavId($navId)
                     ->setSkipMconnect(true)
                     ->save();
+
+                if (!empty($customerMageCustomAttributes)) {
+                    $customerData = $customerDataModel->getDataModel();
+                    foreach ($customerMageCustomAttributes as $attribute) {
+                        if ($attribute->getAttributeCode() == 'nav_id') {
+                            continue;
+                        }
+                        $customerData->setCustomAttribute($attribute->getAttributeCode(), $attribute->getValue());
+                    }
+                    $customerDataModel->updateData($customerData)->save();
+                }
             }
             $this->messages .= sprintf('Customer exported, NAV ID: %s', $navId);
 
@@ -160,6 +178,13 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         throw new LocalizedException(__('Unexpected status: "%1". Check log for details.', $status));
     }
 
+    /**
+     * @param     $websiteId
+     * @param int $navPageNumber
+     *
+     * @return bool|\Magento\Framework\DataObject|Customer
+     * @throws \Exception
+     */
     public function importAction($websiteId, $navPageNumber = 0)
     {
         $this->initImport();

@@ -9,6 +9,14 @@ class Queue extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         $this->_init('malibucommerce_mconnect_queue', 'id');
     }
 
+    /**
+     * @param int $entityId
+     * @param string $code
+     * @param null|string $message
+     *
+     * @return int
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function removePendingItems($entityId, $code, $message = null)
     {
         $adapter = $this->getConnection();
@@ -27,6 +35,13 @@ class Queue extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         );
     }
 
+    /**
+     * @param int $entityId
+     * @param string $code
+     *
+     * @return bool
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function wasTheItemEverSuccessfullyExported($entityId, $code)
     {
         $adapter = $this->getConnection();
@@ -41,6 +56,12 @@ class Queue extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         return (bool)$adapter->fetchOne($select);
     }
 
+    /**
+     * @param int $itemId
+     *
+     * @return int
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function deleteQueueItemById($itemId)
     {
         if (!is_array($itemId)) {
@@ -52,6 +73,13 @@ class Queue extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         return $adapter->delete($this->getMainTable(), ['id IN (?)' => $itemId]);
     }
 
+    /**
+     * @param int $itemId
+     * @param string $logData
+     *
+     * @return int
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function saveLog($itemId, $logData)
     {
         $adapter = $this->getConnection();
@@ -67,6 +95,12 @@ class Queue extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         );
     }
 
+    /**
+     * @param int $itemId
+     *
+     * @return string
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function getLog($itemId)
     {
         $adapter = $this->getConnection();
@@ -75,5 +109,26 @@ class Queue extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
             ->where('id = ?', (int)$itemId);
 
         return $adapter->fetchOne($select);
+    }
+
+    /**
+     * @param int $itemId
+     *
+     * @return int
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function incrementRetryCount($itemId)
+    {
+        $adapter = $this->getConnection();
+
+        return $adapter->update(
+            $this->getMainTable(),
+            [
+                'retry_count' => new \Zend_Db_Expr('retry_count+1'),
+            ],
+            [
+                'id = ?' => (int)$itemId,
+            ]
+        );
     }
 }

@@ -51,6 +51,15 @@ class Soap
         $this->stream = $stream;
     }
 
+    /**
+     * @param string $method
+     * @param array $arguments
+     *
+     * @return mixed
+     * @throws \Magento\Framework\Exception\FileSystemException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Throwable
+     */
     public function __call($method, $arguments)
     {
         try {
@@ -61,6 +70,11 @@ class Soap
 
             unset($arguments['website_id']);
             $result = call_user_func_array(array($this->soapClients[$websiteId], $method), $arguments);
+
+            $this->mConnectHelper->logSoapRequestResponse(
+                $this->soapClients[$websiteId]->__getLastRequest(),
+                $this->soapClients[$websiteId]->__getLastResponse()
+            );
         } catch (\Throwable $e) {
             $this->mConnectHelper->logRequestError($arguments, $this->mConnectConfig->getNavConnectionUrl($websiteId), $method, $e);
 

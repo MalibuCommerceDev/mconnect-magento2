@@ -61,6 +61,13 @@
                     <frontend_model>\MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Connection\TriggerPassword</frontend_model>
                     <label />
                 </field>
+
+                <field id="soap_debug" sortOrder="20" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Debug All SOAP requests/responses</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Warning: all SOAP requests/responses will be logged into Magento log file ./var/log/malibu_connect_soap.log]]></comment>
+                </field>
+
                 <field id="log" sortOrder="90" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Log Requests</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -291,7 +298,7 @@
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="export_retry_amount" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Maximum NAV Export Requests Retry Attempts for Orders with Error status</label>
+                    <label>Maximum NAV Export Retry Attempts for Orders with Error Status</label>
                     <depends>
                         <field id="export_enabled">1</field>
                     </depends>
@@ -299,11 +306,17 @@
                 <field id="retry_cron" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Retry Attempts Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
+                    <depends>
+                        <field id="export_enabled">1</field>
+                    </depends>
                 </field>
                 <field id="hold_new_orders_export" sortOrder="40" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Hold New Orders Export</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <frontend_model>\MalibuCommerce\MConnect\Block\Config\Frontend\Field\HoldNewExport</frontend_model>
+                    <depends>
+                        <field id="export_enabled">1</field>
+                    </depends>
                 </field>
                 <field id="hold_new_orders_delay" sortOrder="50" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>New Orders Sync Delay</label>
@@ -323,10 +336,16 @@
                 <field id="allowed_order_statuses_to_export" sortOrder="70" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Allowed Order Statuses to be Exported to NAV</label>
                     <source_model>\Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                    <depends>
+                        <field id="export_enabled">1</field>
+                    </depends>
                 </field>
                 <field id="export_disallowed_customer_groups" sortOrder="80" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Export Disallowed Customer Groups</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Source\CustomerGroups</source_model>
+                    <depends>
+                        <field id="export_enabled">1</field>
+                    </depends>
                 </field>
                 <field id="gift_wrapping_force_enabled" sortOrder="90" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>GiftWrapping Functionality Forcefully Enabled</label>

@@ -256,12 +256,45 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param            $request
-     * @param            $navUrl
-     * @param            $action
-     * @param \Throwable $e
+     * @param $request
+     * @param $response
+     *
+     * @return bool|null
+     * @throws \Magento\Framework\Exception\FileSystemException
+     */
+    public function logSoapRequestResponse($request, $response)
+    {
+        if (!$this->mConnectConfig->getIsSoapDebugEnabled()) {
+
+            return false;
+        }
+
+        try {
+            $debugData = [
+                'time'     => date('c'),
+                'request'  => htmlentities(str_ireplace('><', ">\n<", $request)),
+                'response' => htmlentities(str_ireplace('><', ">\n<", $response)),
+            ];
+            $directoryList = new DirectoryList(BP);
+            $logFile = $directoryList->getPath('log') . DIRECTORY_SEPARATOR . 'malibu_connect_soap.log';
+            file_put_contents($logFile, print_r($debugData, true), FILE_APPEND);
+        } catch (\Throwable $e) {
+
+            return null;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param array|string $request
+     * @param string       $navUrl
+     * @param string       $action
+     * @param \Throwable   $e
      *
      * @return bool
+     * @throws \Magento\Framework\Exception\FileSystemException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function logRequestError($request, $navUrl, $action, \Throwable $e)
     {
@@ -314,6 +347,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @param string       $body
      *
      * @return bool
+     * @throws \Magento\Framework\Exception\FileSystemException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function logRequest($request, $location, $action, $code, $header, $body)
     {
