@@ -6,6 +6,7 @@ use \Magento\Framework\App\Action\HttpPostActionInterface as HttpPostActionInter
 use \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
 use \Magento\Backend\App\Action\Context;
 use \Magento\Ui\Component\MassAction\Filter;
+use MalibuCommerce\MConnect\Model\Queue as QueueModel;
 
 class MassProceed extends \Magento\Backend\App\Action
 {
@@ -74,7 +75,6 @@ class MassProceed extends \Magento\Backend\App\Action
     {
         $countMassQueue = 0;
         $collection = $this->filter->getCollection($this->collectionFactory->create());
-        $ordersInQueue = [];
         foreach ($collection->getItems() as $order) {
 
             try {
@@ -93,19 +93,18 @@ class MassProceed extends \Magento\Backend\App\Action
 
                 $this->queue->create()->add(\MalibuCommerce\MConnect\Model\Queue\Order::CODE,
                     \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT, $websiteId, 0, $order->getId(), [], $scheduledAt);
-                $ordersInQueue[] = $order->getId();
+
+                $queues = $this->queueCollectionFactory->create();
+                $queues = $queues->addFieldToFilter('entity_id', $order->getId())->setOrder('id','DESC');
+                $queue = $queues->getFirstItem();
+                if ($queue) {
+                    $queue->process();
+                    $countMassQueue++;
+                }
 
             } catch (\Throwable $e) {
                 $this->logger->critical($e);
             }
-        }
-
-        $queues = $this->queueCollectionFactory->create();
-        $queues = $queues->addFieldToFilter('entity_id', ['in' => $ordersInQueue]);
-
-        foreach ($queues as $queue) {
-            $queue->process();
-            $countMassQueue++;
         }
 
         $countNonAddedOrder = $collection->count() - $countMassQueue;
