@@ -121,8 +121,15 @@
                         <field id="send_error_emails">1</field>
                     </depends>
                 </field>
+                <field id="retry_error_orders_email_template" translate="label comment" type="select" sortOrder="160" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Retry Error Orders Email Template</label>
+                    <comment>Email template chosen based on theme fallback when "Default" option is selected.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                    <depends>
+                        <field id="send_error_emails">1</field>
+                    </depends>
+                </field>
             </group>
-
             <group id="queue" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                 <label>Synchronization Queue</label>
                 <field id="cron_expr" sortOrder="10" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
@@ -297,20 +304,38 @@
                     <label>Export Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="export_retry_amount" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Maximum NAV Export Retry Attempts for Orders with Error Status</label>
-                    <depends>
-                        <field id="export_enabled">1</field>
-                    </depends>
-                </field>
-                <field id="retry_cron" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Retry Attempts Schedule (cron syntax)</label>
+                <field id="auto_retry_cron" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Automatic Retry Error Order Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
                     <depends>
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
-                <field id="hold_new_orders_export" sortOrder="40" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="auto_retry_attempts" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Maximum NAV Export Retry Attempts for Order with Error Status</label>
+                    <depends>
+                        <field id="export_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="auto_retry_amount" sortOrder="40" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Maximum Amount Of Orders with Error Status</label>
+                    <depends>
+                        <field id="export_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="auto_retry_delay" sortOrder="50" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Delay Between Retry Attemps(seconds)</label>
+                    <depends>
+                        <field id="export_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="auto_retry_period" sortOrder="60" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>How Many Days Previous To Sync Error Orders</label>
+                    <depends>
+                        <field id="export_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="hold_new_orders_export" sortOrder="70" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Hold New Orders Export</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <frontend_model>\MalibuCommerce\MConnect\Block\Config\Frontend\Field\HoldNewExport</frontend_model>
@@ -318,7 +343,7 @@
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
-                <field id="hold_new_orders_delay" sortOrder="50" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="hold_new_orders_delay" sortOrder="80" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>New Orders Sync Delay</label>
                     <validate>validate-number validate-zero-or-greater</validate>
                     <comment><![CDATA[In minutes]]></comment>
@@ -326,28 +351,28 @@
                         <field id="hold_new_orders_export">1</field>
                     </depends>
                 </field>
-                <field id="order_status_when_synced_to_nav" sortOrder="60" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="order_status_when_synced_to_nav" sortOrder="90" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Order Status When Synced to NAV</label>
                     <source_model>\Magento\Sales\Model\Config\Source\Order\Status</source_model>
                     <depends>
                         <field id="hold_new_orders_export">1</field>
                     </depends>
                 </field>
-                <field id="allowed_order_statuses_to_export" sortOrder="70" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="allowed_order_statuses_to_export" sortOrder="100" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Allowed Order Statuses to be Exported to NAV</label>
                     <source_model>\Magento\Sales\Model\Config\Source\Order\Status</source_model>
                     <depends>
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
-                <field id="export_disallowed_customer_groups" sortOrder="80" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="export_disallowed_customer_groups" sortOrder="120" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Export Disallowed Customer Groups</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Source\CustomerGroups</source_model>
                     <depends>
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
-                <field id="gift_wrapping_force_enabled" sortOrder="90" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="gift_wrapping_force_enabled" sortOrder="120" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>GiftWrapping Functionality Forcefully Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>

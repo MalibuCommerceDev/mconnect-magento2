@@ -25,6 +25,7 @@
                 <send_error_emails>0</send_error_emails>
                 <error_email_sender>general</error_email_sender>
                 <error_email_template>malibucommerce_mconnect_nav_connection_error_email_template</error_email_template>
+                <retry_error_orders_email_template>malibucommerce_mconnect_nav_connection_retry_error_orders_email_template</retry_error_orders_email_template>
             </nav_connection>
             <customer>
                 <import_enabled>1</import_enabled>
@@ -65,8 +66,11 @@
             </inventory>
             <order>
                 <export_enabled>1</export_enabled>
-                <retry_cron>0 * * * *</retry_cron>
-                <export_retry_amount>5</export_retry_amount>
+                <auto_retry_cron>0 * * * *</auto_retry_cron>
+                <auto_retry_attempts>5</auto_retry_attempts>
+                <auto_retry_amount>50</auto_retry_amount>
+                <auto_retry_delay>300</auto_retry_delay>
+                <auto_retry_period>30</auto_retry_period>
                 <hold_new_orders_export>0</hold_new_orders_export>
                 <hold_new_orders_delay>60</hold_new_orders_delay>
                 <order_status_when_synced_to_nav>nav_preparing_for_shipment</order_status_when_synced_to_nav>
