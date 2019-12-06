@@ -197,11 +197,21 @@ class Queue
 
             return 'No items in queue to retry.';
         }
+
         $prepareOrdersToEmail = [];
         /** @var \MalibuCommerce\MConnect\Model\Queue $item */
         foreach ($items as $item) {
+            if (!$item->getEntityId()) {
+
+                continue;
+            }
+            $order = $this->salesOrderFactory->create()->load($item->getEntityId());
+            if ($order->getStatus() == 'kount_review') {
+
+                continue;
+            }
+
             if ($item->getRetryCount() >  $maxRetryAmount) {
-                $order = $this->salesOrderFactory->create()->load($item->getEntityId());
                 $entityId = '#' . $order->getIncrementId();
                 $prepareOrdersToEmail[] = $entityId;
             } else {
