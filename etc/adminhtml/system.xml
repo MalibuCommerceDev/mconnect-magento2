@@ -122,7 +122,7 @@
                     </depends>
                 </field>
                 <field id="retry_error_orders_email_template" translate="label comment" type="select" sortOrder="160" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Retry Error Orders Email Template</label>
+                    <label>Retry Errored Orders Email Template</label>
                     <comment>Email template chosen based on theme fallback when "Default" option is selected.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
                     <depends>
@@ -305,32 +305,34 @@
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="auto_retry_cron" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Automatic Retry Error Order Schedule (cron syntax)</label>
+                    <label>Auto Re-export Errored Orders: Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
                     <depends>
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
                 <field id="auto_retry_attempts" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Maximum NAV Export Retry Attempts for Order with Error Status</label>
+                    <label>Auto Re-export Errored Orders: Retry Attempts Count</label>
                     <depends>
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
-                <field id="auto_retry_amount" sortOrder="40" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Maximum Amount Of Orders with Error Status</label>
+                <field id="auto_retry_batch_size" sortOrder="40" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Auto Re-export Errored Orders: Batch Size</label>
                     <depends>
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
                 <field id="auto_retry_delay" sortOrder="50" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Delay Between Retry Attemps(seconds)</label>
+                    <label>Auto Re-export Errored Orders: Delay Between Retry Attempts</label>
+                    <comment><![CDATA[In Seconds]]></comment>
                     <depends>
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
                 <field id="auto_retry_period" sortOrder="60" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>How Many Days Previous To Sync Error Orders</label>
+                    <label>Auto Re-export Errored Orders: Sync Period</label>
+                    <comment><![CDATA[In Days. How many days back errored orders must be re-exported]]></comment>
                     <depends>
                         <field id="export_enabled">1</field>
                     </depends>

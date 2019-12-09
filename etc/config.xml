@@ -68,7 +68,7 @@
                 <export_enabled>1</export_enabled>
                 <auto_retry_cron>0 * * * *</auto_retry_cron>
                 <auto_retry_attempts>5</auto_retry_attempts>
-                <auto_retry_amount>50</auto_retry_amount>
+                <auto_retry_batch_size>50</auto_retry_batch_size>
                 <auto_retry_delay>300</auto_retry_delay>
                 <auto_retry_period>30</auto_retry_period>
                 <hold_new_orders_export>0</hold_new_orders_export>

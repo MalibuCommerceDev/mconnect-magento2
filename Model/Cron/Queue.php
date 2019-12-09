@@ -174,7 +174,7 @@ class Queue
         }
         $maxRetryAmount = $config->get('order/auto_retry_attempts');
         $retryDelay     = $config->get('order/auto_retry_delay');
-        $ordersAmount   = $config->get('order/auto_retry_amount');
+        $ordersAmount   = $config->get('order/auto_retry_batch_size');
         $ordersPeriod   = (int)$config->get('order/auto_retry_period');
         if ($ordersPeriod) {
             $orderPeriodToTime = date("y-m-d", strtotime("-$ordersPeriod day"));
