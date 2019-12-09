@@ -303,6 +303,16 @@ class Config
     /**
      * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
+     * @return string
+     */
+    public function getRetryOrderErrorEmailTemplate($websiteId = null)
+    {
+        return $this->getWebsiteData('nav_connection/retry_error_orders_email_template', $websiteId);
+    }
+
+    /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
      * @return bool
      */
     public function isNewCustomerPasswordResetEmailingEnabled($websiteId = null)

@@ -23,6 +23,16 @@ class Queue
     protected $date;
 
     /**
+     * @var \MalibuCommerce\MConnect\Helper\Mail
+     */
+    protected $mConnectMailer;
+
+    /**
+     * @var \Magento\Sales\Model\OrderFactory
+     */
+    protected $salesOrderFactory;
+
+    /**
      * Queue constructor.
      *
      * @param \MalibuCommerce\MConnect\Model\Config                           $config
@@ -32,11 +42,15 @@ class Queue
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\Resource\Queue\CollectionFactory $queueCollectionFactory,
-        \Magento\Framework\Stdlib\DateTime\DateTime $date
+        \Magento\Framework\Stdlib\DateTime\DateTime $date,
+        \MalibuCommerce\MConnect\Helper\Mail $mConnectMailer,
+        \Magento\Sales\Model\OrderFactory $salesOrderFactory
     ) {
         $this->config = $config;
         $this->queueCollectionFactory = $queueCollectionFactory;
         $this->date = $date;
+        $this->mConnectMailer = $mConnectMailer;
+        $this->salesOrderFactory = $salesOrderFactory;
     }
 
     public function process($forceSyncNow = false)
@@ -151,34 +165,68 @@ class Queue
      * @return string
      * @throws \Exception
      */
-    public function resyncErrorOrders()
+    public function autoResyncErrorOrders()
     {
         $config = $this->config;
         if (!$config->isModuleEnabled()) {
 
             return 'Module is disabled.';
         }
-        $maxRetryAmount = $config->get('order/export_retry_amount');
-        if (!$maxRetryAmount) {
-
-            return 'Max amount of retry is not set.';
+        $maxRetryAmount = $config->get('order/auto_retry_attempts');
+        $retryDelay     = $config->get('order/auto_retry_delay');
+        $ordersAmount   = $config->get('order/auto_retry_batch_size');
+        $ordersPeriod   = (int)$config->get('order/auto_retry_period');
+        if ($ordersPeriod) {
+            $orderPeriodToTime = date("y-m-d", strtotime("-$ordersPeriod day"));
+        } else {
+            $orderPeriodToTime = date("y-m-d", strtotime("-1 month"));
         }
 
         $items = $this->queueCollectionFactory->create();
         $items = $items->addFieldToFilter('status', ['eq' => QueueModel::STATUS_ERROR])
-            ->addFieldToFilter('code', ['eq' => OrderModel::CODE])
-            ->addFieldToFilter('action', ['eq' => QueueModel::ACTION_EXPORT])
-            ->addFieldToFilter('retry_count', ['lt' => $maxRetryAmount]);
+            ->addFieldToFilter('code',          ['eq' => OrderModel::CODE])
+            ->addFieldToFilter('action',        ['eq' => QueueModel::ACTION_EXPORT])
+            ->addFieldToFilter('retry_count',   ['lteq' => $maxRetryAmount + 1])
+            ->addFieldToFilter('created_at',    ['from' => $orderPeriodToTime]);
+        if ($ordersAmount) {
+            $items->getSelect()->limit($ordersAmount);
+        }
+
         $count = $items->getSize();
         if (!$count) {
 
             return 'No items in queue to retry.';
         }
 
+        $prepareOrdersToEmail = [];
         /** @var \MalibuCommerce\MConnect\Model\Queue $item */
         foreach ($items as $item) {
-            $item->process();
+            if (!$item->getEntityId()) {
+
+                continue;
+            }
+            $order = $this->salesOrderFactory->create()->load($item->getEntityId());
+            if ($order->getStatus() == 'kount_review') {
+
+                continue;
+            }
+
+            if ($item->getRetryCount() >  $maxRetryAmount) {
+                $entityId = '#' . $order->getIncrementId();
+                $prepareOrdersToEmail[] = $entityId;
+            } else {
+                $item->process();
+            }
             $item->getResource()->incrementRetryCount($item->getId());
+            sleep($retryDelay);
+        }
+
+        if (count($prepareOrdersToEmail) > 0) {
+            $this->mConnectMailer->sendRetryOrderErrorEmail([
+                'error_title'   => 'List of orders with error status after '.$maxRetryAmount. ' attempts to retry',
+                'orders'        => implode(", ", $prepareOrdersToEmail),
+                'attempts'      => $maxRetryAmount
+            ]);
         }
 
         return sprintf('Resynced %d errored previously order(s) in the queue.', $count);
