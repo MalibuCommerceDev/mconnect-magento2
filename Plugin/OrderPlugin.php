@@ -95,7 +95,8 @@ class OrderPlugin
                     \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT,
                     $websiteId,
                     0,
-                    $order->getId()
+                    $order->getId(),
+                    $order->getIncrementId()
                 );
             } catch (\Throwable $e) {
                 $this->logger->critical($e);
