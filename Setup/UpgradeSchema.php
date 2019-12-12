@@ -54,8 +54,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
         if (version_compare($context->getVersion(), '2.6.1', '<=')) {
             $this->upgrade2_6_1($setup);
         }
-        if (version_compare($context->getVersion(), '2.7.2', '<=')) {
-            $this->upgrade2_7_2($setup);
+        if (version_compare($context->getVersion(), '2.7.3', '<=')) {
+            $this->upgrade2_7_3($setup);
         }
 
 
@@ -354,25 +354,25 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ]);
     }
 
-    protected function upgrade2_7_2(SchemaSetupInterface $setup)
+    protected function upgrade2_7_3(SchemaSetupInterface $setup)
     {
         $entityTables = ['malibucommerce_mconnect_queue'];
         foreach ($entityTables as $table) {
             $setup->getConnection()->addColumn(
                 $setup->getTable($table),
-                'title',
+                'entity_increment_id',
                 array(
                     'type'    => Table::TYPE_TEXT,
                     'after'   => 'entity_id',
-                    'comment' => 'Incerement ID'
+                    'comment' => 'Increment ID'
                 )
             );
         }
 
         $setup->getConnection()->addIndex(
             $setup->getTable('malibucommerce_mconnect_queue'),
-            $setup->getIdxName('malibucommerce_mconnect_queue', ['status', 'code', 'action', 'entity_id', 'title']),
-            ['status', 'code', 'action', 'entity_id', 'title']
+            $setup->getIdxName('malibucommerce_mconnect_queue', ['status', 'code', 'action', 'entity_id', 'entity_increment_id']),
+            ['status', 'code', 'action', 'entity_id', 'entity_increment_id']
         );
     }
 }

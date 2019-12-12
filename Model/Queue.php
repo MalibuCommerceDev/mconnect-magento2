@@ -113,7 +113,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
      * @param int    $websiteId
      * @param int    $navPageNumber
      * @param null   $id
-     * @param null   $title
+     * @param null   $increment_id
      * @param array  $details
      * @param null   $scheduledAt
      * @param bool   $retrieveIfExists
@@ -127,7 +127,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         $websiteId = 0,
         $navPageNumber = 0,
         $id = null,
-        $title = null,
+        $increment_id = null,
         $details = [],
         $scheduledAt = null,
         $retrieveIfExists = false
@@ -168,7 +168,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
                 ->setWebsiteId($websiteId)
                 ->setNavPageNum($navPageNumber)
                 ->setEntityId($id)
-                ->setTitle($title)
+                ->setEntityIncrementId($increment_id)
                 ->setDetails($details)
                 ->setScheduledAt($scheduledAt)
                 ->setCreatedAt(date('Y-m-d H:i:s'))

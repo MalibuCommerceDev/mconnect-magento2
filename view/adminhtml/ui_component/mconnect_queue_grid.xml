@@ -127,11 +127,11 @@
                 </item>
             </argument>
         </column>
-        <column name="title" class="MalibuCommerce\MConnect\Ui\Component\Listing\Column\Title">
+        <column name="entity_increment_id" class="MalibuCommerce\MConnect\Ui\Component\Listing\Column\IncrementId">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Title</item>
+                    <item name="label" xsi:type="string" translate="true">Increment ID</item>
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                     <item name="sortOrder" xsi:type="number">45</item>
                 </item>
