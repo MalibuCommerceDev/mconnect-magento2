@@ -264,6 +264,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
             $this->_logger->critical($e);
             $message = 'Processing interrupted!' . "\n" . 'Error: ' . $e->getMessage() . "\n\nProcessing Messages: " . $model->getMessages();
             $this->endProcess(self::STATUS_ERROR, $message);
+            return self::STATUS_ERROR;
         }
 
         $this->registry->unregister('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM');
