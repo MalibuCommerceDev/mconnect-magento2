@@ -186,7 +186,7 @@ class Queue
         $items = $items->addFieldToFilter('status', ['eq' => QueueModel::STATUS_ERROR])
             ->addFieldToFilter('code',          ['eq' => OrderModel::CODE])
             ->addFieldToFilter('action',        ['eq' => QueueModel::ACTION_EXPORT])
-            ->addFieldToFilter('retry_count',   ['lteq' => $maxRetryAmount + 1])
+            ->addFieldToFilter('retry_count',   ['lt' => $maxRetryAmount])
             ->addFieldToFilter('created_at',    ['from' => $orderPeriodToTime]);
         if ($ordersAmount) {
             $items->getSelect()->limit($ordersAmount);
@@ -211,11 +211,10 @@ class Queue
                 continue;
             }
 
-            if ($item->getRetryCount() >  $maxRetryAmount) {
+            $status = $item->process();
+            if ($item->getRetryCount() == ($maxRetryAmount - 1) && $status == QueueModel::STATUS_ERROR) {
                 $entityId = '#' . $order->getIncrementId();
                 $prepareOrdersToEmail[] = $entityId;
-            } else {
-                $item->process();
             }
             $item->getResource()->incrementRetryCount($item->getId());
             sleep($retryDelay);
