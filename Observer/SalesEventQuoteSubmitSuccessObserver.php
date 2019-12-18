@@ -87,7 +87,7 @@ class SalesEventQuoteSubmitSuccessObserver implements \Magento\Framework\Event\O
                 $scheduledAt = date('Y-m-d H:i:s', strtotime('+' . (int)$delayInMinutes . ' minutes'));
             }
 
-            return $this->queue->create()->add($code, $action, $websiteId, 0, $order->getId(), [], $scheduledAt);
+            return $this->queue->create()->add($code, $action, $websiteId, 0, $order->getId(), $order->getIncrementId(), [], $scheduledAt);
         } catch (\Throwable $e) {
             $this->logger->critical($e);
         }

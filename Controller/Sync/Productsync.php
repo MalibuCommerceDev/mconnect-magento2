@@ -97,6 +97,7 @@ class Productsync extends Action
                     0,
                     0,
                     null,
+                    null,
                     ['nav_id' => $productSku]
                 );
 

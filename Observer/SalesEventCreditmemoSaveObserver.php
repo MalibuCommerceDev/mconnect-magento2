@@ -74,7 +74,7 @@ class SalesEventCreditmemoSaveObserver implements \Magento\Framework\Event\Obser
         try {
             $websiteId = $this->storeManager->getStore($creditmemo->getStoreId())->getWebsiteId();
 
-            return $this->queue->create()->add($code, $action, $websiteId, 0, $creditmemo->getId());
+            return $this->queue->create()->add($code, $action, $websiteId, 0, $creditmemo->getId(), $creditmemo->getIncrementId());
         } catch (\Throwable $e) {
             $this->logger->critical($e);
         }

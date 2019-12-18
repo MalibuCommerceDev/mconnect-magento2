@@ -92,7 +92,7 @@ class MassProceed extends \Magento\Backend\App\Action
                 }
 
                 $this->queue->create()->add(\MalibuCommerce\MConnect\Model\Queue\Order::CODE,
-                    \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT, $websiteId, 0, $order->getId(), [], $scheduledAt);
+                    \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT, $websiteId, 0, $order->getId(), $order->getIncrementId(), [], $scheduledAt);
 
                 $queues = $this->queueCollectionFactory->create();
                 $queues = $queues->addFieldToFilter('entity_id', $order->getId())->setOrder('id','DESC');

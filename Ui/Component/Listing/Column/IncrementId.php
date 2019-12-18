@@ -2,7 +2,7 @@
 
 namespace MalibuCommerce\MConnect\Ui\Component\Listing\Column;
 
-class Entity extends \Magento\Ui\Component\Listing\Columns\Column
+class IncrementId extends \Magento\Ui\Component\Listing\Columns\Column
 {
     /**
      * Url Builder
@@ -11,30 +11,13 @@ class Entity extends \Magento\Ui\Component\Listing\Columns\Column
      */
     protected $urlBuilder;
 
-    /**
-     * @var \Magento\Customer\Model\CustomerFactory
-     */
-    protected $customerFactory;
 
     /**
      * @var \Magento\Catalog\Model\ProductFactory
      */
     protected $catalogProductFactory;
 
-    /**
-     * @var \Magento\Sales\Model\OrderFactory
-     */
-    protected $salesOrderFactory;
-
-    /**
-     * @var \Magento\Sales\Api\CreditmemoRepositoryInterface
-     */
-    protected $creditmemoRepository;
-
-    protected $customers = [];
     protected $products = [];
-    protected $orders = [];
-    protected $creditmemos = [];
 
     /**
      * Entity constructor
@@ -42,10 +25,7 @@ class Entity extends \Magento\Ui\Component\Listing\Columns\Column
      * @param \Magento\Framework\View\Element\UiComponent\ContextInterface $context
      * @param \Magento\Framework\View\Element\UiComponentFactory           $uiComponentFactory
      * @param \Magento\Framework\UrlInterface                              $urlBuilder
-     * @param \Magento\Customer\Model\CustomerFactory                      $customerFactory
      * @param \Magento\Catalog\Model\ProductFactory                        $catalogProductFactory
-     * @param \Magento\Sales\Model\OrderFactory                            $salesOrderFactory
-     * @param \Magento\Sales\Api\CreditmemoRepositoryInterface             $creditmemoRepository,
      * @param array                                                        $components
      * @param array                                                        $data
      */
@@ -53,18 +33,12 @@ class Entity extends \Magento\Ui\Component\Listing\Columns\Column
         \Magento\Framework\View\Element\UiComponent\ContextInterface $context,
         \Magento\Framework\View\Element\UiComponentFactory $uiComponentFactory,
         \Magento\Framework\UrlInterface $urlBuilder,
-        \Magento\Customer\Model\CustomerFactory $customerFactory,
         \Magento\Catalog\Model\ProductFactory $catalogProductFactory,
-        \Magento\Sales\Model\OrderFactory $salesOrderFactory,
-        \Magento\Sales\Api\CreditmemoRepositoryInterface $creditmemoRepository,
         array $components = [],
         array $data = []
     ) {
         $this->urlBuilder = $urlBuilder;
-        $this->customerFactory = $customerFactory;
         $this->catalogProductFactory = $catalogProductFactory;
-        $this->salesOrderFactory = $salesOrderFactory;
-        $this->creditmemoRepository = $creditmemoRepository;
 
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
@@ -83,7 +57,7 @@ class Entity extends \Magento\Ui\Component\Listing\Columns\Column
         }
 
         foreach ($dataSource['data']['items'] as & $item) {
-            if (empty($item['entity_id'])) {
+            if (empty($item['entity_increment_id'])) {
                 continue;
             }
 
@@ -91,14 +65,9 @@ class Entity extends \Magento\Ui\Component\Listing\Columns\Column
             $title = false;
             if ($item['code'] === \MalibuCommerce\MConnect\Model\Queue\Customer::CODE) {
                 if ($item['action'] === \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT) {
-                    if (!array_key_exists($item['entity_id'], $this->customers)) {
-                        $this->customers[$item['entity_id']] = $this->customerFactory->create()->load($item['entity_id']);
-                    }
-
-                    $entity = $this->customers[$item['entity_id']];
-                    if ($entity->getId()) {
+                    if ($item['entity_id']) {
                         $link = $this->urlBuilder->getUrl('customer/index/edit', array('id' => $item['entity_id']));
-                        $title = $entity->getEmail();
+                        $title = $item['entity_increment_id'];
                     }
                 }
             } else if ($item['code'] === \MalibuCommerce\MConnect\Model\Queue\Product::CODE) {
@@ -113,33 +82,23 @@ class Entity extends \Magento\Ui\Component\Listing\Columns\Column
                         $title = $entity->getName();
                     }
                 }
-            } else if ($item['code'] === \MalibuCommerce\MConnect\Model\Queue\Order::CODE) {
-                if ($item['action'] === \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT) {
-                    if (!array_key_exists($item['entity_id'], $this->orders)) {
-                        $this->orders[$item['entity_id']] = $this->salesOrderFactory->create()->load($item['entity_id']);
-                    }
+            } else if ($item['code'] === \MalibuCommerce\MConnect\Model\Queue\Order::CODE) {if ($item['action'] === \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT) {
 
-                    $entity = $this->orders[$item['entity_id']];
-                    if ($entity->getId()) {
+                    if ($item['entity_id']) {
                         $link = $this->urlBuilder->getUrl('sales/order/view', array('order_id' => $item['entity_id']));
-                        $title = '#' . $entity->getIncrementId();
+                        $title = '#' . $item['entity_increment_id'];
                     }
                 }
             } else if ($item['code'] === \MalibuCommerce\MConnect\Model\Queue\Creditmemo::CODE) {
                 if ($item['action'] === \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT) {
-                    if (!array_key_exists($item['entity_id'], $this->creditmemos)) {
-                        $this->creditmemos[$item['entity_id']] = $this->creditmemoRepository->get($item['entity_id']);
-                    }
-
-                    $entity = $this->creditmemos[$item['entity_id']];
-                    if ($entity->getId()) {
+                    if ($item['entity_id']) {
                         $link = $this->urlBuilder->getUrl('sales/creditmemo/view', array('creditmemo_id' => $item['entity_id']));
-                        $title = '#' . $entity->getIncrementId();
+                        $title = '#' . $item['entity_increment_id'];
                     }
                 }
             }
             if ($link !== false) {
-                $item['entity_id'] = sprintf('<a href="%s" target="_blank" title="%s">%s<a/>', $link, $title ? $title : $item['entity_id'], $title ? $title : $item['entity_id']);
+                $item['entity_increment_id'] = sprintf('<a href="%s" target="_blank" title="%s">%s<a/>', $link, $title ? $title : $item['entity_increment_id'], $title ? $title : $item['entity_increment_id']);
             }
         }
 
