@@ -8,10 +8,6 @@ use Magento\Framework\Api\SearchCriteriaBuilderFactory;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\InventoryApi\Api\Data\SourceItemInterface;
-use Magento\InventoryApi\Api\SourceItemRepositoryInterface;
-use Magento\InventoryCatalogApi\Api\DefaultSourceProviderInterface;
-use Magento\InventoryCatalogApi\Model\IsSingleSourceModeInterface;
-use Magento\InventoryConfigurationApi\Model\IsSourceItemManagementAllowedForProductTypeInterface;
 
 
 /**
@@ -21,9 +17,7 @@ use Magento\InventoryConfigurationApi\Model\IsSourceItemManagementAllowedForProd
  */
 class SourceItemsProcessor
 {
-    /**
-     * @var IsSourceItemManagementAllowedForProductTypeInterface
-     */
+
     protected $isSourceItemManagementAllowedForProductType;
 
     /**
@@ -31,14 +25,10 @@ class SourceItemsProcessor
      */
     protected $sourceItemsProcessor;
 
-    /**
-     * @var IsSingleSourceModeInterface
-     */
+
     private $isSingleSourceMode;
 
-    /**
-     * @var DefaultSourceProviderInterface
-     */
+
     protected $defaultSourceProvider;
 
     /**
@@ -46,9 +36,7 @@ class SourceItemsProcessor
      */
     protected $searchCriteriaBuilderFactory;
 
-    /**
-     * @var SourceItemRepositoryInterface
-     */
+
     protected $sourceItemRepository;
 
     /**
@@ -59,29 +47,14 @@ class SourceItemsProcessor
     /**
      * SourceItemsProcessor constructor.
      *
-     * @param IsSourceItemManagementAllowedForProductTypeInterface           $isSourceItemManagementAllowedForProductType
-     * @param \Magento\InventoryCatalogAdminUi\Observer\SourceItemsProcessor $sourceItemsProcessor
-     * @param IsSingleSourceModeInterface                                    $isSingleSourceMode
-     * @param DefaultSourceProviderInterface                                 $defaultSourceProvider
      * @param SearchCriteriaBuilderFactory                                   $searchCriteriaBuilderFactory
-     * @param SourceItemRepositoryInterface                                  $sourceItemRepository
      * @param ProductRepositoryInterface                                     $productRepository
      */
     public function __construct(
-        IsSourceItemManagementAllowedForProductTypeInterface $isSourceItemManagementAllowedForProductType,
-        \Magento\InventoryCatalogAdminUi\Observer\SourceItemsProcessor  $sourceItemsProcessor,
-        IsSingleSourceModeInterface $isSingleSourceMode,
-        DefaultSourceProviderInterface $defaultSourceProvider,
         SearchCriteriaBuilderFactory $searchCriteriaBuilderFactory,
-        SourceItemRepositoryInterface $sourceItemRepository,
         ProductRepositoryInterface $productRepository
     ) {
-        $this->isSourceItemManagementAllowedForProductType = $isSourceItemManagementAllowedForProductType;
-        $this->sourceItemsProcessor = $sourceItemsProcessor;
-        $this->isSingleSourceMode = $isSingleSourceMode;
-        $this->defaultSourceProvider = $defaultSourceProvider;
         $this->searchCriteriaBuilderFactory = $searchCriteriaBuilderFactory;
-        $this->sourceItemRepository = $sourceItemRepository;
         $this->productRepository = $productRepository;
     }
 
@@ -97,6 +70,23 @@ class SourceItemsProcessor
      */
     public function process($product, $qty, $isInStock = null)
     {
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $this->isSourceItemManagementAllowedForProductType = $objectManager->create(
+            'Magento\InventoryConfigurationApi\Model\IsSourceItemManagementAllowedForProductTypeInterface'
+        );
+        $this->sourceItemsProcessor = $objectManager->create(
+            'Magento\InventoryCatalogAdminUi\Observer\SourceItemsProcessor'
+        );
+        $this->defaultSourceProvider = $objectManager->create(
+            'Magento\InventoryCatalogApi\Api\DefaultSourceProviderInterface'
+        );
+        $this->sourceItemRepository = $objectManager->create(
+            'Magento\InventoryApi\Api\SourceItemRepositoryInterface'
+        );
+        $this->isSingleSourceMode = $objectManager->create(
+            'Magento\InventoryCatalogApi\Model\IsSingleSourceModeInterface'
+        );
+
         if ($this->isSourceItemManagementAllowedForProductType->execute($product->getTypeId()) === false) {
             return;
         }
@@ -133,6 +123,11 @@ class SourceItemsProcessor
         $searchCriteriaBuilder->addFilter(SourceItemInterface::SKU, $sku);
 
         $searchCriteria = $searchCriteriaBuilder->create();
+
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $this->sourceItemRepository = $objectManager->create(
+            'Magento\InventoryApi\Api\SourceItemRepositoryInterface'
+        );
         $sourceItems = $this->sourceItemRepository->getList($searchCriteria)->getItems();
 
         $sourceItemData = [];
