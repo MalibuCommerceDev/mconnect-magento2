@@ -13,7 +13,7 @@ $logDetails = $block->getLogDetails();
         <h1><?php echo $title ?></h1>
         <?php foreach ($contents as $label => $content): ?>
             <h3><?php echo $label; ?></h3>
-            <pre style="white-space: pre-wrap; word-break: break-word; background: #eee;"><code><?php echo htmlspecialchars($content, ENT_XML1); ?></code></pre>
+            <pre style="white-space: pre-wrap; word-break: break-word; background: #eee;"><code><?php echo htmlspecialchars(is_array($content) ? print_r($content, true) : (string)$content, ENT_XML1); ?></code></pre>
         <?php endforeach; ?>
     <?php endforeach ?>
 <?php endforeach ?>

@@ -7,7 +7,7 @@ class Soap
     /**
      * @var \MalibuCommerce\MConnect\Model\Navision\Connection\Soap\Client[]
      */
-    protected $soapClients = [];
+    protected $soapClients        = [];
     protected $isStreamRegistered = false;
     protected $restoreStream      = false;
     protected $protocol;
@@ -53,7 +53,7 @@ class Soap
 
     /**
      * @param string $method
-     * @param array $arguments
+     * @param array  $arguments
      *
      * @return mixed
      * @throws \Magento\Framework\Exception\FileSystemException
@@ -76,7 +76,12 @@ class Soap
                 $this->soapClients[$websiteId]->__getLastResponse()
             );
         } catch (\Throwable $e) {
-            $this->mConnectHelper->logRequestError($arguments, $this->mConnectConfig->getNavConnectionUrl($websiteId), $method, $e);
+            $this->mConnectHelper->logRequestError(
+                $arguments,
+                $this->mConnectConfig->getNavConnectionUrl($websiteId),
+                $method,
+                $e
+            );
 
             $this->unregisterStream($websiteId);
             throw $e;

@@ -302,6 +302,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             return false;
         }
 
+        if (is_array($request) && !empty($request[0]['requestXML'])) {
+            $request = $request[0]['requestXML'];
+        }
+
         $this->logRequest(
             $request,
             $navUrl,
