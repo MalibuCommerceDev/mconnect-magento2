@@ -107,7 +107,7 @@ class Creditmemo extends AbstractModel
      */
     protected function addItem($item, &$root)
     {
-        $child = $root->addChild('item');
+        $child = $root->addChild('order_item');
         $child->qty = $item->getQty();
         $child->mag_item_id = $item->getSku();
         $child->order_item_unit_price = $item->getBasePrice();
