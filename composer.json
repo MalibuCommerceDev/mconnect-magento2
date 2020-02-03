@@ -8,6 +8,7 @@
         "php": ">=7.0.0",
         "ext-simplexml": "*"
     },
+    "license": "Apache-2.0",
     "autoload": {
         "files": ["registration.php"],
         "psr-4": {
