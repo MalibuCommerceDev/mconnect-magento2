@@ -51,7 +51,7 @@ class AggregateCatalogProductTierPriceObserver implements \Magento\Framework\Eve
                 }
             }
         } else {
-            /** @var \MalibuCommerce\MConnect\Model\Resource\Pricerule\Collection $collection */
+            /** @var \MalibuCommerce\MConnect\Model\ResourceModel\Pricerule\Collection $collection */
             $collection = $this->rule->getResourceCollection();
             $collection
                 ->applySkuFilter($product->getSku())

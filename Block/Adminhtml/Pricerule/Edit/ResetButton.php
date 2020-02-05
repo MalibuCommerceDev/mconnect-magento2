@@ -4,9 +4,6 @@ namespace MalibuCommerce\MConnect\Block\Adminhtml\Pricerule\Edit;
 
 use Magento\Framework\View\Element\UiComponent\Control\ButtonProviderInterface;
 
-/**
- * Class ResetButton
- */
 class ResetButton implements ButtonProviderInterface
 {
     /**

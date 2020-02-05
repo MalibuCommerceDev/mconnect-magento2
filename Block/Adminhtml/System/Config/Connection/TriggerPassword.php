@@ -65,7 +65,7 @@ class TriggerPassword extends Field
     public function getButtonHtml()
     {
         $button = $this->getLayout()->createBlock(
-            'Magento\Backend\Block\Widget\Button'
+            \Magento\Backend\Block\Widget\Button::class
         )->setData(
             [
                 'id' => 'trigger_password_button',
@@ -75,5 +75,4 @@ class TriggerPassword extends Field
 
         return $button->toHtml();
     }
-
 }

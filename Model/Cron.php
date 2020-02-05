@@ -77,7 +77,7 @@ class Cron
 
         foreach ($activeWebsites as $websiteId) {
             if (!(bool)$this->config->getWebsiteData($code . '/import_enabled', $websiteId)) {
-                echo sprintf('Import functionality is disabled for %s at Website ID "%s"', $code, $websiteId) . PHP_EOL;
+                return sprintf('Import functionality is disabled for %s at Website ID "%s"', $code, $websiteId) . PHP_EOL;
                 continue;
             }
 
@@ -93,9 +93,9 @@ class Cron
                 true
             );
             if ($queue->getId()) {
-                echo sprintf('The "%s" item added/exists in the queue for Website ID "%s"', $code, $websiteId) . PHP_EOL;
+                return sprintf('The "%s" item added/exists in the queue for Website ID "%s"', $code, $websiteId) . PHP_EOL;
             } else {
-                echo sprintf('Failed to add new %s item added to queue for Website ID "%s"', $code, $websiteId) . PHP_EOL;
+                return sprintf('Failed to add new %s item added to queue for Website ID "%s"', $code, $websiteId) . PHP_EOL;
             }
         }
 

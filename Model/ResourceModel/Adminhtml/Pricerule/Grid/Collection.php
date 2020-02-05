@@ -1,6 +1,6 @@
 <?php
 
-namespace MalibuCommerce\MConnect\Model\Resource\Adminhtml\Pricerule\Grid;
+namespace MalibuCommerce\MConnect\Model\ResourceModel\Adminhtml\Pricerule\Grid;
 
 use Magento\Framework\Data\Collection\Db\FetchStrategyInterface as FetchStrategy;
 use Magento\Framework\Data\Collection\EntityFactoryInterface as EntityFactory;
@@ -28,7 +28,7 @@ class Collection extends \Magento\Framework\View\Element\UiComponent\DataProvide
         FetchStrategy $fetchStrategy,
         EventManager $eventManager,
         $mainTable = 'malibucommerce_mconnect_price_rule',
-        $resourceModel = \MalibuCommerce\MConnect\Model\Resource\Adminhtml\Pricerule::class
+        $resourceModel = \MalibuCommerce\MConnect\Model\ResourceModel\Adminhtml\Pricerule::class
     ) {
         parent::__construct($entityFactory, $logger, $fetchStrategy, $eventManager, $mainTable, $resourceModel);
     }

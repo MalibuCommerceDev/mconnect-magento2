@@ -69,83 +69,86 @@ class UpgradeSchema implements UpgradeSchemaInterface
          */
         $table = $connection
             ->newTable($setup->getTable('malibucommerce_mconnect_queue'))
-            ->addColumn('id',
+            ->addColumn(
+                'id',
                 Table::TYPE_INTEGER,
                 null,
-                array(
+                [
                     'identity' => true,
                     'unsigned' => true,
                     'nullable' => false,
                     'primary'  => true,
-                ), 'Queue ID')
-            ->addColumn('code', Table::TYPE_TEXT, 255, array(
+                ],
+                'Queue ID'
+            )
+            ->addColumn('code', Table::TYPE_TEXT, 255, [
                 'nullable' => false,
-            ), 'Code')
-            ->addColumn('action', Table::TYPE_TEXT, 255, array(
+            ], 'Code')
+            ->addColumn('action', Table::TYPE_TEXT, 255, [
                 'nullable' => false,
-            ), 'Action')
-            ->addColumn('entity_id', Table::TYPE_INTEGER, null, array(
+            ], 'Action')
+            ->addColumn('entity_id', Table::TYPE_INTEGER, null, [
                 'nullable' => true,
-            ), 'Entity ID')
-            ->addColumn('connection_id', Table::TYPE_INTEGER, null, array(
+            ], 'Entity ID')
+            ->addColumn('connection_id', Table::TYPE_INTEGER, null, [
                 'nullable' => true,
-            ), 'Connection ID')
-            ->addColumn('details', Table::TYPE_TEXT, null, array(
+            ], 'Connection ID')
+            ->addColumn('details', Table::TYPE_TEXT, null, [
                 'nullable' => true,
-            ), 'Details')
-            ->addColumn('status', Table::TYPE_TEXT, 255, array(
+            ], 'Details')
+            ->addColumn('status', Table::TYPE_TEXT, 255, [
                 'nullable' => false,
-            ), 'Status')
-            ->addColumn('created_at', Table::TYPE_DATETIME, null, array(
+            ], 'Status')
+            ->addColumn('created_at', Table::TYPE_DATETIME, null, [
                 'nullable' => false,
-            ), 'Created At')
-            ->addColumn('started_at', Table::TYPE_DATETIME, null, array(), 'Started At')
-            ->addColumn('finished_at', Table::TYPE_DATETIME, null, array(), 'Finished At')
-            ->addColumn('message', Table::TYPE_TEXT, null, array(
+            ], 'Created At')
+            ->addColumn('started_at', Table::TYPE_DATETIME, null, [], 'Started At')
+            ->addColumn('finished_at', Table::TYPE_DATETIME, null, [], 'Finished At')
+            ->addColumn('message', Table::TYPE_TEXT, null, [
                 'nullable' => true,
-            ), 'Message');
+            ], 'Message');
         $connection->createTable($table);
 
         $table = $connection
             ->newTable($setup->getTable('malibucommerce_mconnect_price_rule'))
-            ->addColumn('id', Table::TYPE_INTEGER, null, array(
+            ->addColumn('id', Table::TYPE_INTEGER, null, [
                 'identity' => true,
                 'unsigned' => true,
                 'nullable' => false,
                 'primary'  => true,
-            ), 'Rule ID')
-            ->addColumn('sku', Table::TYPE_TEXT, 255, array(
+            ], 'Rule ID')
+            ->addColumn('sku', Table::TYPE_TEXT, 255, [
                 'nullable' => true,
-            ), 'Sku')
-            ->addColumn('navision_customer_id', Table::TYPE_TEXT, 255, array(
+            ], 'Sku')
+            ->addColumn('navision_customer_id', Table::TYPE_TEXT, 255, [
                 'nullable' => true,
-            ), 'Navision Customer ID')
-            ->addColumn('nav_id', Table::TYPE_INTEGER, null, array(
+            ], 'Navision Customer ID')
+            ->addColumn('nav_id', Table::TYPE_INTEGER, null, [
                 'nullable' => true,
-            ), 'Navision Unique ID')
-            ->addColumn('qty_min', Table::TYPE_INTEGER, null, array(
+            ], 'Navision Unique ID')
+            ->addColumn('qty_min', Table::TYPE_INTEGER, null, [
                 'nullable' => true,
-            ), 'Minimum Quantity')
-            ->addColumn('price', Table::TYPE_DECIMAL, '12,4', array(
+            ], 'Minimum Quantity')
+            ->addColumn('price', Table::TYPE_DECIMAL, '12,4', [
                 'nullable' => false,
-            ), 'Price')
-            ->addColumn('date_start', Table::TYPE_DATETIME, null, array(
+            ], 'Price')
+            ->addColumn('date_start', Table::TYPE_DATETIME, null, [
                 'nullable' => true,
-            ), 'Start Date')
-            ->addColumn('date_end', Table::TYPE_DATETIME, null, array(
+            ], 'Start Date')
+            ->addColumn('date_end', Table::TYPE_DATETIME, null, [
                 'nullable' => true,
-            ), 'End Date');
+            ], 'End Date');
         $connection->createTable($table);
         $entityTables = ['sales_order', 'sales_order_grid', 'customer_entity', 'customer_address_entity'];
         foreach ($entityTables as $table) {
             $connection->addColumn(
                 $setup->getTable($table),
                 'nav_id',
-                array(
+                [
                     'type'    => Table::TYPE_TEXT,
                     'length'  => 255,
                     'comment' => 'NAV ID'
-                )
+                ]
             );
         }
     }
@@ -155,11 +158,11 @@ class UpgradeSchema implements UpgradeSchemaInterface
         $setup->getConnection()->addColumn(
             $setup->getTable('malibucommerce_mconnect_price_rule'),
             'customer_price_group',
-            array(
+            [
                 'type'    => Table::TYPE_TEXT,
                 'length'  => 255,
                 'comment' => 'Customer Price Group'
-            )
+            ]
         );
     }
 
@@ -170,11 +173,11 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $setup->getConnection()->addColumn(
                 $setup->getTable($table),
                 'nav_id',
-                array(
+                [
                     'type'    => Table::TYPE_TEXT,
                     'length'  => 255,
                     'comment' => 'NAV ID'
-                )
+                ]
             );
         }
     }
@@ -184,11 +187,11 @@ class UpgradeSchema implements UpgradeSchemaInterface
         $setup->getConnection()->addColumn(
             $setup->getTable('malibucommerce_mconnect_queue'),
             'scheduled_at',
-            array(
+            [
                 'type'    => Table::TYPE_DATETIME,
                 'comment' => 'Scheduled At',
                 'after'   => 'created_at'
-            )
+            ]
         );
 
         $setup->getConnection()->update(
@@ -294,8 +297,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
         );
         $setup->getConnection()->addIndex(
             $setup->getTable('malibucommerce_mconnect_queue'),
-            $setup->getIdxName('malibucommerce_mconnect_queue',
-                ['code', 'action', 'website_id', 'status', 'nav_page_num']),
+            $setup->getIdxName(
+                'malibucommerce_mconnect_queue',
+                ['code', 'action', 'website_id', 'status', 'nav_page_num']
+            ),
             ['code', 'action', 'website_id', 'status', 'nav_page_num']
         );
         $setup->getConnection()->addIndex(
@@ -312,11 +317,11 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $setup->getConnection()->addColumn(
                 $setup->getTable($table),
                 'nav_id',
-                array(
+                [
                     'type'    => Table::TYPE_TEXT,
                     'length'  => 255,
                     'comment' => 'NAV ID'
-                )
+                ]
             );
         }
     }
@@ -328,12 +333,12 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $setup->getConnection()->addColumn(
                 $setup->getTable($table),
                 'retry_count',
-                array(
+                [
                     'type'    => Table::TYPE_SMALLINT,
                     'after'   => 'logs',
                     'comment' => 'Retry count',
                     'default' => 0
-                )
+                ]
             );
         }
 
@@ -344,13 +349,16 @@ class UpgradeSchema implements UpgradeSchemaInterface
         );
 
         $monthAgo = date("y-m-d", strtotime("-1 month"));
-        $setup->getConnection()->update($setup->getTable('malibucommerce_mconnect_queue'), ['retry_count' => 5],
+        $setup->getConnection()->update(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            ['retry_count' => 5],
             [
                 'status = ?'      => QueueModel::STATUS_ERROR,
                 'code = ?'        => OrderModel::CODE,
                 'action = ?'      => QueueModel::ACTION_EXPORT,
                 'created_at <= ?' => $monthAgo
-            ]);
+            ]
+        );
     }
 
     protected function upgrade2_7_4(SchemaSetupInterface $setup)
@@ -360,12 +368,12 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $setup->getConnection()->addColumn(
                 $setup->getTable($table),
                 'entity_increment_id',
-                array(
+                [
                     'type'    => Table::TYPE_TEXT,
                     'after'   => 'entity_id',
                     'comment' => 'Increment ID',
                     'length'  => 255
-                )
+                ]
             );
         }
 

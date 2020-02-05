@@ -3,7 +3,7 @@
 namespace MalibuCommerce\MConnect\Controller\Adminhtml\Queue;
 
 use \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
-use MalibuCommerce\MConnect\Model\Resource\Adminhtml\Queue\CollectionFactory;
+use MalibuCommerce\MConnect\Model\ResourceModel\Adminhtml\Queue\CollectionFactory;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;

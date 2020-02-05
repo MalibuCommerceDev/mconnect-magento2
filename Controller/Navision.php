@@ -13,7 +13,6 @@ abstract class Navision extends \Magento\Framework\App\Action\Action
      */
     protected $customerSession;
 
-
     /**
      * @var \Magento\Framework\App\Response\Http
      */

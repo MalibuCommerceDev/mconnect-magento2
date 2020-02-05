@@ -1,6 +1,6 @@
 <?php
 
-namespace MalibuCommerce\MConnect\Model\Resource\Pricerule;
+namespace MalibuCommerce\MConnect\Model\ResourceModel\Pricerule;
 
 use Magento\Framework\Exception\LocalizedException;
 
@@ -45,7 +45,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
 
     public function _construct()
     {
-        $this->_init('MalibuCommerce\MConnect\Model\Pricerule', 'MalibuCommerce\MConnect\Model\Resource\Pricerule');
+        $this->_init(\MalibuCommerce\MConnect\Model\Pricerule::class, \MalibuCommerce\MConnect\Model\ResourceModel\Pricerule::class);
     }
 
     /**
@@ -128,10 +128,10 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     public function applyQtyFilter($value)
     {
         if ($value !== null) {
-            $this->addFieldToFilter('qty_min', array(
-                array('to' => $value),
-                array('null' => true),
-            ));
+            $this->addFieldToFilter('qty_min', [
+                ['to' => $value],
+                ['null' => true],
+            ]);
         }
 
         return $this;
@@ -146,24 +146,26 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     {
         if ($this->getCustomer()) {
             $this->addFieldToFilter(
-                array('navision_customer_id', 'customer_price_group'),
-                array(
-                    array('eq' => $this->getCustomer()->getNavId()),
-                    array('eq' => $this->getCustomer()->getNavPriceGroup())
-                )
+                ['navision_customer_id', 'customer_price_group'],
+                [
+                    ['eq' => $this->getCustomer()->getNavId()],
+                    ['eq' => $this->getCustomer()->getNavPriceGroup()]
+                ]
             );
         } else {
-            $this->addFieldToFilter('navision_customer_id',
-                array(
-                    array('null' => true),
-                    array('eq' => ''),
-                )
+            $this->addFieldToFilter(
+                'navision_customer_id',
+                [
+                    ['null' => true],
+                    ['eq' => ''],
+                ]
             );
-            $this->addFieldToFilter('customer_price_group',
-                array(
-                    array('null' => true),
-                    array('eq' => ''),
-                )
+            $this->addFieldToFilter(
+                'customer_price_group',
+                [
+                    ['null' => true],
+                    ['eq' => ''],
+                ]
             );
         }
 
@@ -206,10 +208,10 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
                 throw new LocalizedException(__('Invalid date filter direction'));
         }
         if ($value) {
-            $this->addFieldToFilter($field, array(
-                array($direction => $value),
-                array('null' => true),
-            ));
+            $this->addFieldToFilter($field, [
+                [$direction => $value],
+                ['null' => true],
+            ]);
         }
 
         return $this;

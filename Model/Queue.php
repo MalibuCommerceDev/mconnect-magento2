@@ -19,8 +19,6 @@ namespace MalibuCommerce\MConnect\Model;
  * @method string getDetails()
  * @method string getMessage()
  * @method Queue setMessage(string $message)
- *
- * @package MalibuCommerce\MConnect\Model
  */
 class Queue extends \Magento\Framework\Model\AbstractModel
 {
@@ -102,7 +100,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
 
     public function _construct()
     {
-        $this->_init('MalibuCommerce\MConnect\Model\Resource\Queue');
+        $this->_init(\MalibuCommerce\MConnect\Model\ResourceModel\Queue::class);
     }
 
     /**
@@ -158,7 +156,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         }
         $details = is_array($details) ? json_encode($details) : $details;
 
-        /** @var \MalibuCommerce\MConnect\Model\Resource\Queue\Collection $collection */
+        /** @var \MalibuCommerce\MConnect\Model\ResourceModel\Queue\Collection $collection */
         $collection = $this->getCollection();
         $item = $collection->findMatchingPending($code, $action, $websiteId, $navPageNumber, $id, $details);
 

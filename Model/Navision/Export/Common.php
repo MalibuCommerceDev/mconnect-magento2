@@ -34,7 +34,6 @@ class Common extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection,
         \Psr\Log\LoggerInterface $logger,
-
         array $data = []
     ) {
         $this->config = $config;
@@ -46,6 +45,7 @@ class Common extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
 
     public function export($page = 0, $lastUpdated = false, $websiteId = 0)
     {
+        return false;
     }
 
     /**
@@ -63,19 +63,19 @@ class Common extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         foreach ($options as $field => $value) {
             $params->$field = $value;
         }
-        $response = $this->mConnectNavisionConnection->ExportList(array(
+        $response = $this->mConnectNavisionConnection->ExportList([
             'requestXML'  => base64_encode($xml->asXML()),
             'responseXML' => false,
             'errorLogXML' => false,
-        ));
+        ]);
         $this->handleErrorLogXml($response);
         if (!$response || (!isset($response->responseXML) && !strlen($response->responseXML))) {
             return false;
         }
         $xml = new \simpleXMLElement(base64_decode($response->responseXML));
-        $entities = array();
+        $entities = [];
         foreach ($xml->{$this->_listNode} as $entity) {
-            $data = array();
+            $data = [];
             foreach ($entity as $attr => $value) {
                 $pieces = preg_split('/(?=[A-Z])/', $attr);
                 foreach ($pieces as &$piece) {

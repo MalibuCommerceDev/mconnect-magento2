@@ -1,14 +1,14 @@
-<?php /* @var $this \MalibuCommerce\MConnect\Block\Sync\Product */ ?>
+<?php /* @var $block \MalibuCommerce\MConnect\Block\Sync\Product */ ?>
 <div class="container-fluid">
-    <input type="hidden" name="auth" value="<?php echo $this->getAuth() ?>" />
-    <input type="hidden" name="identifier" value="<?php echo $this->getIdentifier() ?>" />
-    <input type="hidden" name="base_url" value="<?php echo $this->getUrl('') ?>" />
+    <input type="hidden" name="auth" value="<?= $block->getAuth() ?>" />
+    <input type="hidden" name="identifier" value="<?= $block->getIdentifier() ?>" />
+    <input type="hidden" name="base_url" value="<?= $block->getUrl('') ?>" />
 
     <div class="row">
         <div class="col-lg-10 col-lg-offset-1 col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-1">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title"><?php echo $this->getTitle() ?></h3>
+                    <h3 class="panel-title"><?= $block->getTitle() ?></h3>
                 </div>
                 <div class="panel-body">
                     <input type="hidden" name="type" value="product-import" />

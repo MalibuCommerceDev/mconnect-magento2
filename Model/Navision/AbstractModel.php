@@ -57,12 +57,12 @@ abstract class AbstractModel extends \Magento\Framework\DataObject
         return $this->mConnectNavisionConnection;
     }
 
-    protected function _export($action, $parameters = array(), $websiteId = 0)
+    protected function _export($action, $parameters = [], $websiteId = 0)
     {
         static $attempts = 1;
 
         try {
-            $responseXml = $this->doRequest(\MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT, $this->prepareRequestXml($action, $parameters),  $websiteId);
+            $responseXml = $this->doRequest(\MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT, $this->prepareRequestXml($action, $parameters), $websiteId);
         } catch (\Throwable $e) {
             if (!$this->config->getWebsiteData('nav_connection/retry_on_failure', $websiteId)) {
                 $attempts = 1;
@@ -90,7 +90,7 @@ abstract class AbstractModel extends \Magento\Framework\DataObject
         throw new \RuntimeException('Empty Response from NAV server, try to increase NAV connection timeout in Magento Admin Panel -> Stores -> Configuration -> Services -> Malibu Connect -> NAV Connection');
     }
 
-    protected function _import($action, $parameters = array(), $websiteId = 0)
+    protected function _import($action, $parameters = [], $websiteId = 0)
     {
         return $this->prepareResponseXml(
             $this->doRequest(
@@ -101,7 +101,7 @@ abstract class AbstractModel extends \Magento\Framework\DataObject
         );
     }
 
-    protected function prepareRequestXml($action, $parameters = array())
+    protected function prepareRequestXml($action, $parameters = [])
     {
         if ($parameters instanceof \simpleXMLElement) {
             $xml = $parameters;
@@ -160,7 +160,7 @@ abstract class AbstractModel extends \Magento\Framework\DataObject
         if (isset($response->errorLogXML) && strlen($response->errorLogXML)) {
             $xml = new \simpleXMLElement(base64_decode($response->errorLogXML));
             if (isset($xml->Error) && (strlen($xml->Error) || count($xml->Error))) {
-                $errors = array();
+                $errors = [];
                 foreach ($xml->Error as $error) {
                     $errors[] = (string) $error;
                 }

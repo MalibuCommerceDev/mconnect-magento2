@@ -1,8 +1,7 @@
 <?php
-namespace MalibuCommerce\MConnect\Model\Resource\Adminhtml;
+namespace MalibuCommerce\MConnect\Model\ResourceModel\Adminhtml;
 
-
-class Pricerule extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
+class Queue extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**
      * Date model
@@ -20,12 +19,10 @@ class Pricerule extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     public function __construct(
         \Magento\Framework\Stdlib\DateTime\DateTime $date,
         \Magento\Framework\Model\ResourceModel\Db\Context $context
-    )
-    {
+    ) {
         $this->_date = $date;
         parent::__construct($context);
     }
-
 
     /**
      * Initialize resource model
@@ -34,6 +31,6 @@ class Pricerule extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      */
     protected function _construct()
     {
-        $this->_init('malibucommerce_mconnect_price_rule', 'id');
+        $this->_init('malibucommerce_mconnect_queue', 'id');
     }
 }

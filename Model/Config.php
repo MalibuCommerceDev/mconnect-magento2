@@ -98,7 +98,7 @@ class Config
     {
         $value = $this->getWebsiteData('nav_connection/ntlm', $websiteId);
 
-        switch($value) {
+        switch ($value) {
             case self::AUTH_METHOD_NTLM:
                 return CURLAUTH_NTLM;
             case self::AUTH_METHOD_DIGEST:
@@ -238,7 +238,6 @@ class Config
     {
         return explode(',', $this->getWebsiteData('customer/nav_reports_allowed_customer_groups', $websiteId));
     }
-
 
     /**
      * @param null|int|string|\Magento\Store\Model\Website $websiteId

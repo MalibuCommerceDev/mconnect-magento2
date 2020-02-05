@@ -69,7 +69,7 @@ class Soap
             $this->registerClient($websiteId);
 
             unset($arguments['website_id']);
-            $result = call_user_func_array(array($this->soapClients[$websiteId], $method), $arguments);
+            $result = call_user_func_array([$this->soapClients[$websiteId], $method], $arguments);
 
             $this->mConnectHelper->logSoapRequestResponse(
                 $this->soapClients[$websiteId]->__getLastRequest(),

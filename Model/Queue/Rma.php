@@ -116,7 +116,7 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         }
 
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $rmaModelFactory = $objectManager->create('\Magento\Rma\Model\RmaFactory');
+        $rmaModelFactory = $objectManager->create(\Magento\Rma\Model\RmaFactory::class);
         $rmaModel = $rmaModelFactory->create();
         $rmaModel->setData(
             [
@@ -234,7 +234,7 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         $errorKeys = [];
 
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $rmaItemFactory = $objectManager->create('\Magento\Rma\Model\ItemFactory');
+        $rmaItemFactory = $objectManager->create(\Magento\Rma\Model\ItemFactory::class);
         foreach ($data['items'] as $key => $item) {
             /** @var $itemModel \Magento\Rma\Model\Item */
             $itemModel = $rmaItemFactory->create();
@@ -286,7 +286,7 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         $errors = [];
         $errorKeys = [];
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $itemFactory = $objectManager->create('\Magento\Rma\Model\ResourceModel\ItemFactory');
+        $itemFactory = $objectManager->create(\Magento\Rma\Model\ResourceModel\ItemFactory::class);
 
         /** @var $itemResource \Magento\Rma\Model\ResourceModel\Item */
         $itemResource = $itemFactory->create();
@@ -346,7 +346,7 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         $preparePost = [];
         $qtyKeys = ['qty_authorized', 'qty_returned', 'qty_approved'];
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $rmaData = $objectManager->create('\Magento\Rma\Helper\Data');
+        $rmaData = $objectManager->create(\Magento\Rma\Helper\Data::class);
 
         ksort($item);
         foreach ($item as $key => $value) {

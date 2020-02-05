@@ -92,7 +92,7 @@ class UpgradeData implements UpgradeDataInterface
     {
         $customerSetup = $this->customerSetupFactory->create(['setup' => $setup]);
 
-        $customerSetup->addAttribute(Customer::ENTITY, 'nav_id', array(
+        $customerSetup->addAttribute(Customer::ENTITY, 'nav_id', [
             'label'                 => 'Customer NAV ID',
             'type'                  => 'static',
             'input'                 => 'text',
@@ -106,7 +106,7 @@ class UpgradeData implements UpgradeDataInterface
             'is_visible_in_grid'    => true,
             'is_filterable_in_grid' => true,
             'is_searchable_in_grid' => true,
-        ));
+        ]);
 
         /** @var EavSetup $eavSetup */
         $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
@@ -161,8 +161,8 @@ class UpgradeData implements UpgradeDataInterface
         /** @var EavSetup $eavSetup */
         $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
-        $attributes = array(
-            'nav_price_group'   => array(
+        $attributes = [
+            'nav_price_group'   => [
                 'label'                 => 'Navision Price Group',
                 'type'                  => 'static',
                 'input'                 => 'text',
@@ -176,8 +176,8 @@ class UpgradeData implements UpgradeDataInterface
                 'is_visible_in_grid'    => false,
                 'is_filterable_in_grid' => false,
                 'is_searchable_in_grid' => false,
-            ),
-            'nav_payment_terms' => array(
+            ],
+            'nav_payment_terms' => [
                 'label'                 => 'Navision Payment Terms',
                 'type'                  => 'static',
                 'input'                 => 'textarea',
@@ -191,8 +191,8 @@ class UpgradeData implements UpgradeDataInterface
                 'is_visible_in_grid'    => false,
                 'is_filterable_in_grid' => false,
                 'is_searchable_in_grid' => false,
-            )
-        );
+            ]
+        ];
 
         $entityTypeId = $eavSetup->getEntityTypeId(Customer::ENTITY);
         $attributeSetId = $eavSetup->getDefaultAttributeSetId($entityTypeId);
@@ -219,21 +219,21 @@ class UpgradeData implements UpgradeDataInterface
         $setup->getConnection()->addColumn(
             $setup->getTable('customer_entity'),
             'nav_price_group',
-            array(
+            [
                 'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
                 'length'  => 255,
                 'comment' => 'NAV Price Group'
-            )
+            ]
         );
 
         $setup->getConnection()->addColumn(
             $setup->getTable('customer_entity'),
             'nav_payment_terms',
-            array(
+            [
                 'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
                 'length'  => '64k',
                 'comment' => 'NAV Payment Terms'
-            )
+            ]
         );
     }
 

@@ -214,9 +214,9 @@ class Mail extends \Magento\Framework\App\Helper\AbstractHelper
         $mainEmailName,
         $template,
         $sender,
-        $variables = array(),
-        $emailToList = array(),
-        $bccEmailToList = array(),
+        $variables = [],
+        $emailToList = [],
+        $bccEmailToList = [],
         $area = \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE,
         $storeId = \Magento\Store\Model\Store::DEFAULT_STORE_ID
     ) {
@@ -293,7 +293,7 @@ class Mail extends \Magento\Framework\App\Helper\AbstractHelper
         }
 
         if (empty($emails)) {
-            return array();
+            return [];
         }
 
         $emails = array_map(function ($email) {

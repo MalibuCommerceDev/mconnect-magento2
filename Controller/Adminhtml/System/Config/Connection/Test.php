@@ -62,7 +62,7 @@ class Test extends Action
             $url = $this->mConnectConfig->getNavConnectionUrl($websiteId);
             $username = $this->mConnectConfig->getNavConnectionUsername($websiteId);
             $password = $this->mConnectConfig->getNavConnectionPassword($websiteId);
-            $options = array(
+            $options = [
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_URL            => $url,
                 CURLOPT_USERAGENT      => 'PHP-SOAP-CURL',
@@ -72,7 +72,7 @@ class Test extends Action
                 CURLOPT_HEADER         => true,
                 CURLOPT_NOBODY         => true,
                 CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
-            );
+            ];
             if ($this->mConnectConfig->getIsInsecureConnectionAllowed($websiteId)) {
                 $options[CURLOPT_SSL_VERIFYHOST] = 0;
                 $options[CURLOPT_SSL_VERIFYPEER] = 0;

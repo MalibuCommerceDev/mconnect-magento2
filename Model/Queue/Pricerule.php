@@ -86,7 +86,7 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue implements Importab
             'date_end'             => ((string)$data->end_date) ? date('Y:m:d H:i:s', strtotime((string)$data->end_date)) : null,
         ];
 
-        /** @var \MalibuCommerce\MConnect\Model\Resource\Pricerule\Collection $collection */
+        /** @var \MalibuCommerce\MConnect\Model\ResourceModel\Pricerule\Collection $collection */
         $collection = $this->rule->getCollection()
             ->addFilter('nav_id', (int)$data->unique_id)
             ->addFilter('website_id', (int)$websiteId)

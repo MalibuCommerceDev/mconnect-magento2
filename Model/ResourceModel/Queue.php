@@ -1,6 +1,6 @@
 <?php
 
-namespace MalibuCommerce\MConnect\Model\Resource;
+namespace MalibuCommerce\MConnect\Model\ResourceModel;
 
 class Queue extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {

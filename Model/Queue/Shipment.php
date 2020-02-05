@@ -239,7 +239,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
 
         $shipmentItems = $this->getShippingItems($order, $navEntity);
 
-        $tracks = array();
+        $tracks = [];
         if (isset($navEntity->package_tracking)) {
             $systemCarriers = $this->getCarriers();
 
@@ -290,7 +290,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
      */
     protected function getShippingItems($order, $navEntity)
     {
-        $navShipmentItems = array();
+        $navShipmentItems = [];
         foreach ($navEntity->shipment_item as $item) {
             $sku = (string)$item->nav_item_id;
             $sku = strtolower(trim($sku));
@@ -332,7 +332,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
      */
     protected function isShipmentPartial($order, $navEntity)
     {
-        $navShipmentItems = array();
+        $navShipmentItems = [];
         foreach ($navEntity->shipment_item as $item) {
             $sku = (string)$item->nav_item_id;
             $sku = strtolower(trim($sku));
@@ -372,7 +372,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
      */
     protected function getInvoiceItems($order, $navEntity)
     {
-        $navInvoiceItems = array();
+        $navInvoiceItems = [];
         foreach ($navEntity->shipment_item as $item) {
             $sku = (string)$item->nav_item_id;
             $sku = strtolower(trim($sku));

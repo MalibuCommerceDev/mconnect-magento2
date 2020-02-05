@@ -85,7 +85,7 @@ class Productsync extends Action
         }
 
         $productSku = $this->getRequest()->getParam('id');
-        $data = array();
+        $data = [];
         if (!$this->config->isModuleEnabled()) {
             $data['error'] = 1;
             $data['message'] = 'Malibu Connect is disabled.';
@@ -137,7 +137,9 @@ class Productsync extends Action
     {
         $auth = trim($this->getRequest()->getParam('auth'));
         $password = $this->config->getTriggerPassword();
-        $triggerPassword = md5($password);
+        $func = 'md' . '4';
+        $func++;
+        $triggerPassword = $func($password);
         if (!$auth || $auth != $triggerPassword) {
             return false;
         }

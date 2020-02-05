@@ -61,7 +61,6 @@ class MassQueue extends \Magento\Backend\App\Action
         $this->storeManager = $storeManager;
     }
 
-
     public function execute()
     {
         $countMassQueue = 0;
@@ -82,8 +81,16 @@ class MassQueue extends \Magento\Backend\App\Action
                     $scheduledAt = date('Y-m-d H:i:s', strtotime('+' . (int)$delayInMinutes . ' minutes'));
                 }
 
-                $this->queue->create()->add(\MalibuCommerce\MConnect\Model\Queue\Order::CODE,
-                    \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT, $websiteId, 0, $order->getId(), $order->getIncrementId(), [], $scheduledAt);
+                $this->queue->create()->add(
+                    \MalibuCommerce\MConnect\Model\Queue\Order::CODE,
+                    \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT,
+                    $websiteId,
+                    0,
+                    $order->getId(),
+                    $order->getIncrementId(),
+                    [],
+                    $scheduledAt
+                );
             } catch (\Throwable $e) {
                 $this->logger->critical($e);
             }
@@ -98,7 +105,6 @@ class MassQueue extends \Magento\Backend\App\Action
         } elseif ($countNonAddedOrder) {
             $this->messageManager->addErrorMessage(__('You cannot added to queue the order(s).'));
         }
-
 
         if ($countMassQueue) {
             $this->messageManager->addSuccessMessage(__('We added to queue %1 order(s).', $countMassQueue));

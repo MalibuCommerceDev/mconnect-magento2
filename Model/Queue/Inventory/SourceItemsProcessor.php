@@ -9,7 +9,6 @@ use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\InventoryApi\Api\Data\SourceItemInterface;
 
-
 /**
  * Save source product relations during inventory sync from NAV to Magento
  *
@@ -25,9 +24,7 @@ class SourceItemsProcessor
      */
     protected $sourceItemsProcessor;
 
-
     private $isSingleSourceMode;
-
 
     protected $defaultSourceProvider;
 
@@ -35,7 +32,6 @@ class SourceItemsProcessor
      * @var SearchCriteriaBuilderFactory
      */
     protected $searchCriteriaBuilderFactory;
-
 
     protected $sourceItemRepository;
 
@@ -72,19 +68,19 @@ class SourceItemsProcessor
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $this->isSourceItemManagementAllowedForProductType = $objectManager->create(
-            'Magento\InventoryConfigurationApi\Model\IsSourceItemManagementAllowedForProductTypeInterface'
+            \Magento\InventoryConfigurationApi\Model\IsSourceItemManagementAllowedForProductTypeInterface::class
         );
         $this->sourceItemsProcessor = $objectManager->create(
-            'Magento\InventoryCatalogAdminUi\Observer\SourceItemsProcessor'
+            \Magento\InventoryCatalogAdminUi\Observer\SourceItemsProcessor::class
         );
         $this->defaultSourceProvider = $objectManager->create(
-            'Magento\InventoryCatalogApi\Api\DefaultSourceProviderInterface'
+            \Magento\InventoryCatalogApi\Api\DefaultSourceProviderInterface::class
         );
         $this->sourceItemRepository = $objectManager->create(
-            'Magento\InventoryApi\Api\SourceItemRepositoryInterface'
+            \Magento\InventoryApi\Api\SourceItemRepositoryInterface::class
         );
         $this->isSingleSourceMode = $objectManager->create(
-            'Magento\InventoryCatalogApi\Model\IsSingleSourceModeInterface'
+            \Magento\InventoryCatalogApi\Model\IsSingleSourceModeInterface::class
         );
 
         if ($this->isSourceItemManagementAllowedForProductType->execute($product->getTypeId()) === false) {
@@ -126,7 +122,7 @@ class SourceItemsProcessor
 
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $this->sourceItemRepository = $objectManager->create(
-            'Magento\InventoryApi\Api\SourceItemRepositoryInterface'
+            \Magento\InventoryApi\Api\SourceItemRepositoryInterface::class
         );
         $sourceItems = $this->sourceItemRepository->getList($searchCriteria)->getItems();
 
