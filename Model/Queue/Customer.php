@@ -161,7 +161,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         }
 
         if ($status == 'Error') {
-            $errors = array();
+            $errors = [];
             foreach ($response->result->Customer as $customer) {
                 foreach ($customer->error as $error) {
                     $errors[] = (string)$error->message;

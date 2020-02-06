@@ -11,10 +11,10 @@
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <arguments>
             <argument name="collections" xsi:type="array">
-                <item name="mconnect_queue_grid_data_source" xsi:type="string">MalibuCommerce\MConnect\Model\Resource\Adminhtml\Queue\Grid\Collection</item>
-                <item name="mconnect_pricerule_grid_data_source" xsi:type="string">MalibuCommerce\MConnect\Model\Resource\Adminhtml\Pricerule\Grid\Collection</item>
-                <item name="sales_order_grid_data_source" xsi:type="string">MalibuCommerce\MConnect\Model\Resource\Order\Grid\Collection</item>
-                <item name="customer_listing_data_source" xsi:type="string">MalibuCommerce\MConnect\Model\Resource\Customer\Grid\Collection</item>
+                <item name="mconnect_queue_grid_data_source" xsi:type="string">MalibuCommerce\MConnect\Model\ResourceModel\Adminhtml\Queue\Grid\Collection</item>
+                <item name="mconnect_pricerule_grid_data_source" xsi:type="string">MalibuCommerce\MConnect\Model\ResourceModel\Adminhtml\Pricerule\Grid\Collection</item>
+                <item name="sales_order_grid_data_source" xsi:type="string">MalibuCommerce\MConnect\Model\ResourceModel\Order\Grid\Collection</item>
+                <item name="customer_listing_data_source" xsi:type="string">MalibuCommerce\MConnect\Model\ResourceModel\Customer\Grid\Collection</item>
             </argument>
         </arguments>
     </type>

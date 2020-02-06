@@ -87,17 +87,17 @@ class Invoice extends \MalibuCommerce\MConnect\Controller\Navision
     {
         $entities = false;
         if ($this->getRequest()->getParam('search')) {
-            $details = array(
+            $details = [
                 'customer_number' => $this->customerSession->getCustomer()->getNavId(),
-            );
-            $params = array(
+            ];
+            $params = [
                 'date_from'           => 'start_date',
                 'date_to'             => 'end_date',
                 'po_number_from'      => 'start_po_number',
                 'po_number_to'        => 'end_po_number',
                 'invoice_number_from' => 'start_invoice_number',
                 'invoice_number_to'   => 'end_invoice_number',
-            );
+            ];
             foreach ($params as $name => $key) {
                 $value = $this->getRequest()->getParam($name);
                 if ($value) {

@@ -21,8 +21,8 @@ class NavStatus extends \Magento\Ui\Component\Listing\Columns\Column
         Queue $queue,
         \MalibuCommerce\MConnect\Helper\Data $helper,
         array $components = [],
-        array $data = [])
-    {
+        array $data = []
+    ) {
         $this->helper = $helper;
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
@@ -41,5 +41,4 @@ class NavStatus extends \Magento\Ui\Component\Listing\Columns\Column
 
         return $dataSource;
     }
-
 }

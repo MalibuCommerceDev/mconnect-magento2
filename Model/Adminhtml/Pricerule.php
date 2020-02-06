@@ -2,10 +2,9 @@
 
 namespace MalibuCommerce\MConnect\Model\Adminhtml;
 
-use MalibuCommerce\MConnect\Model\Resource\Adminhtml\Pricerule as RuleResourceModel;
+use MalibuCommerce\MConnect\Model\ResourceModel\Adminhtml\Pricerule as RuleResourceModel;
 
-class Pricerule extends \Magento\Framework\Model\AbstractModel
-    implements \Magento\Framework\DataObject\IdentityInterface
+class Pricerule extends \Magento\Framework\Model\AbstractModel implements \Magento\Framework\DataObject\IdentityInterface
 {
     const CACHE_TAG = 'mconnect_pricerule';
 

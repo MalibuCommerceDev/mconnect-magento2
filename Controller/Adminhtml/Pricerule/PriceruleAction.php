@@ -55,7 +55,7 @@ abstract class PriceruleAction extends \Magento\Backend\App\Action
     {
         $this->coreRegistry->register(
             'current_mconnect_rule',
-            $this->_objectManager->create('MalibuCommerce\MConnect\Model\Pricerule')
+            $this->_objectManager->create(\MalibuCommerce\MConnect\Model\Pricerule::class)
         );
         $id = (int)$this->getRequest()->getParam('id');
 

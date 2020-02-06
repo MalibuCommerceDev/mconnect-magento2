@@ -11,7 +11,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel implements \Magento\F
 
     protected function _construct()
     {
-        $this->_init('MalibuCommerce\MConnect\Model\Resource\Adminhtml\Queue');
+        $this->_init(\MalibuCommerce\MConnect\Model\ResourceModel\Adminhtml\Queue::class);
     }
 
     public function getIdentities()

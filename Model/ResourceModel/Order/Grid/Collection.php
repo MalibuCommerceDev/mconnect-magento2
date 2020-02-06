@@ -1,8 +1,8 @@
 <?php
 
-namespace MalibuCommerce\MConnect\Model\Resource\Customer\Grid;
+namespace MalibuCommerce\MConnect\Model\ResourceModel\Order\Grid;
 
-use Magento\Customer\Model\ResourceModel\Grid\Collection as OriginalCollection;
+use Magento\Sales\Model\ResourceModel\Order\Grid\Collection as OriginalCollection;
 
 class Collection extends OriginalCollection
 {

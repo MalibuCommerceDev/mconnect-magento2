@@ -15,6 +15,6 @@ class Connection
 
     public function __call($method, $arguments)
     {
-        return call_user_func_array(array($this->soapConnection, $method), $arguments);
+        return call_user_func_array([$this->soapConnection, $method], $arguments);
     }
 }

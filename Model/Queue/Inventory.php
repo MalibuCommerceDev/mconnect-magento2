@@ -109,7 +109,7 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
             }
 
             // Magento >= 2.3.x logic
-            if (class_exists('\Magento\InventoryConfigurationApi\Api\GetStockItemConfigurationInterface')) {
+            if (class_exists(\Magento\InventoryConfigurationApi\Api\GetStockItemConfigurationInterface::class)) {
                 $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
                 /** @var \MalibuCommerce\MConnect\Model\Queue\Inventory\SourceItemsProcessor $inventoryProcessor */
                 $inventoryProcessor = $objectManager->create(

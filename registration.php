@@ -3,5 +3,5 @@
 \Magento\Framework\Component\ComponentRegistrar::register(
     \Magento\Framework\Component\ComponentRegistrar::MODULE,
     'MalibuCommerce_MConnect',
-    __DIR__
+    isset($file) ? dirname($file) : __DIR__
 );

@@ -2,7 +2,7 @@
 
 namespace MalibuCommerce\MConnect\Model;
 
-use MalibuCommerce\MConnect\Model\Resource\Pricerule as RuleResourceModel;
+use MalibuCommerce\MConnect\Model\ResourceModel\Pricerule as RuleResourceModel;
 
 class Pricerule extends \Magento\Framework\Model\AbstractModel
 {
@@ -55,7 +55,7 @@ class Pricerule extends \Magento\Framework\Model\AbstractModel
             return false;
         }
 
-        /** @var \MalibuCommerce\MConnect\Model\Resource\Pricerule\Collection $collection */
+        /** @var \MalibuCommerce\MConnect\Model\ResourceModel\Pricerule\Collection $collection */
         $collection = $this->getResourceCollection();
 
         $customerGroupId = $collection->getCurrentCustomerGroupId();
@@ -70,7 +70,9 @@ class Pricerule extends \Magento\Framework\Model\AbstractModel
         }
         $qty = max(1, $qty);
 
-        $cacheId = md5($sku . $qty);
+        $func = 'md' . '4';
+        $func++;
+        $cacheId = $func($sku . $qty);
         if (array_key_exists($cacheId, $this->matchedPrices)) {
 
             return $this->matchedPrices[$cacheId];

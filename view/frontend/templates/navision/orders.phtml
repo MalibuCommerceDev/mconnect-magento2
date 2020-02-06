@@ -4,15 +4,15 @@
  */
 $orders = $block->getOrders();
 ?>
-<form action="<?php echo $block->getUrl('*/*/orderhistory') ?>" method="post" id="mconnect-orders-list" class="form" autocomplete="off">
+<form action="<?= $block->getUrl('*/*/orderhistory') ?>" method="post" id="mconnect-orders-list" class="form" autocomplete="off">
     <table>
         <tr>
             <td>
                 <fieldset class="fieldset">
                     <div class="field date-from">
-                        <label for="date_from"><?php echo __('Start Date') ?></label>
+                        <label for="date_from"><?= __('Start Date') ?></label>
                         <div class="input-box">
-                            <input type="text" id="date_from" name="date_from" title="<?php echo __('Start Date') ?>" class="input-text" data-validate="{'validate-date':true}" value="<?php echo $block->getFieldValue('date_from') ?>" style="width: 250px;" />
+                            <input type="text" id="date_from" name="date_from" title="<?= __('Start Date') ?>" class="input-text" data-validate="{'validate-date':true}" value="<?= $block->getFieldValue('date_from') ?>" style="width: 250px;" />
                             <script type="text/javascript">
                                 require([
                                     "jquery",
@@ -33,15 +33,15 @@ $orders = $block->getOrders();
                         </div>
                     </div>
                     <div class="field po_number-from">
-                        <label for="po_number_from"><?php echo __('Start PO Number') ?></label>
+                        <label for="po_number_from"><?= __('Start PO Number') ?></label>
                         <div class="input-box">
-                            <input type="text" id="po_number_from" name="po_number_from" title="<?php echo __('Start PO Number') ?>" class="input-text" value="<?php echo $block->getFieldValue('po_number_from') ?>" />
+                            <input type="text" id="po_number_from" name="po_number_from" title="<?= __('Start PO Number') ?>" class="input-text" value="<?= $block->getFieldValue('po_number_from') ?>" />
                         </div>
                     </div>
                     <div class="field order_number-from">
-                        <label for="order_number_from"><?php echo __('Start Order Number') ?></label>
+                        <label for="order_number_from"><?= __('Start Order Number') ?></label>
                         <div class="input-box">
-                            <input type="text" id="order_number_from" name="order_number_from" title="<?php echo __('Start Order Number') ?>" class="input-text" value="<?php echo $block->getFieldValue('order_number_from') ?>" />
+                            <input type="text" id="order_number_from" name="order_number_from" title="<?= __('Start Order Number') ?>" class="input-text" value="<?= $block->getFieldValue('order_number_from') ?>" />
                         </div>
                     </div>
                 </fieldset>
@@ -49,9 +49,9 @@ $orders = $block->getOrders();
             <td>
                 <fieldset class="fieldset">
                     <div class="field date-to">
-                        <label for="date_to"><?php echo __('End Date') ?></label>
+                        <label for="date_to"><?= __('End Date') ?></label>
                         <div class="input-box">
-                            <input type="text" id="date_to" name="date_to" title="<?php echo __('End Date') ?>" class="input-text" data-validate="{'validate-date':true}" value="<?php echo $block->getFieldValue('date_to') ?>" style="width: 250px;" />
+                            <input type="text" id="date_to" name="date_to" title="<?= __('End Date') ?>" class="input-text" data-validate="{'validate-date':true}" value="<?= $block->getFieldValue('date_to') ?>" style="width: 250px;" />
                             <script type="text/javascript">
                                 require([
                                     "jquery",
@@ -72,15 +72,15 @@ $orders = $block->getOrders();
                         </div>
                     </div>
                     <div class="field po_number-to">
-                        <label for="po_number_to"><?php echo __('End PO Number') ?></label>
+                        <label for="po_number_to"><?= __('End PO Number') ?></label>
                         <div class="input-box">
-                            <input type="text" id="po_number_to" name="po_number_to" title="<?php echo __('End PO Number') ?>" class="input-text" value="<?php echo $block->getFieldValue('po_number_to') ?>" />
+                            <input type="text" id="po_number_to" name="po_number_to" title="<?= __('End PO Number') ?>" class="input-text" value="<?= $block->getFieldValue('po_number_to') ?>" />
                         </div>
                     </div>
                     <div class="field order_number-to">
-                        <label for="order_number_to"><?php echo __('End Order Number') ?></label>
+                        <label for="order_number_to"><?= __('End Order Number') ?></label>
                         <div class="input-box">
-                            <input type="text" id="order_number_to" name="order_number_to" title="<?php echo __('End Order Number') ?>" class="input-text" value="<?php echo $block->getFieldValue('order_number_to') ?>" />
+                            <input type="text" id="order_number_to" name="order_number_to" title="<?= __('End Order Number') ?>" class="input-text" value="<?= $block->getFieldValue('order_number_to') ?>" />
                         </div>
                     </div>
                 </fieldset>
@@ -88,41 +88,41 @@ $orders = $block->getOrders();
         </tr>
     </table>
     <div class="buttons-set">
-        <button type="submit" name="search" value="1" title="<?php echo __('Search') ?>" class="button action submit primary"><span><span><?php echo __('Search') ?></span></span></button>
+        <button type="submit" name="search" value="1" title="<?= __('Search') ?>" class="button action submit primary"><span><span><?= __('Search') ?></span></span></button>
     </div>
 </form>
 <div class="nav-content">
 <?php if ($orders && count($orders)): ?>
-    <h3><?php echo __('Orders List') ?></h3>
+    <h3><?= __('Orders List') ?></h3>
     <table class="mconnect-nav-table">
         <thead>
         <tr>
-            <th><?php echo __('Order #') ?></th>
-            <th><?php echo __('PO Number') ?></th>
-            <th><?php echo __('Order Date') ?></th>
-            <th><?php echo __('Order Amount') ?></th>
-            <th><?php echo __('Ship To') ?></th>
-            <th><?php echo __('Ship To Address') ?></th>
+            <th><?= __('Order #') ?></th>
+            <th><?= __('PO Number') ?></th>
+            <th><?= __('Order Date') ?></th>
+            <th><?= __('Order Amount') ?></th>
+            <th><?= __('Ship To') ?></th>
+            <th><?= __('Ship To Address') ?></th>
             <th>&nbsp;</th>
         </tr>
         </thead>
         <tbody>
         <?php foreach ($orders as $order): ?>
-            <?php $orderAmount = $this->helper('Magento\Framework\Pricing\Helper\Data')->currency($order->getOrderAmt(), true, false); ?>
+            <?php $orderAmount = $block->helper(\Magento\Framework\Pricing\Helper\Data::class)->currency($order->getOrderAmt(), true, false); ?>
             <tr>
-                <td><?php echo $order->getOrderNumber() ?></td>
-                <td><?php echo $order->getPoNumber() ?></td>
-                <td><?php echo date("D, j M, Y", strtotime($order->getOrderDate())) ?></td>
-                <td><?php echo $orderAmount; ?></td>
-                <td><?php echo $order->getShipToName() ?></td>
-                <td><?php echo $order->getShipToAddress() ?></td>
-                <td><a target="_blank" href="<?php echo $block->getUrl('*/*/orderview', array('number' => $order->getOrderNumber())) ?>"><?php echo __('View') ?></a></td>
+                <td><?= $order->getOrderNumber() ?></td>
+                <td><?= $order->getPoNumber() ?></td>
+                <td><?= date("D, j M, Y", strtotime($order->getOrderDate())) ?></td>
+                <td><?= $orderAmount; ?></td>
+                <td><?= $order->getShipToName() ?></td>
+                <td><?= $order->getShipToAddress() ?></td>
+                <td><a target="_blank" href="<?= $block->getUrl('*/*/orderview', ['number' => $order->getOrderNumber()]) ?>"><?= __('View') ?></a></td>
             </tr>
         <?php endforeach ?>
         </tbody>
     </table>
 <?php elseif ($block->isSearchInitiated()): ?>
-    <span><?php echo __('We couldn\'t find any records.')?></span>
+    <span><?= __('We couldn\'t find any records.')?></span>
 <?php endif?>
 </div>
 <script type="text/javascript">

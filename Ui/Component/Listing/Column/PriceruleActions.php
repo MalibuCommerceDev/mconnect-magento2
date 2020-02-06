@@ -6,9 +6,6 @@ use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
 use Magento\Framework\UrlInterface;
 
-/**
- * Class PriceruleActions
- */
 class PriceruleActions extends Column
 {
     /**

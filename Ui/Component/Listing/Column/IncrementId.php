@@ -11,7 +11,6 @@ class IncrementId extends \Magento\Ui\Component\Listing\Columns\Column
      */
     protected $urlBuilder;
 
-
     /**
      * @var \Magento\Catalog\Model\ProductFactory
      */
@@ -66,11 +65,11 @@ class IncrementId extends \Magento\Ui\Component\Listing\Columns\Column
             if ($item['code'] === \MalibuCommerce\MConnect\Model\Queue\Customer::CODE) {
                 if ($item['action'] === \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT) {
                     if ($item['entity_id']) {
-                        $link = $this->urlBuilder->getUrl('customer/index/edit', array('id' => $item['entity_id']));
+                        $link = $this->urlBuilder->getUrl('customer/index/edit', ['id' => $item['entity_id']]);
                         $title = $item['entity_increment_id'];
                     }
                 }
-            } else if ($item['code'] === \MalibuCommerce\MConnect\Model\Queue\Product::CODE) {
+            } elseif ($item['code'] === \MalibuCommerce\MConnect\Model\Queue\Product::CODE) {
                 if ($item['action'] === 'import_single') {
                     if (!array_key_exists($item['entity_id'], $this->products)) {
                         $this->products[$item['entity_id']] = $this->catalogProductFactory->create()->load($item['entity_id']);
@@ -78,21 +77,22 @@ class IncrementId extends \Magento\Ui\Component\Listing\Columns\Column
 
                     $entity = $this->products[$item['entity_id']];
                     if ($entity->getId()) {
-                        $link = $this->urlBuilder->getUrl('catalog/product/edit', array('id' => $item['entity_id']));
+                        $link = $this->urlBuilder->getUrl('catalog/product/edit', ['id' => $item['entity_id']]);
                         $title = $entity->getName();
                     }
                 }
-            } else if ($item['code'] === \MalibuCommerce\MConnect\Model\Queue\Order::CODE) {if ($item['action'] === \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT) {
+            } elseif ($item['code'] === \MalibuCommerce\MConnect\Model\Queue\Order::CODE) {
+                if ($item['action'] === \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT) {
 
                     if ($item['entity_id']) {
-                        $link = $this->urlBuilder->getUrl('sales/order/view', array('order_id' => $item['entity_id']));
+                        $link = $this->urlBuilder->getUrl('sales/order/view', ['order_id' => $item['entity_id']]);
                         $title = '#' . $item['entity_increment_id'];
                     }
                 }
-            } else if ($item['code'] === \MalibuCommerce\MConnect\Model\Queue\Creditmemo::CODE) {
+            } elseif ($item['code'] === \MalibuCommerce\MConnect\Model\Queue\Creditmemo::CODE) {
                 if ($item['action'] === \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT) {
                     if ($item['entity_id']) {
-                        $link = $this->urlBuilder->getUrl('sales/creditmemo/view', array('creditmemo_id' => $item['entity_id']));
+                        $link = $this->urlBuilder->getUrl('sales/creditmemo/view', ['creditmemo_id' => $item['entity_id']]);
                         $title = '#' . $item['entity_increment_id'];
                     }
                 }

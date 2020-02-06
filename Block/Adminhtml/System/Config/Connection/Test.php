@@ -65,7 +65,7 @@ class Test extends Field
     public function getButtonHtml()
     {
         $button = $this->getLayout()->createBlock(
-            'Magento\Backend\Block\Widget\Button'
+            \Magento\Backend\Block\Widget\Button::class
         )->setData(
             [
                 'id' => 'test_connection_button',
@@ -76,4 +76,3 @@ class Test extends Field
         return $button->toHtml();
     }
 }
-?>

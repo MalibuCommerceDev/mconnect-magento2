@@ -4,9 +4,6 @@ namespace MalibuCommerce\MConnect\Block\Adminhtml\Pricerule\Edit;
 
 use Magento\Backend\Block\Widget\Context;
 
-/**
- * Class GenericButton
- */
 class GenericButton
 {
     /**

@@ -2,12 +2,9 @@
 
 namespace MalibuCommerce\MConnect\Ui\DataProvider;
 
-use MalibuCommerce\MConnect\Model\Resource\Pricerule\CollectionFactory;
+use MalibuCommerce\MConnect\Model\ResourceModel\Pricerule\CollectionFactory;
 use Magento\Framework\App\Request\DataPersistorInterface;
 
-/**
- * Class DataProvider
- */
 class Pricerule extends \Magento\Ui\DataProvider\AbstractDataProvider
 {
     /**

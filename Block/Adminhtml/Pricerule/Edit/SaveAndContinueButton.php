@@ -4,9 +4,6 @@ namespace MalibuCommerce\MConnect\Block\Adminhtml\Pricerule\Edit;
 
 use Magento\Framework\View\Element\UiComponent\Control\ButtonProviderInterface;
 
-/**
- * Class SaveAndContinueButton
- */
 class SaveAndContinueButton extends GenericButton implements ButtonProviderInterface
 {
 
