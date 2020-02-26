@@ -12,6 +12,7 @@ use Magento\Customer\Model\Customer;
 use Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
+use MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron\OrderExport;
 
 class UpgradeData implements UpgradeDataInterface
 {
@@ -38,23 +39,22 @@ class UpgradeData implements UpgradeDataInterface
     protected $encryptor;
 
     /**
-     * UpgradeData constructor.
-     *
-     * @param CustomerSetupFactory $customerSetupFactory
-     * @param EavSetupFactory      $eavSetupFactory
-     * @param WriterInterface      $configWriter
-     * @param EncryptorInterface   $encryptor
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
      */
+    protected $scopeConfig;
+
     public function __construct(
         CustomerSetupFactory $customerSetupFactory,
         EavSetupFactory $eavSetupFactory,
         WriterInterface $configWriter,
-        EncryptorInterface $encryptor
+        EncryptorInterface $encryptor,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
     ) {
         $this->customerSetupFactory = $customerSetupFactory;
         $this->eavSetupFactory = $eavSetupFactory;
         $this->configWriter = $configWriter;
         $this->encryptor = $encryptor;
+        $this->scopeConfig = $scopeConfig;
     }
 
     public function upgrade(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
@@ -83,6 +83,10 @@ class UpgradeData implements UpgradeDataInterface
 
         if (version_compare($context->getVersion(), '1.1.55', '<')) {
             $this->upgrade1_1_55($setup);
+        }
+
+        if (version_compare($context->getVersion(), '2.8.0', '<')) {
+            $this->upgrade2_8_0($setup);
         }
 
         $setup->endSetup();
@@ -324,29 +328,10 @@ class UpgradeData implements UpgradeDataInterface
         }
     }
 
-    protected function upgrade1_1_55(ModuleDataSetupInterface $setup)
+    protected function upgrade2_8_0(ModuleDataSetupInterface $setup)
     {
-        /**
-         * Update config path
-         */
-        $oldPath = 'malibucommerce_mconnect/customer/default_nav_id';
-        $newPath = 'malibucommerce_mconnect/customer/default_nav_id_magento_registered';
-        $setup->getConnection()->update($setup->getTable('core_config_data'), ['path' => $newPath], ['path = ?' => $oldPath]);
-
-        /**
-         * Encrypt NAV connection password
-         */
-        $select = $setup->getConnection()
-            ->select()
-            ->from($setup->getTable('core_config_data'), 'value')
-            ->where('path = ?', 'malibucommerce_mconnect/nav_connection/password');
-
-        $password = $setup->getConnection()->fetchOne($select);
-        // Don't save value, if an obscured value was received
-        if (!preg_match('/^\*+$/', $password) && !empty($password)) {
-            $password = $this->encryptor->encrypt($password);
-        }
-
-        $this->configWriter->save('malibucommerce_mconnect/nav_connection/password', $password);
+        $value = $this->scopeConfig->getValue('malibucommerce_mconnect/queue/cron_expr');
+        $this->configWriter->save(OrderExport::CRON_STRING_SCHEDULE_PATH, $value);
+        $this->configWriter->save(OrderExport::CRON_STRING_MODEL_PATH, '');
     }
 }

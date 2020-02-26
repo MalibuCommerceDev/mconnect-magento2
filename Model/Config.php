@@ -11,28 +11,15 @@ class Config
     const AUTH_METHOD_NTLM   = 1;
     const AUTH_METHOD_DIGEST = 2;
 
-    /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
-     */
+    /** @var \Magento\Framework\App\Config\ScopeConfigInterface  */
     protected $scopeConfig;
 
-    /**
-     * @var \Magento\Framework\Registry
-     */
+    /** @var \Magento\Framework\Registry  */
     protected $registry;
 
-    /**
-     * @var \Magento\Framework\Module\Manager
-     */
+    /** @var \Magento\Framework\Module\Manager  */
     protected $moduleManager;
 
-    /**
-     * Config constructor.
-     *
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
-     * @param \Magento\Framework\Registry                        $registry
-     * @param \Magento\Framework\Module\Manager                  $moduleManager
-     */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Framework\Registry $registry,
@@ -98,7 +85,7 @@ class Config
     {
         $value = $this->getWebsiteData('nav_connection/ntlm', $websiteId);
 
-        switch($value) {
+        switch ($value) {
             case self::AUTH_METHOD_NTLM:
                 return CURLAUTH_NTLM;
             case self::AUTH_METHOD_DIGEST:
@@ -180,7 +167,8 @@ class Config
      */
     public function getIsHoldNewOrdersExport($websiteId = null)
     {
-        return (bool)$this->getWebsiteData('order/hold_new_orders_export', $websiteId);
+        return (bool)$this->getWebsiteData('order/hold_new_orders_export', $websiteId)
+               && !$this->isScheduledOrdersExportEnabled($websiteId);
     }
 
     /**
@@ -230,6 +218,22 @@ class Config
     }
 
     /**
+     * @return bool
+     */
+    public function isScheduledOrdersExportEnabled()
+    {
+        return (bool)$this->getWebsiteData('order/enable_scheduled_orders_export');
+    }
+
+    /**
+     * @return int
+     */
+    public function getScheduledOrdersExportDelayTime()
+    {
+        return (int)$this->getWebsiteData('order/scheduled_orders_export_delay_time');
+    }
+
+    /**
      * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return array
@@ -238,7 +242,6 @@ class Config
     {
         return explode(',', $this->getWebsiteData('customer/nav_reports_allowed_customer_groups', $websiteId));
     }
-
 
     /**
      * @param null|int|string|\Magento\Store\Model\Website $websiteId
@@ -287,7 +290,8 @@ class Config
      */
     public function getErrorRecipients($websiteId = null)
     {
-        return array_map('trim', explode(',', $this->getWebsiteData('nav_connection/error_email_recipient', $websiteId)));
+        return array_map('trim',
+            explode(',', $this->getWebsiteData('nav_connection/error_email_recipient', $websiteId)));
     }
 
     /**
@@ -402,7 +406,7 @@ class Config
     /**
      * Get Malibu Mconnect config value per store
      *
-     * @param string $path
+     * @param string          $path
      * @param null|string|int $store
      *
      * @return mixed
@@ -419,7 +423,7 @@ class Config
     /**
      * Get Malibu Mconnect config value per website
      *
-     * @param string $path
+     * @param string          $path
      * @param null|string|int $website
      *
      * @return mixed
@@ -436,7 +440,7 @@ class Config
     /**
      * Get Global config value per store
      *
-     * @param string $path
+     * @param string          $path
      * @param null|string|int $store
      *
      * @return mixed
