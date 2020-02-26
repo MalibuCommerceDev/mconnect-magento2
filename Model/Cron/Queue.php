@@ -30,12 +30,8 @@ class Queue
     /** @var \Magento\Sales\Model\OrderFactory  */
     protected $salesOrderFactory;
 
-    /**
-     * Factory class for \Magento\Framework\Flag
-     *
-     * @var FlagFactory
-     */
-    private $flagFactory;
+    /** @var \MalibuCommerce\MConnect\Model\FlagFactory  */
+    protected $flagFactory;
 
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $config,
