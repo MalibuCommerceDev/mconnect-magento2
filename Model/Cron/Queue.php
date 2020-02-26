@@ -7,9 +7,9 @@ use \MalibuCommerce\MConnect\Model\Queue\Order as OrderModel;
 
 class Queue
 {
-    /**
-     * @var \MalibuCommerce\MConnect\Model\Config
-     */
+    const FLAG_ORDERS_EXPORT_LAST_RUN_TIME = 'malibucommerce_mconnect_orders_export_last_run_time';
+
+    /** @var \MalibuCommerce\MConnect\Model\Config  */
     protected $config;
 
     /**
@@ -27,30 +27,30 @@ class Queue
      */
     protected $mConnectMailer;
 
-    /**
-     * @var \Magento\Sales\Model\OrderFactory
-     */
+    /** @var \Magento\Sales\Model\OrderFactory  */
     protected $salesOrderFactory;
 
     /**
-     * Queue constructor.
+     * Factory class for \Magento\Framework\Flag
      *
-     * @param \MalibuCommerce\MConnect\Model\Config                           $config
-     * @param \MalibuCommerce\MConnect\Model\Resource\Queue\CollectionFactory $queueCollectionFactory
-     * @param \Magento\Framework\Stdlib\DateTime\DateTime                     $date
+     * @var FlagFactory
      */
+    private $flagFactory;
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\Resource\Queue\CollectionFactory $queueCollectionFactory,
         \Magento\Framework\Stdlib\DateTime\DateTime $date,
         \MalibuCommerce\MConnect\Helper\Mail $mConnectMailer,
-        \Magento\Sales\Model\OrderFactory $salesOrderFactory
+        \Magento\Sales\Model\OrderFactory $salesOrderFactory,
+        \MalibuCommerce\MConnect\Model\FlagFactory $flagFactory
     ) {
         $this->config = $config;
         $this->queueCollectionFactory = $queueCollectionFactory;
         $this->date = $date;
         $this->mConnectMailer = $mConnectMailer;
         $this->salesOrderFactory = $salesOrderFactory;
+        $this->flagFactory = $flagFactory;
     }
 
     public function process($forceSyncNow = false)
@@ -170,6 +170,14 @@ class Queue
             return 'Module is disabled.';
         }
 
+        $lastProcessingTime = $this->getLastOrdersExportTime();
+        if ($lastProcessingTime && $config->getScheduledOrdersExportDelayTime() > 0
+            && (time() - $lastProcessingTime) < $config->getScheduledOrdersExportDelayTime()
+        ) {
+
+            return 'Execution postponed due to configured export delay between runs';
+        }
+
         /**
          * Make sure to process only those queue items with where action and code not matching any running queue items per website
          */
@@ -184,7 +192,6 @@ class Queue
             $queues->getSelect()->where('q1.scheduled_at <= ?', $this->date->gmtDate());
         }
 
-
         $count = $queues->getSize();
         if (!$count) {
             return 'No items in queue need processing.';
@@ -194,8 +201,42 @@ class Queue
         foreach ($queues as $queue) {
             $queue->process();
         }
+        $this->saveLastOrdersExportTime();
 
         return sprintf('Processed %d item(s) in queue.', $count);
+    }
+
+    /**
+     * @return int
+     */
+    public function saveLastOrdersExportTime()
+    {
+        $time = time();
+        $this->flagFactory->create()
+            ->setMconnectFlagCode(self::FLAG_ORDERS_EXPORT_LAST_RUN_TIME)
+            ->loadSelf()
+            ->setLastUpdate(date('Y-d-m H:i:s', $time))
+            ->save();
+
+        return $time;
+    }
+
+    /**
+     * @return bool|int
+     */
+    public function getLastOrdersExportTime()
+    {
+        $flag = $this->flagFactory->create()
+            ->setMconnectFlagCode(self::FLAG_ORDERS_EXPORT_LAST_RUN_TIME)
+            ->loadSelf();
+
+        $time = $flag->hasData() ? $flag->getLastUpdate() : false;
+        if (!$time) {
+
+            return false;
+        }
+
+        return strtotime($time);
     }
 
     /**

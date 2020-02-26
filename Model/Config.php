@@ -218,75 +218,19 @@ class Config
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Website $websiteId
-     *
      * @return bool
      */
-    public function isScheduledOrdersExportEnabled($websiteId = null)
+    public function isScheduledOrdersExportEnabled()
     {
-        return (bool)$this->getWebsiteData('order/enable_scheduled_orders_export', $websiteId);
+        return (bool)$this->getWebsiteData('order/enable_scheduled_orders_export');
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Website $websiteId
-     *
-     * @return array
-     */
-    public function getOrdersExportSchedule($websiteId = null)
-    {
-        $weekDays = explode(',', $this->getWebsiteData('order/scheduled_orders_export_week_days', $websiteId));
-        if (empty($weekDays)) {
-
-            return [];
-        }
-
-        $startTime = $this->getWebsiteData('order/scheduled_orders_export_start_time', $websiteId);
-        if (!$startTime) {
-            $startTime = '00:00:01';
-        } else {
-            $startTime = str_replace(',', ':', $startTime);
-        }
-        $endTime = $this->getWebsiteData('order/scheduled_orders_export_start_time', $websiteId);
-        if (!$endTime) {
-            $endTime = '23:59:59';
-        } else {
-            $endTime = str_replace(',', ':', $startTime);
-        }
-
-        if ($weekDays == 7) {
-
-            return [
-                [
-                    'from' => strtotime('today ' . $startTime),
-                    'to'   => strtotime('today ' . $endTime)
-                ]
-            ];
-        }
-
-        $results = [];
-        $dowMap = array('sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday');
-        foreach ($weekDays as $weekDayNumber) {
-            if (!isset($dowMap[$weekDayNumber])) {
-
-                continue;
-            }
-            $results[] = [
-                'from' => strtotime($dowMap[$weekDayNumber] . ' ' . $startTime),
-                'to'   => strtotime($dowMap[$weekDayNumber] . ' ' . $endTime)
-            ];
-        }
-
-        return $results;
-    }
-
-    /**
-     * @param null|int|string|\Magento\Store\Model\Website $websiteId
-     *
      * @return int
      */
-    public function getScheduledOrdersExportDelayTime($websiteId = null)
+    public function getScheduledOrdersExportDelayTime()
     {
-        return (int)$this->getWebsiteData('order/scheduled_orders_export_delay_time', $websiteId);
+        return (int)$this->getWebsiteData('order/scheduled_orders_export_delay_time');
     }
 
     /**

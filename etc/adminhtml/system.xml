@@ -377,6 +377,7 @@
                     <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron\OrderExport</backend_model>
                     <can_be_empty>1</can_be_empty>
                     <depends>
+                        <field id="hold_new_orders_export">0</field>
                         <field id="enable_scheduled_orders_export">1</field>
                         <field id="export_enabled">1</field>
                     </depends>
@@ -385,6 +386,7 @@
                     <label>Scheduled Orders Export Start Time</label>
                     <comment><![CDATA[Only hour will be used for final schedule]]></comment>
                     <depends>
+                        <field id="hold_new_orders_export">0</field>
                         <field id="enable_scheduled_orders_export">1</field>
                         <field id="export_enabled">1</field>
                     </depends>
@@ -393,6 +395,7 @@
                     <label>Scheduled Orders Export End Time</label>
                     <comment><![CDATA[Only hour will be used for final schedule]]></comment>
                     <depends>
+                        <field id="hold_new_orders_export">0</field>
                         <field id="enable_scheduled_orders_export">1</field>
                         <field id="export_enabled">1</field>
                     </depends>
@@ -402,6 +405,7 @@
                     <validate>validate-number validate-zero-or-greater</validate>
                     <comment><![CDATA[In minutes. Put 0 to disable delay between runs]]></comment>
                     <depends>
+                        <field id="hold_new_orders_export">0</field>
                         <field id="enable_scheduled_orders_export">1</field>
                         <field id="export_enabled">1</field>
                     </depends>
