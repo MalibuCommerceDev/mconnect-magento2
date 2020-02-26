@@ -76,6 +76,7 @@ class Queue
                 ),
                 []
             )
+            ->where('q1.code != ?', OrderModel::CODE)
             ->where('q1.status = ?', QueueModel::STATUS_PENDING)
             ->where('q2.id IS NULL');
 
@@ -159,6 +160,42 @@ class Queue
         }
 
         return sprintf('Marked %d item(s) in queue.', $count);
+    }
+
+    public function exportOrders()
+    {
+        $config = $this->config;
+        if (!$config->isModuleEnabled()) {
+
+            return 'Module is disabled.';
+        }
+
+        /**
+         * Make sure to process only those queue items with where action and code not matching any running queue items per website
+         */
+        $queues = $this->queueCollectionFactory->create();
+        $queues->getSelect()->reset();
+        $queues->getSelect()
+            ->from(['q1' => 'malibucommerce_mconnect_queue'], '*')
+            ->where('q1.code = ?', OrderModel::CODE)
+            ->where('q1.status = ?', QueueModel::STATUS_PENDING);
+
+        if ($this->config->getIsHoldNewOrdersExport()) {
+            $queues->getSelect()->where('q1.scheduled_at <= ?', $this->date->gmtDate());
+        }
+
+
+        $count = $queues->getSize();
+        if (!$count) {
+            return 'No items in queue need processing.';
+        }
+
+        /** @var \MalibuCommerce\MConnect\Model\Queue $queue */
+        foreach ($queues as $queue) {
+            $queue->process();
+        }
+
+        return sprintf('Processed %d item(s) in queue.', $count);
     }
 
     /**
