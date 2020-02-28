@@ -9,8 +9,6 @@ class OrderExport extends \Magento\Framework\App\Config\Value
 
     const XML_PATH_SCHEDULED_ORDERS_EXPORT_ENABLED    = 'groups/order/fields/enable_scheduled_orders_export/value';
     const XML_PATH_SCHEDULED_ORDERS_EXPORT_WEEKDAYS   = 'groups/order/fields/scheduled_orders_export_week_days/value';
-    const XML_PATH_SCHEDULED_ORDERS_EXPORT_START_TIME = 'groups/order/fields/scheduled_orders_export_start_time/value';
-    const XML_PATH_SCHEDULED_ORDERS_EXPORT_END_TIME   = 'groups/order/fields/scheduled_orders_export_end_time/value';
     const XML_PATH_QUEUE_CRON_EXPR                    = 'groups/queue/fields/cron_expr/value';
 
     /** @var \Magento\Framework\App\Config\ValueFactory */
@@ -41,13 +39,11 @@ class OrderExport extends \Magento\Framework\App\Config\Value
     {
         $scheduledExportEnabled = $this->getData(self::XML_PATH_SCHEDULED_ORDERS_EXPORT_ENABLED);
         $weekDays = $this->getData(self::XML_PATH_SCHEDULED_ORDERS_EXPORT_WEEKDAYS);
-        $startTime = $this->getData(self::XML_PATH_SCHEDULED_ORDERS_EXPORT_START_TIME);
-        $endTime = $this->getData(self::XML_PATH_SCHEDULED_ORDERS_EXPORT_END_TIME);
 
         if ($scheduledExportEnabled && !empty($weekDays)) {
             $cronExprArray = [
                 '*',                                                            # Minute
-                intval($startTime[0]) . '-' . intval($endTime[0]),              # Hour
+                '*',                                                            # Hour
                 '*',                                                            # Day of the Month
                 '*',                                                            # Month of the Year
                 count($weekDays) == 7 ? '*' : join(',', $weekDays),       # Day of the Week
@@ -73,6 +69,8 @@ class OrderExport extends \Magento\Framework\App\Config\Value
             throw new \Magento\Framework\Exception\LocalizedException(__('Can\'t save the Cron expression.'));
         }
 
-        return parent::afterSave();
+        parent::afterSave();
+
+        return $this;
     }
 }

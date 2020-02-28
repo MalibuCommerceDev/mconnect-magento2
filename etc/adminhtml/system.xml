@@ -382,18 +382,9 @@
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
-                <field id="scheduled_orders_export_start_time" translate="label" type="time" sortOrder="120" showInDefault="1" showInWebsite="0" showInStore="0">
-                    <label>Scheduled Orders Export Start Time</label>
-                    <comment><![CDATA[Only hour will be used for final schedule]]></comment>
-                    <depends>
-                        <field id="hold_new_orders_export">0</field>
-                        <field id="enable_scheduled_orders_export">1</field>
-                        <field id="export_enabled">1</field>
-                    </depends>
-                </field>
-                <field id="scheduled_orders_export_end_time" translate="label" type="time" sortOrder="130" showInDefault="1" showInWebsite="0" showInStore="0">
-                    <label>Scheduled Orders Export End Time</label>
-                    <comment><![CDATA[Only hour will be used for final schedule]]></comment>
+                <field id="scheduled_orders_export_start_times" translate="label" type="time" sortOrder="120" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Scheduled Orders Export Run Times</label>
+                    <comment><![CDATA[Coma separated start times: 9:30 AM, 12:00 PM, 4:00 PM. Times are treated as UTC times]]></comment>
                     <depends>
                         <field id="hold_new_orders_export">0</field>
                         <field id="enable_scheduled_orders_export">1</field>

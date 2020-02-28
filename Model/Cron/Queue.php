@@ -160,6 +160,7 @@ class Queue
 
     public function exportOrders()
     {
+        $currentTime = time();
         $config = $this->config;
         if (!$config->isModuleEnabled()) {
 
@@ -168,10 +169,26 @@ class Queue
 
         $lastProcessingTime = $this->getLastOrdersExportTime();
         if ($lastProcessingTime && $config->getScheduledOrdersExportDelayTime() > 0
-            && (time() - $lastProcessingTime) < $config->getScheduledOrdersExportDelayTime()
+            && ($currentTime - $lastProcessingTime) < $config->getScheduledOrdersExportDelayTime()
         ) {
 
             return 'Execution postponed due to configured export delay between runs';
+        }
+
+        $lastProcessingTime = !$lastProcessingTime ? strtotime('12:00 AM') : $lastProcessingTime;
+        $runTimes = $config->getScheduledOrdersExportRunTimes();
+        $runAllowed = false;
+        foreach ($runTimes as $strTime) {
+            $scheduledTime = strtotime($strTime);
+            if ($currentTime >= $scheduledTime && $scheduledTime > $lastProcessingTime) {
+                $runAllowed = true;
+                break;
+            }
+        }
+
+        if (!$runAllowed) {
+
+            return 'Execution not allowed at this time';
         }
 
         /**

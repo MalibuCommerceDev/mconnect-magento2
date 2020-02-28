@@ -234,6 +234,14 @@ class Config
     }
 
     /**
+     * @return array
+     */
+    public function getScheduledOrdersExportRunTimes()
+    {
+        return array_map('trim', explode(',', $this->getWebsiteData('order/scheduled_orders_export_start_times')));
+    }
+
+    /**
      * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return array
