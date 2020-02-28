@@ -382,7 +382,7 @@
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
-                <field id="scheduled_orders_export_start_times" translate="label" type="time" sortOrder="120" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="scheduled_orders_export_start_times" translate="label" type="text" sortOrder="120" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Scheduled Orders Export Run Times</label>
                     <comment><![CDATA[Coma separated start times: 9:30 AM, 12:00 PM, 4:00 PM. Times are treated as UTC times]]></comment>
                     <depends>
@@ -391,7 +391,7 @@
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
-                <field id="scheduled_orders_export_delay_time" sortOrder="140" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="scheduled_orders_export_delay_time" sortOrder="130" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Scheduled Orders Export Minutes Between Runs</label>
                     <validate>validate-number validate-zero-or-greater</validate>
                     <comment><![CDATA[In minutes. Put 0 to disable delay between runs]]></comment>
@@ -401,21 +401,21 @@
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
-                <field id="allowed_order_statuses_to_export" sortOrder="150" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="allowed_order_statuses_to_export" sortOrder="140" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Allowed Order Statuses to be Exported to NAV</label>
                     <source_model>\Magento\Sales\Model\Config\Source\Order\Status</source_model>
                     <depends>
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
-                <field id="export_disallowed_customer_groups" sortOrder="160" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="export_disallowed_customer_groups" sortOrder="150" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Export Disallowed Customer Groups</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Source\CustomerGroups</source_model>
                     <depends>
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
-                <field id="gift_wrapping_force_enabled" sortOrder="170" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="gift_wrapping_force_enabled" sortOrder="160" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>GiftWrapping Functionality Forcefully Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
