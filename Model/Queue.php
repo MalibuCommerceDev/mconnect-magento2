@@ -203,14 +203,14 @@ class Queue extends \Magento\Framework\Model\AbstractModel
     /**
      * Process current queue item
      *
-     * @return $this
+     * @return bool|string
      * @throws \Exception
      */
     public function process()
     {
         if (!$this->getConfig()->isModuleEnabled()) {
 
-            return $this;
+            return false;
         }
 
         $code = $this->getCode();
@@ -221,7 +221,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
             && !(bool)$this->getConfig()->getWebsiteData($code . '/export_enabled', $websiteId)
         ) {
 
-            return $this;
+            return false;
         }
 
         $this->setStatus(self::STATUS_RUNNING)
@@ -241,8 +241,10 @@ class Queue extends \Magento\Framework\Model\AbstractModel
                 sprintf('Malibu Connect error: The action "%s" is not recognized and cannot be processed.  You may need to update the Malibu Connect module or clear the Magento cache.', $action)
             );
 
-            return $this;
+            return self::STATUS_ERROR;
         }
+
+        $this->registry->unregister('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM');
         $this->registry->register('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM', $this);
 
         try {
@@ -260,20 +262,18 @@ class Queue extends \Magento\Framework\Model\AbstractModel
                 $this->setEntityId($model->getEntityId());
             }
 
-            $this->endProcess(
-                $model->getMagentoErrorsDetected() ? self::STATUS_WARNING : self::STATUS_SUCCESS,
-                $model->getMessages()
-            );
+            $resultedStatus = $model->getMagentoErrorsDetected() ? self::STATUS_WARNING : self::STATUS_SUCCESS;
+            $messages = $model->getMessages();
         } catch (\Throwable $e) {
             $this->_logger->critical($e);
-            $message = 'Processing interrupted!' . "\n" . 'Error: ' . $e->getMessage() . "\n\nProcessing Messages: " . $model->getMessages();
-            $this->endProcess(self::STATUS_ERROR, $message);
-            return self::STATUS_ERROR;
+            $messages = 'Processing interrupted!' . "\n" . 'Error: ' . $e->getMessage() . "\n\nProcessing Messages: " . $model->getMessages();
+            $resultedStatus = self::STATUS_ERROR;
         }
 
+        $this->endProcess($resultedStatus, $messages);
         $this->registry->unregister('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM');
 
-        return $this;
+        return $resultedStatus;
     }
 
     protected function endProcess($status, $message = null)
