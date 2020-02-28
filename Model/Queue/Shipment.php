@@ -347,6 +347,11 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             ) {
                 return true;
             }
+
+            if (!isset($navShipmentItems[$sku]) && !$item->getIsVirtual()) {
+
+                return true;
+            }
         }
 
         return false;
