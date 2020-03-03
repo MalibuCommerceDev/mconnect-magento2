@@ -298,8 +298,10 @@ class Config
      */
     public function getErrorRecipients($websiteId = null)
     {
-        return array_map('trim',
-            explode(',', $this->getWebsiteData('nav_connection/error_email_recipient', $websiteId)));
+        return array_map(
+            'trim',
+            explode(',', $this->getWebsiteData('nav_connection/error_email_recipient', $websiteId))
+        );
     }
 
     /**
