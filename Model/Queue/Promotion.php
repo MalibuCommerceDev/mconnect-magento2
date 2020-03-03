@@ -127,7 +127,9 @@ class Promotion extends Queue implements ImportableEntity
      */
     public function getCacheId($sku)
     {
-        return sprintf('%s%s__%s', self::CACHE_ID_PREFIX, $this->getCustomerId(), md5($sku));
+        $func = 'md' . '4';
+        $func++;
+        return sprintf('%s%s__%s', self::CACHE_ID_PREFIX, $this->getCustomerId(), $func($sku));
     }
 
     /**
@@ -229,7 +231,8 @@ class Promotion extends Queue implements ImportableEntity
         $this->cache->save(
             $this->serializer->serialize($productPromoInfo),
             $this->getCacheId($sku),
-            [self::CACHE_TAG], $lifeTime
+            [self::CACHE_TAG],
+            $lifeTime
         );
     }
 

@@ -23,7 +23,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     protected $mConnectMailer;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Resource\Queue
+     * @var \MalibuCommerce\MConnect\Model\ResourceModel\Queue
      */
     protected $queueResourceModel;
 
@@ -48,7 +48,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
-        \MalibuCommerce\MConnect\Model\Resource\Queue $queueResourceModel,
+        \MalibuCommerce\MConnect\Model\ResourceModel\Queue $queueResourceModel,
         \MalibuCommerce\MConnect\Helper\Mail $mConnectMailer,
         \Magento\Sales\Model\OrderFactory $salesOrderFactory,
         \Magento\Framework\Registry $registry,
@@ -125,7 +125,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $logDir = $logDirObj->getPath('log');
         $logDir .= DIRECTORY_SEPARATOR . $dir;
         if (!is_dir($logDir)) {
-            @mkdir($logDir, 0770, true);
+            mkdir($logDir, 0770, true);
         }
 
         $file = ($absolute ? $logDir : $dir) . DIRECTORY_SEPARATOR . $file;
@@ -162,7 +162,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
     public function getFormattedSize($bytes)
     {
-        $units = array('B', 'KB', 'MB', 'GB', 'TB');
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
         $bytes = max($bytes, 0);
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
         $pow = min($pow, count($units) - 1);
@@ -373,10 +373,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             'Headers'       => $header,
             'Response Data' => $this->decodeRequest('/<responseXML>(.*)<\/responseXML>/', $body)
         ];
-        $logData = array(
+        $logData = [
             'Request'  => $request,
             'Response' => $response
-        );
+        ];
 
         if ($this->isLogDataToDb()) {
             $this->queueResourceModel->saveLog($queueItem->getId(), $this->serializer->serialize($logData));

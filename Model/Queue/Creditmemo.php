@@ -91,7 +91,7 @@ class Creditmemo extends \MalibuCommerce\MConnect\Model\Queue
         }
 
         if ($status == 'Error') {
-            $errors = array();
+            $errors = [];
             foreach ($response->result->creditMemo as $order) {
                 foreach ($order->error as $error) {
                     $errors[] = (string) $error->message;

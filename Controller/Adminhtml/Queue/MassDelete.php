@@ -5,9 +5,6 @@ namespace MalibuCommerce\MConnect\Controller\Adminhtml\Queue;
 use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
 use Magento\Framework\Controller\ResultFactory;
 
-/**
- * Class MassDelete
- */
 class MassDelete extends AbstractMassAction
 {
     /**

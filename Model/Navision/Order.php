@@ -83,7 +83,7 @@ class Order extends AbstractModel
 
     public function export($page = 0, $lastUpdated = false, $websiteId = 0)
     {
-
+        return false;
     }
 
     /**

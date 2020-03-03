@@ -6,11 +6,8 @@ use Magento\Framework\Controller\ResultFactory;
 use Magento\Backend\App\Action\Context;
 use Magento\Ui\Component\MassAction\Filter;
 use MalibuCommerce\MConnect\Model\Pricerule;
-use MalibuCommerce\MConnect\Model\Resource\Adminhtml\Pricerule\Grid\CollectionFactory;
+use MalibuCommerce\MConnect\Model\ResourceModel\Adminhtml\Pricerule\Grid\CollectionFactory;
 
-/**
- * Class MassDelete
- */
 class MassDelete extends \MalibuCommerce\MConnect\Controller\Adminhtml\Pricerule\PriceruleAction
 {
     /**

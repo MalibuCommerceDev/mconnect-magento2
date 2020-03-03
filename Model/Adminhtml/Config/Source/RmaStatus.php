@@ -26,13 +26,12 @@ class RmaStatus implements \Magento\Framework\Option\ArrayInterface
     {
         if ($this->moduleManager->isEnabled('Magento_Rma')) {
             $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-            $rmaStatus = $objectManager->create('Magento\Rma\Model\Rma\Source\Status');
+            $rmaStatus = $objectManager->create(\Magento\Rma\Model\Rma\Source\Status::class);
             return $rmaStatus->getAllOptions();
         } else {
             return [
                 ['value' => '', 'label' => __('RMA module disabled')],
             ];
         }
-        
     }
 }

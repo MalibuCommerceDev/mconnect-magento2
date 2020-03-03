@@ -10,7 +10,7 @@ class Promotion extends AbstractModel
     protected $registry;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Resource\Pricerule\Collection
+     * @var \MalibuCommerce\MConnect\Model\ResourceModel\Pricerule\Collection
      */
     protected $priceRuleCollection;
 
@@ -18,14 +18,14 @@ class Promotion extends AbstractModel
      * Promotion constructor.
      *
      * @param \Magento\Framework\Registry                                  $registry
-     * @param \MalibuCommerce\MConnect\Model\Resource\Pricerule\Collection $priceRuleCollection
+     * @param \MalibuCommerce\MConnect\Model\ResourceModel\Pricerule\Collection $priceRuleCollection
      * @param \MalibuCommerce\MConnect\Model\Config                        $config
      * @param \MalibuCommerce\MConnect\Model\Navision\Connection           $mConnectNavisionConnection
      * @param \Psr\Log\LoggerInterface                                     $logger
      */
     public function __construct(
         \Magento\Framework\Registry $registry,
-        \MalibuCommerce\MConnect\Model\Resource\Pricerule\Collection $priceRuleCollection,
+        \MalibuCommerce\MConnect\Model\ResourceModel\Pricerule\Collection $priceRuleCollection,
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection,
         \Psr\Log\LoggerInterface $logger

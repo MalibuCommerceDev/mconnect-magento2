@@ -1,9 +1,7 @@
 <?php
 namespace MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Version;
 
-
-class Module
-    extends \Magento\Config\Block\System\Config\Form\Field
+class Module extends \Magento\Config\Block\System\Config\Form\Field
 {
     /**
      * @var \Magento\Framework\Module\ModuleListInterface

@@ -1,15 +1,15 @@
 <?php
 /** @see \MalibuCommerce\MConnect\Block\Navision\Statement */
 ?>
-<form action="<?php echo $block->getUrl('*/*/statementview') ?>" method="post" id="mconnect-customer-statement" class="form" target="_blank" autocomplete="off">
+<form action="<?= $block->getUrl('*/*/statementview') ?>" method="post" id="mconnect-customer-statement" class="form" target="_blank" autocomplete="off">
     <table>
         <tr>
             <td>
                 <fieldset class="fieldset">
                     <div class="field date-from">
-                        <label for="date_from"><?php echo __('Start Date') ?></label>
+                        <label for="date_from"><?= __('Start Date') ?></label>
                         <div class="input-box">
-                            <input type="text" id="date_from" name="date_from" title="<?php echo __('Start Date') ?>" class="input-text" data-validate="{required:true, 'validate-date':true}" value="<?php echo $block->getFieldValue('date_from') ?>" style="width: 250px;"/>
+                            <input type="text" id="date_from" name="date_from" title="<?= __('Start Date') ?>" class="input-text" data-validate="{required:true, 'validate-date':true}" value="<?= $block->getFieldValue('date_from') ?>" style="width: 250px;"/>
                             <script type="text/javascript">
                                 require([
                                     "jquery",
@@ -34,9 +34,9 @@
             <td>
                 <fieldset class="fieldset">
                     <div class="field date-to">
-                        <label for="date_to"><?php echo __('End Date') ?></label>
+                        <label for="date_to"><?= __('End Date') ?></label>
                         <div class="input-box">
-                            <input type="text" id="date_to" name="date_to" title="<?php echo __('End Date') ?>" class="input-text" data-validate="{required:true, 'validate-date':true}" value="<?php echo $block->getFieldValue('date_to') ?>" style="width: 250px;"/>
+                            <input type="text" id="date_to" name="date_to" title="<?= __('End Date') ?>" class="input-text" data-validate="{required:true, 'validate-date':true}" value="<?= $block->getFieldValue('date_to') ?>" style="width: 250px;"/>
                             <script type="text/javascript">
                                 require([
                                     "jquery",
@@ -61,7 +61,7 @@
         </tr>
     </table>
     <div class="buttons-set">
-        <button type="submit" name="search" value="1" title="<?php echo __('View Statement') ?>" class="button action submit primary"><span><span><?php echo __('View Statement') ?></span></span></button>
+        <button type="submit" name="search" value="1" title="<?= __('View Statement') ?>" class="button action submit primary"><span><span><?= __('View Statement') ?></span></span></button>
     </div>
 </form>
 <script type="text/javascript">

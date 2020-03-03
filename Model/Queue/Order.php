@@ -91,7 +91,7 @@ class Order extends \MalibuCommerce\MConnect\Model\Queue
         }
 
         if ($status == 'Error') {
-            $errors = array();
+            $errors = [];
             foreach ($response->result->Order as $order) {
                 foreach ($order->error as $error) {
                     $errors[] = (string) $error->message;

@@ -16,10 +16,10 @@ class Product extends AbstractModel
     public function export($page = 0, $lastUpdated = false, $websiteId = 0)
     {
         $max = $this->config->get(\MalibuCommerce\MConnect\Model\Queue\Product::CODE . '/max_rows');
-        $parameters = array(
+        $parameters = [
             'skip'     => $page * $max,
             'max_rows' => $max,
-        );
+        ];
         if ($lastUpdated) {
             $parameters['last_updated'] = $lastUpdated;
         }
@@ -37,6 +37,6 @@ class Product extends AbstractModel
      */
     public function exportSingle($navId, $websiteId = 0)
     {
-        return $this->_export('item_export', array('item_nav_id' => $navId), $websiteId);
+        return $this->_export('item_export', ['item_nav_id' => $navId], $websiteId);
     }
 }

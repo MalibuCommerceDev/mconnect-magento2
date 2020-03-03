@@ -1,7 +1,6 @@
 <?php
 namespace MalibuCommerce\MConnect\Model\Adminhtml\System\Config\Product\Attribute;
 
-
 class Set
 {
 

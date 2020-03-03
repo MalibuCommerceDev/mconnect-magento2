@@ -80,7 +80,7 @@ class Creditmemo extends AbstractModel
 
     public function export($page = 0, $lastUpdated = false, $websiteId = 0)
     {
-
+        return false;
     }
 
     /**
@@ -114,5 +114,4 @@ class Creditmemo extends AbstractModel
 
         return $this;
     }
-
 }

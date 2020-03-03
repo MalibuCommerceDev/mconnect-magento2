@@ -58,7 +58,7 @@ class HelperCondition implements VisibilityConditionInterface
         if (!($helper = $this->helper($run[1])) || !method_exists($helper, $run[2])) {
             throw new \Magento\Framework\Exception\InputException(__('Invalid callback: %1::%2 does not exist', $run[1], $run[2]));
         }
-        $callback = array($helper, $run[2]);
+        $callback = [$helper, $run[2]];
         $result = call_user_func($callback, $this->storeManager->getStore());
 
         return $result;

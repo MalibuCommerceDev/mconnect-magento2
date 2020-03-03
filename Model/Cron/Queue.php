@@ -13,7 +13,7 @@ class Queue
     protected $config;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Resource\Queue\Collection
+     * @var \MalibuCommerce\MConnect\Model\ResourceModel\Queue\Collection
      */
     protected $queueCollectionFactory;
 
@@ -35,7 +35,7 @@ class Queue
 
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $config,
-        \MalibuCommerce\MConnect\Model\Resource\Queue\CollectionFactory $queueCollectionFactory,
+        \MalibuCommerce\MConnect\Model\ResourceModel\Queue\CollectionFactory $queueCollectionFactory,
         \Magento\Framework\Stdlib\DateTime\DateTime $date,
         \MalibuCommerce\MConnect\Helper\Mail $mConnectMailer,
         \Magento\Sales\Model\OrderFactory $salesOrderFactory,
@@ -275,10 +275,10 @@ class Queue
 
         $items = $this->queueCollectionFactory->create();
         $items = $items->addFieldToFilter('status', ['eq' => QueueModel::STATUS_ERROR])
-            ->addFieldToFilter('code',          ['eq' => OrderModel::CODE])
-            ->addFieldToFilter('action',        ['eq' => QueueModel::ACTION_EXPORT])
-            ->addFieldToFilter('retry_count',   ['lt' => $maxRetryAmount])
-            ->addFieldToFilter('created_at',    ['from' => $orderPeriodToTime]);
+            ->addFieldToFilter('code', ['eq' => OrderModel::CODE])
+            ->addFieldToFilter('action', ['eq' => QueueModel::ACTION_EXPORT])
+            ->addFieldToFilter('retry_count', ['lt' => $maxRetryAmount])
+            ->addFieldToFilter('created_at', ['from' => $orderPeriodToTime]);
         if ($ordersAmount) {
             $items->getSelect()->limit($ordersAmount);
         }

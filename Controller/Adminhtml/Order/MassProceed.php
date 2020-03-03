@@ -11,8 +11,8 @@ use MalibuCommerce\MConnect\Model\Queue as QueueModel;
 class MassProceed extends \Magento\Backend\App\Action
 {
     /**
-       * @var \Magento\Sales\Model\ResourceModel\Order\CollectionFactory
-       */
+     * @var \Magento\Sales\Model\ResourceModel\Order\CollectionFactory
+     */
     protected $collectionFactory;
 
     /**
@@ -36,7 +36,7 @@ class MassProceed extends \Magento\Backend\App\Action
     protected $storeManager;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Resource\Queue\Collection
+     * @var \MalibuCommerce\MConnect\Model\ResourceModel\Queue\Collection
      */
     protected $queueCollectionFactory;
 
@@ -48,7 +48,7 @@ class MassProceed extends \Magento\Backend\App\Action
      * @param \MalibuCommerce\MConnect\Model\Config                     vibмшимшvi $config
      * @param \Psr\Log\LoggerInterface                      $logger
      * @param \Magento\Store\Model\StoreManagerInterface    $storeManager
-     * @param \MalibuCommerce\MConnect\Model\Resource\Queue\Collection
+     * @param \MalibuCommerce\MConnect\Model\ResourceModel\Queue\Collection
      */
     public function __construct(
         Context $context,
@@ -58,7 +58,7 @@ class MassProceed extends \Magento\Backend\App\Action
         \MalibuCommerce\MConnect\Model\Config $config,
         \Psr\Log\LoggerInterface $logger,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \MalibuCommerce\MConnect\Model\Resource\Queue\CollectionFactory $queueCollectionFactory
+        \MalibuCommerce\MConnect\Model\ResourceModel\Queue\CollectionFactory $queueCollectionFactory
     ) {
         parent::__construct($context);
         $this->filter = $filter;
@@ -69,7 +69,6 @@ class MassProceed extends \Magento\Backend\App\Action
         $this->storeManager = $storeManager;
         $this->queueCollectionFactory = $queueCollectionFactory;
     }
-
 
     public function execute()
     {
@@ -91,11 +90,19 @@ class MassProceed extends \Magento\Backend\App\Action
                     $scheduledAt = date('Y-m-d H:i:s', strtotime('+' . (int)$delayInMinutes . ' minutes'));
                 }
 
-                $this->queue->create()->add(\MalibuCommerce\MConnect\Model\Queue\Order::CODE,
-                    \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT, $websiteId, 0, $order->getId(), $order->getIncrementId(), [], $scheduledAt);
+                $this->queue->create()->add(
+                    \MalibuCommerce\MConnect\Model\Queue\Order::CODE,
+                    \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT,
+                    $websiteId,
+                    0,
+                    $order->getId(),
+                    $order->getIncrementId(),
+                    [],
+                    $scheduledAt
+                );
 
                 $queues = $this->queueCollectionFactory->create();
-                $queues = $queues->addFieldToFilter('entity_id', $order->getId())->setOrder('id','DESC');
+                $queues = $queues->addFieldToFilter('entity_id', $order->getId())->setOrder('id', 'DESC');
                 $queue = $queues->getFirstItem();
                 if ($queue) {
                     $queue->process();
@@ -114,7 +121,6 @@ class MassProceed extends \Magento\Backend\App\Action
         } elseif ($countNonAddedOrder) {
             $this->messageManager->addErrorMessage(__('You cannot sync the order(s).'));
         }
-
 
         if ($countMassQueue) {
             $this->messageManager->addSuccessMessage(__('We synced %1 order(s).', $countMassQueue));

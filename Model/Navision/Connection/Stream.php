@@ -141,9 +141,9 @@ class Stream
     {
         $this->initStream();
 
-        return array(
+        return [
             'size' => strlen($this->getStreamData()),
-        );
+        ];
     }
 
     public function url_stat($streamUri, $flags)

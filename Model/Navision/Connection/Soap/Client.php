@@ -58,13 +58,13 @@ class Client extends SoapClient
         $username = $this->mConnectConfig->getNavConnectionUsername($this->getWebsiteId());
         $password = $this->mConnectConfig->getNavConnectionPassword($this->getWebsiteId());
         $ch = curl_init($location);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Method: POST',
             'Connection: Keep-Alive',
             'User-Agent: PHP-SOAP-CURL',
             'Content-Type: text/xml; charset=utf-8',
             'SOAPAction: "' . $action . '"',
-        ));
+        ]);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_HEADER, true);
