@@ -7,9 +7,9 @@ use \MalibuCommerce\MConnect\Model\Queue\Order as OrderModel;
 
 class Queue
 {
-    /**
-     * @var \MalibuCommerce\MConnect\Model\Config
-     */
+    const FLAG_ORDERS_EXPORT_LAST_RUN_TIME = 'malibucommerce_mconnect_orders_export_last_run_time';
+
+    /** @var \MalibuCommerce\MConnect\Model\Config  */
     protected $config;
 
     /**
@@ -27,30 +27,26 @@ class Queue
      */
     protected $mConnectMailer;
 
-    /**
-     * @var \Magento\Sales\Model\OrderFactory
-     */
+    /** @var \Magento\Sales\Model\OrderFactory  */
     protected $salesOrderFactory;
 
-    /**
-     * Queue constructor.
-     *
-     * @param \MalibuCommerce\MConnect\Model\Config                           $config
-     * @param \MalibuCommerce\MConnect\Model\Resource\Queue\CollectionFactory $queueCollectionFactory
-     * @param \Magento\Framework\Stdlib\DateTime\DateTime                     $date
-     */
+    /** @var \MalibuCommerce\MConnect\Model\FlagFactory  */
+    protected $flagFactory;
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\Resource\Queue\CollectionFactory $queueCollectionFactory,
         \Magento\Framework\Stdlib\DateTime\DateTime $date,
         \MalibuCommerce\MConnect\Helper\Mail $mConnectMailer,
-        \Magento\Sales\Model\OrderFactory $salesOrderFactory
+        \Magento\Sales\Model\OrderFactory $salesOrderFactory,
+        \MalibuCommerce\MConnect\Model\FlagFactory $flagFactory
     ) {
         $this->config = $config;
         $this->queueCollectionFactory = $queueCollectionFactory;
         $this->date = $date;
         $this->mConnectMailer = $mConnectMailer;
         $this->salesOrderFactory = $salesOrderFactory;
+        $this->flagFactory = $flagFactory;
     }
 
     public function process($forceSyncNow = false)
@@ -76,6 +72,7 @@ class Queue
                 ),
                 []
             )
+            ->where('q1.code != ?', OrderModel::CODE)
             ->where('q1.status = ?', QueueModel::STATUS_PENDING)
             ->where('q2.id IS NULL');
 
@@ -159,6 +156,100 @@ class Queue
         }
 
         return sprintf('Marked %d item(s) in queue.', $count);
+    }
+
+    public function exportOrders()
+    {
+        $currentTime = time();
+        $config = $this->config;
+        if (!$config->isModuleEnabled()) {
+
+            return 'Module is disabled.';
+        }
+
+        $lastProcessingTime = $this->getLastOrdersExportTime();
+        if ($lastProcessingTime && $config->getScheduledOrdersExportDelayTime() > 0
+            && ($currentTime - $lastProcessingTime) < $config->getScheduledOrdersExportDelayTime()
+        ) {
+
+            return 'Execution postponed due to configured export delay between runs';
+        }
+
+        $lastProcessingTime = !$lastProcessingTime ? strtotime('12:00 AM') : $lastProcessingTime;
+        $runTimes = $config->getScheduledOrdersExportRunTimes();
+        $runAllowed = false;
+        foreach ($runTimes as $strTime) {
+            $scheduledTime = strtotime($strTime);
+            if ($currentTime >= $scheduledTime && $scheduledTime > $lastProcessingTime) {
+                $runAllowed = true;
+                break;
+            }
+        }
+
+        if (!$runAllowed) {
+
+            return 'Execution not allowed at this time';
+        }
+
+        /**
+         * Make sure to process only those queue items with where action and code not matching any running queue items per website
+         */
+        $queues = $this->queueCollectionFactory->create();
+        $queues->getSelect()->reset();
+        $queues->getSelect()
+            ->from(['q1' => 'malibucommerce_mconnect_queue'], '*')
+            ->where('q1.code = ?', OrderModel::CODE)
+            ->where('q1.status = ?', QueueModel::STATUS_PENDING);
+
+        if ($this->config->getIsHoldNewOrdersExport()) {
+            $queues->getSelect()->where('q1.scheduled_at <= ?', $this->date->gmtDate());
+        }
+
+        $count = $queues->getSize();
+        if (!$count) {
+            return 'No items in queue need processing.';
+        }
+
+        /** @var \MalibuCommerce\MConnect\Model\Queue $queue */
+        foreach ($queues as $queue) {
+            $queue->process();
+        }
+        $this->saveLastOrdersExportTime();
+
+        return sprintf('Processed %d item(s) in queue.', $count);
+    }
+
+    /**
+     * @return int
+     */
+    public function saveLastOrdersExportTime()
+    {
+        $time = time();
+        $this->flagFactory->create()
+            ->setMconnectFlagCode(self::FLAG_ORDERS_EXPORT_LAST_RUN_TIME)
+            ->loadSelf()
+            ->setLastUpdate(date('Y-d-m H:i:s', $time))
+            ->save();
+
+        return $time;
+    }
+
+    /**
+     * @return bool|int
+     */
+    public function getLastOrdersExportTime()
+    {
+        $flag = $this->flagFactory->create()
+            ->setMconnectFlagCode(self::FLAG_ORDERS_EXPORT_LAST_RUN_TIME)
+            ->loadSelf();
+
+        $time = $flag->hasData() ? $flag->getLastUpdate() : false;
+        if (!$time) {
+
+            return false;
+        }
+
+        return strtotime($time);
     }
 
     /**

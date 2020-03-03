@@ -303,6 +303,7 @@
                 <field id="export_enabled" sortOrder="10" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Export Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Export can be enabled/disabled on "add to queue" level - not on cron execution level. Cron job will always run]]></comment>
                 </field>
                 <field id="auto_retry_cron" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Auto Re-export Errored Orders: Schedule (cron syntax)</label>
@@ -351,30 +352,70 @@
                     <comment><![CDATA[In minutes]]></comment>
                     <depends>
                         <field id="hold_new_orders_export">1</field>
+                        <field id="export_enabled">1</field>
                     </depends>
                 </field>
                 <field id="order_status_when_synced_to_nav" sortOrder="90" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Order Status When Synced to NAV</label>
                     <source_model>\Magento\Sales\Model\Config\Source\Order\Status</source_model>
                     <depends>
-                        <field id="hold_new_orders_export">1</field>
+                        <field id="export_enabled">1</field>
                     </depends>
                 </field>
-                <field id="allowed_order_statuses_to_export" sortOrder="100" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="enable_scheduled_orders_export" sortOrder="100" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Enable Scheduled Orders Export</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Allows Orders Export to be executed by specific datetime schedule. See schedule settings below]]></comment>
+                    <depends>
+                        <field id="hold_new_orders_export">0</field>
+                        <field id="export_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="scheduled_orders_export_week_days" translate="label" type="multiselect" sortOrder="110" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Scheduled Orders Export on Week Days</label>
+                    <source_model>Magento\Config\Model\Config\Source\Locale\Weekdays</source_model>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron\OrderExport</backend_model>
+                    <can_be_empty>1</can_be_empty>
+                    <depends>
+                        <field id="hold_new_orders_export">0</field>
+                        <field id="enable_scheduled_orders_export">1</field>
+                        <field id="export_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="scheduled_orders_export_start_times" translate="label" type="text" sortOrder="120" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Scheduled Orders Export Run Times</label>
+                    <comment><![CDATA[Coma separated start times: 9:30 AM, 12:00 PM, 4:00 PM. Times are treated as UTC times]]></comment>
+                    <depends>
+                        <field id="hold_new_orders_export">0</field>
+                        <field id="enable_scheduled_orders_export">1</field>
+                        <field id="export_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="scheduled_orders_export_delay_time" sortOrder="130" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Scheduled Orders Export Minutes Between Runs</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <comment><![CDATA[In minutes. Put 0 to disable delay between runs]]></comment>
+                    <depends>
+                        <field id="hold_new_orders_export">0</field>
+                        <field id="enable_scheduled_orders_export">1</field>
+                        <field id="export_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="allowed_order_statuses_to_export" sortOrder="140" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Allowed Order Statuses to be Exported to NAV</label>
                     <source_model>\Magento\Sales\Model\Config\Source\Order\Status</source_model>
                     <depends>
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
-                <field id="export_disallowed_customer_groups" sortOrder="120" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="export_disallowed_customer_groups" sortOrder="150" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Export Disallowed Customer Groups</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Source\CustomerGroups</source_model>
                     <depends>
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
-                <field id="gift_wrapping_force_enabled" sortOrder="120" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="gift_wrapping_force_enabled" sortOrder="160" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>GiftWrapping Functionality Forcefully Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>

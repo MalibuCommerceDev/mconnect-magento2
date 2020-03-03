@@ -73,6 +73,10 @@
                 <auto_retry_period>30</auto_retry_period>
                 <hold_new_orders_export>0</hold_new_orders_export>
                 <hold_new_orders_delay>60</hold_new_orders_delay>
+                <enable_scheduled_orders_export>0</enable_scheduled_orders_export>
+                <scheduled_orders_export_week_days>0,1,2,3,4,5,6</scheduled_orders_export_week_days>
+                <scheduled_orders_export_start_times>9:00 AM,12:00 PM,4:00 PM</scheduled_orders_export_start_times>
+                <scheduled_orders_export_delay_time>5</scheduled_orders_export_delay_time>
                 <order_status_when_synced_to_nav>nav_preparing_for_shipment</order_status_when_synced_to_nav>
                 <allowed_order_statuses_to_export>pending</allowed_order_statuses_to_export>
                 <gift_wrapping_force_enabled>0</gift_wrapping_force_enabled>
