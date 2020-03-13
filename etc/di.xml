@@ -23,6 +23,7 @@
             <argument name="commands" xsi:type="array">
                 <item name="malibucommerce_mconnect_processitem" xsi:type="object">MalibuCommerce\MConnect\Console\Command\ProcessItemCommand</item>
                 <item name="malibucommerce_mconnect_importall" xsi:type="object">MalibuCommerce\MConnect\Console\Command\ImportAllCommand</item>
+                <item name="malibucommerce_mconnect_exportall" xsi:type="object">MalibuCommerce\MConnect\Console\Command\ExportAllCommand</item>
             </argument>
         </arguments>
     </type>
