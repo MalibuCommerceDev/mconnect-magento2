@@ -44,7 +44,9 @@ class ExportAllCommand extends Command
     {
         try {
             $this->emulatedAreaProcessor->process(function () use ($input, $output) {
-                $this->queue->processExportsOnly();
+                $output->writeln(
+                    sprintf('<info>%s</info>', $this->queue->processExportsOnly())
+                );
             });
 
             return Cli::RETURN_SUCCESS;
