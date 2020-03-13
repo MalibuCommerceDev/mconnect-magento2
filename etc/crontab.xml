@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
-    <group id="default">
+    <group id="malibucommerce_connect">
         <job name="malibucommerce_mconnect_queue_process" instance="MalibuCommerce\MConnect\Model\Cron\Queue" method="process">
             <config_path>malibucommerce_mconnect/queue/cron_expr</config_path>
         </job>

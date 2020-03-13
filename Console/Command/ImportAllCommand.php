@@ -11,7 +11,7 @@ use Magento\Framework\Console\Cli;
 class ImportAllCommand extends Command
 {
     /**
-     * @var \MalibuCommerce\MConnect\Model\Queue
+     * @var \MalibuCommerce\MConnect\Model\Cron\Queue
      */
     protected $queue;
 
@@ -64,7 +64,7 @@ class ImportAllCommand extends Command
                 $this->mconnectCron->queueShipmentImport();
                 $this->mconnectCron->queuePriceRuleImport();
                 $this->mconnectCron->queueRmaImport();
-                $this->queue->process();
+                $this->queue->process(true);
             });
 
             return Cli::RETURN_SUCCESS;

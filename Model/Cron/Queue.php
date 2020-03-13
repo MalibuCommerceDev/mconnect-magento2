@@ -93,6 +93,46 @@ class Queue
         return sprintf('Processed %d item(s) in queue.', $count);
     }
 
+    public function processExportsOnly()
+    {
+        $config = $this->config;
+        if (!$config->isModuleEnabled()) {
+
+            return 'Module is disabled.';
+        }
+
+        /**
+         * Make sure to process only those queue items with where action and code not matching any running queue items per website
+         */
+        $queues = $this->queueCollectionFactory->create();
+        $queues->getSelect()->reset();
+        $queues->getSelect()
+            ->from(['q1' => 'malibucommerce_mconnect_queue'], '*')
+            ->joinLeft(
+                ['q2' => 'malibucommerce_mconnect_queue'],
+                $queues->getConnection()->quoteInto(
+                    'q1.code = q2.code AND q1.action = q2.action AND q1.website_id = q2.website_id AND q2.status = ?',
+                    QueueModel::STATUS_RUNNING
+                ),
+                []
+            )
+            ->where('q1.action = ?', QueueModel::ACTION_EXPORT)
+            ->where('q1.status = ?', QueueModel::STATUS_PENDING)
+            ->where('q2.id IS NULL');
+
+        $count = $queues->getSize();
+        if (!$count) {
+            return 'No items in queue need processing.';
+        }
+
+        /** @var \MalibuCommerce\MConnect\Model\Queue $queue */
+        foreach ($queues as $queue) {
+            $queue->process();
+        }
+
+        return sprintf('Processed %d item(s) in queue.', $count);
+    }
+
     public function clean()
     {
         $config = $this->config;
