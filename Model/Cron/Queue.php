@@ -4,10 +4,12 @@ namespace MalibuCommerce\MConnect\Model\Cron;
 
 use \MalibuCommerce\Mconnect\Model\Queue as QueueModel;
 use \MalibuCommerce\MConnect\Model\Queue\Order as OrderModel;
+use \MalibuCommerce\MConnect\Model\Queue\Customer as CustomerModel;
 
 class Queue
 {
     const FLAG_ORDERS_EXPORT_LAST_RUN_TIME = 'malibucommerce_mconnect_orders_export_last_run_time';
+    const FLAG_CUSTOMERS_EXPORT_LAST_RUN_TIME = 'malibucommerce_mconnect_customers_export_last_run_time';
 
     /** @var \MalibuCommerce\MConnect\Model\Config  */
     protected $config;
@@ -80,17 +82,22 @@ class Queue
             $queues->getSelect()->where('q1.scheduled_at <= ?', $this->date->gmtDate());
         }
 
-        $count = $queues->getSize();
-        if (!$count) {
-            return 'No items in queue need processing.';
-        }
-
+        $items = 0;
         /** @var \MalibuCommerce\MConnect\Model\Queue $queue */
         foreach ($queues as $queue) {
+            if (($queue->getCode() == CustomerModel::CODE) && ($queue->getAction() == QueueModel::ACTION_EXPORT)) {
+                continue;
+            }
+
+            $items++;
             $queue->process();
         }
 
-        return sprintf('Processed %d item(s) in queue.', $count);
+        if ($items == 0) {
+            return 'No items in queue need processing.';
+        }
+
+        return sprintf('Processed %d item(s) in queue.', $items);
     }
 
     public function processExportsOnly()
@@ -197,6 +204,101 @@ class Queue
 
         return sprintf('Marked %d item(s) in queue.', $count);
     }
+
+    public function exportCustomers()
+    {
+        $currentTime = time();
+        $config = $this->config;
+        if (!$config->isModuleEnabled()) {
+
+            return 'Module is disabled.';
+        }
+
+        $lastProcessingTime = $this->getLastCustomersExportTime();
+        if ($lastProcessingTime && $config->getScheduledCustomersExportDelayTime() > 0
+            && ($currentTime - $lastProcessingTime) < $config->getScheduledCustomersExportDelayTime()
+        ) {
+
+            return 'Execution postponed due to configured export delay between runs';
+        }
+
+        $lastProcessingTime = !$lastProcessingTime ? strtotime('12:00 AM') : $lastProcessingTime;
+        $runTimes = $config->getScheduledCustomersExportRunTimes();
+        $runAllowed = false;
+        foreach ($runTimes as $strTime) {
+            $scheduledTime = strtotime($strTime);
+            if ($currentTime >= $scheduledTime && $scheduledTime > $lastProcessingTime) {
+                $runAllowed = true;
+                break;
+            }
+        }
+
+        if (!$runAllowed) {
+
+            return 'Execution not allowed at this time';
+        }
+
+        /**
+         * Make sure to process only those queue items with where action and code not matching any running queue items per website
+         */
+        $queues = $this->queueCollectionFactory->create();
+        $queues->getSelect()->reset();
+        $queues->getSelect()
+            ->from(['q1' => 'malibucommerce_mconnect_queue'], '*')
+            ->where('q1.code = ?', CustomerModel::CODE)
+            ->where('q1.status = ?', QueueModel::STATUS_PENDING);
+
+        if ($this->config->isScheduledCustomersExportEnabled()) {
+            $queues->getSelect()->where('q1.scheduled_at <= ?', $this->date->gmtDate());
+        }
+
+        $count = $queues->getSize();
+        if (!$count) {
+            return 'No items in queue need processing.';
+        }
+
+        /** @var \MalibuCommerce\MConnect\Model\Queue $queue */
+        foreach ($queues as $queue) {
+            $queue->process();
+        }
+        $this->saveLastCustomersExportTime();
+
+        return sprintf('Processed %d item(s) in queue.', $count);
+    }
+
+    /**
+     * @return int
+     */
+    public function saveLastCustomersExportTime()
+    {
+        $time = time();
+        $this->flagFactory->create()
+            ->setMconnectFlagCode(self::FLAG_CUSTOMERS_EXPORT_LAST_RUN_TIME)
+            ->loadSelf()
+            ->setLastUpdate(date('Y-d-m H:i:s', $time))
+            ->save();
+
+        return $time;
+    }
+
+    /**
+     * @return bool|int
+     */
+    public function getLastCustomersExportTime()
+    {
+        $flag = $this->flagFactory->create()
+            ->setMconnectFlagCode(self::FLAG_CUSTOMERS_EXPORT_LAST_RUN_TIME)
+            ->loadSelf();
+
+        $time = $flag->hasData() ? $flag->getLastUpdate() : false;
+        if (!$time) {
+
+            return false;
+        }
+
+        return strtotime($time);
+    }
+
 
     public function exportOrders()
     {

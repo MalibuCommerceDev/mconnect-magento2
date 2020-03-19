@@ -16,6 +16,9 @@ use MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron\OrderExport;
 
 class UpgradeData implements UpgradeDataInterface
 {
+    const CRON_STRING_SCHEDULE_PATH = 'crontab/default/jobs/malibucommerce_mconnect_queue_orders_export/schedule/cron_expr';
+    const CRON_STRING_MODEL_PATH = 'crontab/default/jobs/malibucommerce_mconnect_queue_orders_export/run/model';
+
     /**
      * @var CustomerSetupFactory
      */
@@ -331,7 +334,7 @@ class UpgradeData implements UpgradeDataInterface
     protected function upgrade2_8_0(ModuleDataSetupInterface $setup)
     {
         $value = $this->scopeConfig->getValue('malibucommerce_mconnect/queue/cron_expr');
-        $this->configWriter->save(OrderExport::CRON_STRING_SCHEDULE_PATH, $value);
-        $this->configWriter->save(OrderExport::CRON_STRING_MODEL_PATH, '');
+        $this->configWriter->save(self::CRON_STRING_SCHEDULE_PATH, $value);
+        $this->configWriter->save(self::CRON_STRING_MODEL_PATH, '');
     }
 }

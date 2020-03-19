@@ -242,6 +242,54 @@ class Config
     }
 
     /**
+     * @return bool
+     */
+    public function isScheduledCustomersExportEnabled()
+    {
+        return (bool)$this->getWebsiteData('customer/enable_scheduled_customers_importexport');
+    }
+
+    /**
+     * @return int
+     */
+    public function getScheduledCustomersExportDelayTime()
+    {
+        return (int)$this->getWebsiteData('customer/scheduled_customers_importexport_delay_time');
+    }
+
+    /**
+     * @return array
+     */
+    public function getScheduledCustomersExportRunTimes()
+    {
+        return array_map('trim', explode(',', $this->getWebsiteData('customer/scheduled_customers_importexport_start_times')));
+    }
+
+    /**
+     * @return bool
+     */
+    public function isScheduledEntityImportEnabled($code)
+    {
+        return (bool)$this->getWebsiteData($code . '/enable_scheduled_' . $code . 's_import');
+    }
+
+    /**
+     * @return int
+     */
+    public function getScheduledEntityImportDelayTime($code)
+    {
+        return (int)$this->getWebsiteData($code . '/scheduled_' . $code . 's_import_delay_time');
+    }
+
+    /**
+     * @return array
+     */
+    public function getScheduledEntityImportRunTimes($code)
+    {
+        return array_map('trim', explode(',', $this->getWebsiteData($code . '/scheduled_' . $code . 's_import_start_times')));
+    }
+
+    /**
      * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return array

@@ -167,45 +167,81 @@
                     <comment><![CDATA[Will allow continuation of NAV sync process by changing last sync date even if there were any Magento Logical Exceptions during the sync process]]></comment>
                 </field>
                 <field id="cron_expr" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Import Schedule (cron syntax)</label>
+                    <label>Import/Export Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
                     <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
                 </field>
-                <field id="max_rows" sortOrder="40" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="enable_scheduled_customers_importexport" sortOrder="40" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Enable Scheduled Customers Import</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Allows Customers Import to be executed by specific datetime schedule. See schedule settings below]]></comment>
+                    <depends>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="scheduled_customers_importexport_week_days" translate="label" type="multiselect" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Scheduled Customers Import on Week Days</label>
+                    <source_model>Magento\Config\Model\Config\Source\Locale\Weekdays</source_model>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron\Export</backend_model>
+                    <can_be_empty>1</can_be_empty>
+                    <depends>
+                        <field id="enable_scheduled_customers_importexport">1</field>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="scheduled_customers_importexport_start_times" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Scheduled Customers Import Run Times</label>
+                    <comment><![CDATA[Coma separated start times: 9:30 AM, 12:00 PM, 4:00 PM. Times are treated as UTC times]]></comment>
+                    <depends>
+                        <field id="enable_scheduled_customers_importexport">1</field>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="scheduled_customers_importexport_delay_time" sortOrder="70" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Scheduled Customers Import Minutes Between Runs</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <comment><![CDATA[In minutes. Put 0 to disable delay between runs]]></comment>
+                    <depends>
+                        <field id="enable_scheduled_customers_importexport">1</field>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="max_rows" sortOrder="80" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
                 </field>
-                <field id="default_nav_id_magento_guest" sortOrder="50" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="default_nav_id_magento_guest" sortOrder="90" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default NAV ID For Magento Guest Customers</label>
                     <comment><![CDATA[Leave blank to disable]]></comment>
                 </field>
-                <field id="default_nav_id_magento_registered" sortOrder="60" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="default_nav_id_magento_registered" sortOrder="100" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default NAV ID For Magento Newly Registered Customers</label>
                     <comment><![CDATA[Leave blank to disable]]></comment>
                 </field>
-                <field id="default_group_taxable" sortOrder="70" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="default_group_taxable" sortOrder="110" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default group for new customers (taxable)</label>
                     <source_model>\Magento\Customer\Model\Config\Source\Group</source_model>
                 </field>
-                <field id="default_group_nontaxable" sortOrder="80" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="default_group_nontaxable" sortOrder="120" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default group for new customers (non-taxable)</label>
                     <source_model>\Magento\Customer\Model\Config\Source\Group</source_model>
                 </field>
-                <field id="default_website" sortOrder="90" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="default_website" sortOrder="130" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Default website for new customers</label>
                     <source_model>\Magento\Config\Model\Config\Source\Website</source_model>
                 </field>
-                <field id="send_new_customer_emails" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="send_new_customer_emails" translate="label" type="select" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Send Password Reset Email to a New Customers Imported from NAV</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="new_customer_email_sender" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="new_customer_email_sender" translate="label" type="select" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Password Reset Email Sender</label>
                     <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
                     <depends>
                         <field id="send_new_customer_emails">1</field>
                     </depends>
                 </field>
-                <field id="new_customer_email_template" translate="label comment" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="new_customer_email_template" translate="label comment" type="select" sortOrder="160" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Password Res Email Template</label>
                     <comment>Email template chosen based on theme fallback when "Default" option is selected.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
@@ -213,11 +249,11 @@
                         <field id="send_new_customer_emails">1</field>
                     </depends>
                 </field>
-                <field id="show_reports" sortOrder="130" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="show_reports" sortOrder="170" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Enable NAV Reports In Customer Account</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="nav_reports_allowed_customer_groups" sortOrder="140" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="nav_reports_allowed_customer_groups" sortOrder="180" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>NAV Reports Allowed Customer Groups</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Source\CustomerGroups</source_model>
                     <depends>
@@ -242,31 +278,67 @@
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
                     <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
                 </field>
-                <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+
+                <field id="enable_scheduled_products_import" sortOrder="20" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Enable Scheduled Products Import</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Allows Products Import to be executed by specific datetime schedule. See schedule settings below]]></comment>
+                    <depends>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="scheduled_products_import_week_days" translate="label" type="multiselect" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Scheduled Products Import on Week Days</label>
+                    <source_model>Magento\Config\Model\Config\Source\Locale\Weekdays</source_model>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron\Export</backend_model>
+                    <can_be_empty>1</can_be_empty>
+                    <depends>
+                        <field id="enable_scheduled_products_import">1</field>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="scheduled_products_import_start_times" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Scheduled Products Import Run Times</label>
+                    <comment><![CDATA[Coma separated start times: 9:30 AM, 12:00 PM, 4:00 PM. Times are treated as UTC times]]></comment>
+                    <depends>
+                        <field id="enable_scheduled_products_import">1</field>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="scheduled_products_import_delay_time" sortOrder="50" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Scheduled Products Import Minutes Between Runs</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <comment><![CDATA[In minutes. Put 0 to disable delay between runs]]></comment>
+                    <depends>
+                        <field id="enable_scheduled_products_import">1</field>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="max_rows" sortOrder="60" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
                 </field>
-                <field id="import_attribute_set" sortOrder="30" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="import_attribute_set" sortOrder="70" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default attribute set for new products</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\System\Config\Product\Attribute\Set</source_model>
                 </field>
-                <field id="import_visibility" sortOrder="50" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="import_visibility" sortOrder="80" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default visibility for new products</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\System\Config\Product\Visibility</source_model>
                 </field>
-                <field id="import_tax_class" sortOrder="60" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="import_tax_class" sortOrder="90" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default tax class for new products</label>
                     <source_model>\Magento\Tax\Model\TaxClass\Source\Product</source_model>
                     <backend_model>\Magento\Tax\Model\Config\TaxClass</backend_model>
                 </field>
-                <field id="set_in_stock" sortOrder="70" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="set_in_stock" sortOrder="100" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Set Product Stock Status to "In Stock" if QTY > "0"</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="disable_new_products" sortOrder="80" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="disable_new_products" sortOrder="110" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Disable New Imported Products</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="is_assign_to_all_websites" sortOrder="90" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="is_assign_to_all_websites" sortOrder="120" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Assign imported products to all websites by default</label>
                     <comment><![CDATA[Whether to assign products synced from NAV to all Magento Websites by default ignoring shop assignments on NAV side]]></comment>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -289,10 +361,45 @@
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
                     <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
                 </field>
-                <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="enable_scheduled_inventorys_import" sortOrder="20" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Enable Scheduled Inventory Import</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Allows Inventory Import to be executed by specific datetime schedule. See schedule settings below]]></comment>
+                    <depends>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="scheduled_inventorys_import_week_days" translate="label" type="multiselect" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Scheduled Inventory Import on Week Days</label>
+                    <source_model>Magento\Config\Model\Config\Source\Locale\Weekdays</source_model>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron\Export</backend_model>
+                    <can_be_empty>1</can_be_empty>
+                    <depends>
+                        <field id="enable_scheduled_inventorys_import">1</field>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="scheduled_inventorys_import_start_times" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Scheduled Inventory Import Run Times</label>
+                    <comment><![CDATA[Coma separated start times: 9:30 AM, 12:00 PM, 4:00 PM. Times are treated as UTC times]]></comment>
+                    <depends>
+                        <field id="enable_scheduled_inventorys_import">1</field>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="scheduled_inventorys_import_delay_time" sortOrder="50" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Scheduled Inventory Import Minutes Between Runs</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <comment><![CDATA[In minutes. Put 0 to disable delay between runs]]></comment>
+                    <depends>
+                        <field id="enable_scheduled_inventorys_import">1</field>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="max_rows" sortOrder="60" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
                 </field>
-                <field id="set_in_stock" sortOrder="30" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="set_in_stock" sortOrder="70" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Set Product Stock Status to "In Stock" if QTY > "0"</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
@@ -374,7 +481,7 @@
                 <field id="scheduled_orders_export_week_days" translate="label" type="multiselect" sortOrder="110" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Scheduled Orders Export on Week Days</label>
                     <source_model>Magento\Config\Model\Config\Source\Locale\Weekdays</source_model>
-                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron\OrderExport</backend_model>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron\Export</backend_model>
                     <can_be_empty>1</can_be_empty>
                     <depends>
                         <field id="hold_new_orders_export">0</field>
@@ -437,14 +544,49 @@
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
                     <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
                 </field>
-                <field id="max_rows" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="enable_scheduled_invoices_import" sortOrder="30" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Enable Scheduled Invoices Import</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Allows Invoices Import to be executed by specific datetime schedule. See schedule settings below]]></comment>
+                    <depends>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="scheduled_invoices_import_week_days" translate="label" type="multiselect" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Scheduled Invoices Import on Week Days</label>
+                    <source_model>Magento\Config\Model\Config\Source\Locale\Weekdays</source_model>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron\Export</backend_model>
+                    <can_be_empty>1</can_be_empty>
+                    <depends>
+                        <field id="enable_scheduled_invoices_import">1</field>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="scheduled_invoices_import_start_times" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Scheduled Invoices Import Run Times</label>
+                    <comment><![CDATA[Coma separated start times: 9:30 AM, 12:00 PM, 4:00 PM. Times are treated as UTC times]]></comment>
+                    <depends>
+                        <field id="enable_scheduled_invoices_import">1</field>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="scheduled_invoices_import_delay_time" sortOrder="60" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Scheduled Invoices Import Minutes Between Runs</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <comment><![CDATA[In minutes. Put 0 to disable delay between runs]]></comment>
+                    <depends>
+                        <field id="enable_scheduled_invoices_import">1</field>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="max_rows" sortOrder="70" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
                 </field>
-                <field id="capture_type" sortOrder="40" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="capture_type" sortOrder="80" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Default invoice capture type</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\System\Config\Sales\Invoice\Capture\Type</source_model>
                 </field>
-                <field id="send_email_enabled" sortOrder="50" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="send_email_enabled" sortOrder="90" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Send invoice email to customers</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
@@ -466,26 +608,61 @@
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
                     <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
                 </field>
-                <field id="max_rows" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="enable_scheduled_shipments_import" sortOrder="30" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Enable Scheduled Shipments Import</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Allows Shipments Import to be executed by specific datetime schedule. See schedule settings below]]></comment>
+                    <depends>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="scheduled_shipments_import_week_days" translate="label" type="multiselect" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Scheduled Shipments Import on Week Days</label>
+                    <source_model>Magento\Config\Model\Config\Source\Locale\Weekdays</source_model>
+                    <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron\Export</backend_model>
+                    <can_be_empty>1</can_be_empty>
+                    <depends>
+                        <field id="enable_scheduled_shipments_import">1</field>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="scheduled_shipments_import_start_times" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Scheduled Shipments Import Run Times</label>
+                    <comment><![CDATA[Coma separated start times: 9:30 AM, 12:00 PM, 4:00 PM. Times are treated as UTC times]]></comment>
+                    <depends>
+                        <field id="enable_scheduled_shipments_import">1</field>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="scheduled_shipments_import_delay_time" sortOrder="60" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Scheduled Shipments Import Minutes Between Runs</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <comment><![CDATA[In minutes. Put 0 to disable delay between runs]]></comment>
+                    <depends>
+                        <field id="enable_scheduled_shipments_import">1</field>
+                        <field id="import_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="max_rows" sortOrder="70" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
                 </field>
-                <field id="send_email_enabled" sortOrder="40" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="send_email_enabled" sortOrder="80" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Send Shipment Email To Customers</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="create_invoice_with_shipment" sortOrder="50" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="create_invoice_with_shipment" sortOrder="90" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Create Invoice When Shipment Is Created</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Refer to "Invoice" configuration section on this page for invoicing settings.]]></comment>
                 </field>
-                <field id="skip_shipment_but_invoice_for_virtual_orders" sortOrder="60" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="skip_shipment_but_invoice_for_virtual_orders" sortOrder="100" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Skip Shipment and still Create Invoice for Virtual Orders</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="create_invoice_with_shipment">1</field>
                     </depends>
                 </field>
-                <field id="cancel_remaining_not_shipped_items" sortOrder="70" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="cancel_remaining_not_shipped_items" sortOrder="110" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Cancel Remaining Order Items For Partial Shipments</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[If set to "Yes" then for any partial shipment remaining not shipped order items will be canceled and order status will changed to Complete.]]></comment>

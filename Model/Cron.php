@@ -2,6 +2,9 @@
 
 namespace MalibuCommerce\MConnect\Model;
 
+use MalibuCommerce\MConnect\Model\Queue as QueueModel;
+use MalibuCommerce\MConnect\Model\Queue\Customer as CustomerModel;
+
 class Cron
 {
     /**
@@ -19,14 +22,20 @@ class Cron
      */
     protected $moduleManager;
 
+    /** @var \MalibuCommerce\MConnect\Model\FlagFactory  */
+    protected $flagFactory;
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\QueueFactory $queue,
-        \Magento\Framework\Module\Manager $moduleManager
+        \Magento\Framework\Module\Manager $moduleManager,
+        \MalibuCommerce\MConnect\Model\FlagFactory $flagFactory
     ) {
         $this->config = $config;
         $this->queue = $queue;
         $this->moduleManager = $moduleManager;
+        $this->flagFactory = $flagFactory;
+
     }
 
     public function queueCustomerImport()
@@ -92,15 +101,95 @@ class Cron
                 null,
                 true
             );
-            if ($queue->getId()) {
-                return sprintf('The "%s" item added/exists in the queue for Website ID "%s"', $code, $websiteId) . PHP_EOL;
+
+            if ($this->isScheduleProcessAllow($code)) {
+                $queue->process();
+                $this->saveLastEntityImportTime($code);
+
+                return sprintf('The "%s" item added/exists in the queue and proceed for Website ID "%s"', $code, $websiteId) . PHP_EOL;
+
             } else {
-                return sprintf('Failed to add new %s item added to queue for Website ID "%s"', $code, $websiteId) . PHP_EOL;
+                if ($queue->getId()) {
+                    return sprintf('The "%s" item added/exists in the queue for Website ID "%s"', $code, $websiteId) . PHP_EOL;
+                } else {
+                    return sprintf('Failed to add new %s item added to queue for Website ID "%s"', $code, $websiteId) . PHP_EOL;
+                }
             }
+
         }
 
         return true;
     }
+
+    public function isScheduleProcessAllow($code)
+    {
+        $currentTime = time();
+        $config = $this->config;
+
+        if (!$config->isScheduledEntityImportEnabled($code)) {
+
+            return false;
+        }
+        $lastProcessingTime = $this->getLastEntityImportTime($code);
+        if ($lastProcessingTime && $config->getScheduledEntityImportDelayTime($code) > 0
+            && ($currentTime - $lastProcessingTime) < $config->getScheduledEntityImportDelayTime($code)
+        ) {
+
+            return false;
+        }
+
+        $lastProcessingTime = !$lastProcessingTime ? strtotime('12:00 AM') : $lastProcessingTime;
+        $runTimes = $config->getScheduledEntityImportRunTimes($code);
+        $runAllowed = false;
+        foreach ($runTimes as $strTime) {
+            $scheduledTime = strtotime($strTime);
+            if ($currentTime >= $scheduledTime && $scheduledTime > $lastProcessingTime) {
+                $runAllowed = true;
+                break;
+            }
+        }
+
+        if (!$runAllowed) {
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @return int
+     */
+    public function saveLastEntityImportTime($code)
+    {
+        $time = time();
+        $this->flagFactory->create()
+            ->setMconnectFlagCode('malibucommerce_mconnect_' . $code . '_import_last_run_time')
+            ->loadSelf()
+            ->setLastUpdate(date('Y-d-m H:i:s', $time))
+            ->save();
+
+        return $time;
+    }
+
+    /**
+     * @return bool|int
+     */
+    public function getLastEntityImportTime($code)
+    {
+        $flag = $this->flagFactory->create()
+            ->setMconnectFlagCode('malibucommerce_mconnect_' . $code . '_import_last_run_time')
+            ->loadSelf();
+
+        $time = $flag->hasData() ? $flag->getLastUpdate() : false;
+        if (!$time) {
+
+            return false;
+        }
+
+        return strtotime($time);
+    }
+
 
     public function getMultiCompanyActiveWebsites()
     {
