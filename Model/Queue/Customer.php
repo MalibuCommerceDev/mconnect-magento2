@@ -258,6 +258,11 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             ->setNavPaymentTerms((string)$data->cust_payment_terms)
             ->setNavPriceGroup((string)$data->cust_price_group);
 
+        $password = (string)$data->cust_pswd;
+        if (!empty($password)) {
+            $customer->setPassword(base64_decode($password));
+        }
+
         /**
          * Set required user defined attributes
          */
@@ -294,7 +299,6 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         try {
             if ($customer->hasDataChanges() || !empty($this->customAttributesMap)) {
                 $customer->save();
-
                 $this->saveCustomCustomerAttributes($customer, $data);
 
                 if ($customerExists) {
