@@ -440,11 +440,19 @@
                 <field id="max_rows" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
                 </field>
-                <field id="capture_type" sortOrder="40" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Default invoice capture type</label>
-                    <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\System\Config\Sales\Invoice\Capture\Type</source_model>
+                <field id="invoice_do_not_capture" sortOrder="40" type="multiselect" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Invoice "Do Not Capture" Payment Methods</label>
+                    <source_model>\Magento\Payment\Model\Config\Source\Allmethods</source_model>
                 </field>
-                <field id="send_email_enabled" sortOrder="50" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="invoice_offline_capture" sortOrder="50" type="multiselect" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Invoice "Capture Offline" Payment Methods</label>
+                    <source_model>\Magento\Payment\Model\Config\Source\Allmethods</source_model>
+                </field>
+                <field id="invoice_online_capture" sortOrder="60" type="multiselect" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Invoice "Capture Online" Payment Methods</label>
+                    <source_model>\Magento\Payment\Model\Config\Source\Allmethods</source_model>
+                </field>
+                <field id="send_email_enabled" sortOrder="70" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Send invoice email to customers</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
