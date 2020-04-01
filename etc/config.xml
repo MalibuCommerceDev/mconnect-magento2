@@ -32,6 +32,15 @@
                 <export_enabled>1</export_enabled>
                 <ignore_magento_errors>1</ignore_magento_errors>
                 <cron_expr>0 * * * *</cron_expr>
+                <enable_scheduled_customer_import>0</enable_scheduled_customer_import>
+                <scheduled_customer_import_week_days>0,1,2,3,4,5,6</scheduled_customer_import_week_days>
+                <scheduled_customer_import_start_times>9:00 AM,12:00 PM,4:00 PM</scheduled_customer_import_start_times>
+                <scheduled_customer_import_delay_time>5</scheduled_customer_import_delay_time>
+                <cron_expr_export>* * * * *</cron_expr_export>
+                <enable_scheduled_customer_export>0</enable_scheduled_customer_export>
+                <scheduled_customer_export_week_days>0,1,2,3,4,5,6</scheduled_customer_export_week_days>
+                <scheduled_customer_export_start_times>9:00 AM,12:00 PM,4:00 PM</scheduled_customer_export_start_times>
+                <scheduled_customer_export_delay_time>5</scheduled_customer_export_delay_time>
                 <max_rows>50</max_rows>
                 <default_nav_id_magento_registered></default_nav_id_magento_registered>
                 <default_nav_id_magento_guest></default_nav_id_magento_guest>
@@ -48,6 +57,10 @@
                 <import_enabled>1</import_enabled>
                 <ignore_magento_errors>1</ignore_magento_errors>
                 <cron_expr>0 * * * *</cron_expr>
+                <enable_scheduled_product_import>0</enable_scheduled_product_import>
+                <scheduled_product_import_week_days>0,1,2,3,4,5,6</scheduled_product_import_week_days>
+                <scheduled_product_import_start_times>9:00 AM,12:00 PM,4:00 PM</scheduled_product_import_start_times>
+                <scheduled_product_import_delay_time>5</scheduled_product_import_delay_time>
                 <max_rows>50</max_rows>
                 <import_attribute_set>4</import_attribute_set>
                 <import_type>simple</import_type>
@@ -61,6 +74,10 @@
                 <import_enabled>1</import_enabled>
                 <ignore_magento_errors>1</ignore_magento_errors>
                 <cron_expr>*/10 * * * *</cron_expr>
+                <enable_scheduled_inventory_import>0</enable_scheduled_inventory_import>
+                <scheduled_inventory_import_week_days>0,1,2,3,4,5,6</scheduled_inventory_import_week_days>
+                <scheduled_inventory_import_start_times>9:00 AM,12:00 PM,4:00 PM</scheduled_inventory_import_start_times>
+                <scheduled_inventory_import_delay_time>5</scheduled_inventory_import_delay_time>
                 <max_rows>50</max_rows>
                 <set_in_stock>1</set_in_stock>
             </inventory>
@@ -73,10 +90,11 @@
                 <auto_retry_period>30</auto_retry_period>
                 <hold_new_orders_export>0</hold_new_orders_export>
                 <hold_new_orders_delay>60</hold_new_orders_delay>
-                <enable_scheduled_orders_export>0</enable_scheduled_orders_export>
-                <scheduled_orders_export_week_days>0,1,2,3,4,5,6</scheduled_orders_export_week_days>
-                <scheduled_orders_export_start_times>9:00 AM,12:00 PM,4:00 PM</scheduled_orders_export_start_times>
-                <scheduled_orders_export_delay_time>5</scheduled_orders_export_delay_time>
+                <cron_expr_export>* * * * *</cron_expr_export>
+                <enable_scheduled_order_export>0</enable_scheduled_order_export>
+                <scheduled_order_export_week_days>0,1,2,3,4,5,6</scheduled_order_export_week_days>
+                <scheduled_order_export_start_times>9:00 AM,12:00 PM,4:00 PM</scheduled_order_export_start_times>
+                <scheduled_order_export_delay_time>5</scheduled_order_export_delay_time>
                 <order_status_when_synced_to_nav>nav_preparing_for_shipment</order_status_when_synced_to_nav>
                 <allowed_order_statuses_to_export>pending</allowed_order_statuses_to_export>
                 <gift_wrapping_force_enabled>0</gift_wrapping_force_enabled>
@@ -85,6 +103,10 @@
                 <import_enabled>1</import_enabled>
                 <ignore_magento_errors>1</ignore_magento_errors>
                 <cron_expr>*/10 * * * *</cron_expr>
+                <enable_scheduled_invoice_import>0</enable_scheduled_invoice_import>
+                <scheduled_invoice_import_week_days>0,1,2,3,4,5,6</scheduled_invoice_import_week_days>
+                <scheduled_invoice_import_start_times>9:00 AM,12:00 PM,4:00 PM</scheduled_invoice_import_start_times>
+                <scheduled_invoice_import_delay_time>5</scheduled_invoice_import_delay_time>
                 <max_rows>50</max_rows>
                 <invoice_offline_capture>banktransfer,cashondelivery,checkmo,free,purchaseorder</invoice_offline_capture>
                 <invoice_online_capture>amazonlogin,amazon_payment,authorizenet_directpost,klarna,authorizenet_directpost,braintree,braintree_paypal,braintree_paypal_vault,braintree_cc_vault,authorizenet_acceptjs,cybersource,eway,payflowpro,payflow_advanced,paypal_billing_agreement,payflow_express_bml,paypal_express_bml,paypal_express,hosted_pro,payflowpro_cc_vault,worldpay</invoice_online_capture>
@@ -94,6 +116,10 @@
                 <import_enabled>1</import_enabled>
                 <ignore_magento_errors>1</ignore_magento_errors>
                 <cron_expr>*/10 * * * *</cron_expr>
+                <enable_scheduled_shipment_import>0</enable_scheduled_shipment_import>
+                <scheduled_shipment_import_week_days>0,1,2,3,4,5,6</scheduled_shipment_import_week_days>
+                <scheduled_shipment_import_start_times>9:00 AM,12:00 PM,4:00 PM</scheduled_shipment_import_start_times>
+                <scheduled_shipment_import_delay_time>5</scheduled_shipment_import_delay_time>
                 <max_rows>50</max_rows>
                 <send_email_enabled>1</send_email_enabled>
                 <create_invoice_with_shipment>0</create_invoice_with_shipment>

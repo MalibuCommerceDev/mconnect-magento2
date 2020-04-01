@@ -2,7 +2,7 @@
     "name": "malibucommerce/mconnect-magento2",
     "description": "Connect NAV with Magento 2",
     "type": "magento2-module",
-    "version": "2.8.6",
+    "version": "2.9.0",
     "require": {
         "magento/framework": ">=100.0.0",
         "php": ">=7.0.0",
