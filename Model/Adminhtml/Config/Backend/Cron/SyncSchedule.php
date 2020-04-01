@@ -2,78 +2,79 @@
 
 namespace MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron;
 
+use MalibuCommerce\MConnect\Model\Queue;
+
 class SyncSchedule extends \Magento\Framework\App\Config\Value
 {
-
-    const CRON_PATH_CONFIG = [
-
-        'malibucommerce_mconnect/customer/scheduled_customers_import_week_days' => [
-            'cron_expr_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_customer_import/schedule/cron_expr',
+    const CRON_EVERY_MINUTE = 'every minute';
+    const CRON_EVERY_HOUR   = 'every hour';
+    const CRON_PATH_CONFIG  = [
+        'malibucommerce_mconnect/customer/scheduled_customer_import_week_days' => [
+            'cron_expr_path'  => 'crontab/default/jobs/malibucommerce_mconnect_navision_customer_import/schedule/cron_expr',
             'cron_model_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_customer_import/run/model',
-            'default_cron' => 'malibucommerce_mconnect/customer/cron_expr',
-            'is_enable' => 'groups/customer/fields/enable_scheduled_customers_import/value',
-            'type' => 'Import',
-            'entity' => 'customer'
+            'default_cron'    => 'malibucommerce_mconnect/customer/cron_expr',
+            'is_enabled'      => 'groups/customer/fields/enable_scheduled_customer_import/value',
+            'type'            => Queue::ACTION_IMPORT,
+            'entity'          => Queue\Customer::CODE
         ],
-        'malibucommerce_mconnect/customer/scheduled_customers_export_week_days' => [
-            'cron_expr_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_customer_export/schedule/cron_expr',
+        'malibucommerce_mconnect/customer/scheduled_customer_export_week_days' => [
+            'cron_expr_path'  => 'crontab/default/jobs/malibucommerce_mconnect_navision_customer_export/schedule/cron_expr',
             'cron_model_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_customer_export/run/model',
-            'default_cron' => 'malibucommerce_mconnect/customer/cron_expr_export',
-            'is_enable' => 'groups/customer/fields/enable_scheduled_customers_export/value',
-            'type' => 'export',
-            'entity' => 'customer'
+            'default_cron'    => 'malibucommerce_mconnect/customer/cron_expr_export',
+            'is_enabled'      => 'groups/customer/fields/enable_scheduled_customer_export/value',
+            'type'            => Queue::ACTION_EXPORT,
+            'entity'          => Queue\Customer::CODE
         ],
-        'malibucommerce_mconnect/order/scheduled_orders_export_week_days' => [
-            'cron_expr_path' => 'crontab/default/jobs/malibucommerce_mconnect_queue_orders_export/schedule/cron_exp',
-            'cron_model_path' => 'crontab/default/jobs/malibucommerce_mconnect_queue_orders_export/run/model',
-            'default_cron' => 'malibucommerce_mconnect/queue/cron_expr',
-            'is_enable' => 'groups/order/fields/enable_scheduled_orders_export/value',
-            'type' => 'export',
-            'entity' => 'order'
+        'malibucommerce_mconnect/order/scheduled_order_export_week_days'       => [
+            'cron_expr_path'  => 'crontab/default/jobs/malibucommerce_mconnect_navision_order_export/schedule/cron_exp',
+            'cron_model_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_order_export/run/model',
+            'default_cron'    => 'malibucommerce_mconnect/order/cron_expr_export',
+            'is_enabled'      => 'groups/order/fields/enable_scheduled_order_export/value',
+            'type'            => Queue::ACTION_EXPORT,
+            'entity'          => Queue\Order::CODE
         ],
 
-        'malibucommerce_mconnect/product/scheduled_products_import_week_days' => [
-            'cron_expr_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_product_import/schedule/cron_exp',
+        'malibucommerce_mconnect/product/scheduled_product_import_week_days' => [
+            'cron_expr_path'  => 'crontab/default/jobs/malibucommerce_mconnect_navision_product_import/schedule/cron_exp',
             'cron_model_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_product_import/run/model',
-            'default_cron' => 'malibucommerce_mconnect/product/cron_expr',
-            'is_enable' => 'groups/product/fields/enable_scheduled_products_import/value',
-            'type' => 'import',
-            'entity' => 'product'
+            'default_cron'    => 'malibucommerce_mconnect/product/cron_expr',
+            'is_enabled'      => 'groups/product/fields/enable_scheduled_product_import/value',
+            'type'            => Queue::ACTION_IMPORT,
+            'entity'          => Queue\Product::CODE
         ],
 
-        'malibucommerce_mconnect/inventory/scheduled_inventorys_import_week_days' => [
-            'cron_expr_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_inventory_import/schedule/cron_expr',
+        'malibucommerce_mconnect/inventory/scheduled_inventory_import_week_days' => [
+            'cron_expr_path'  => 'crontab/default/jobs/malibucommerce_mconnect_navision_inventory_import/schedule/cron_expr',
             'cron_model_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_inventory_import/run/model',
-            'default_cron' => 'malibucommerce_mconnect/inventory/cron_expr',
-            'is_enable' => 'groups/inventory/fields/enable_scheduled_inventorys_import/value',
-            'type' => 'import',
-            'entity' => 'inventory'
+            'default_cron'    => 'malibucommerce_mconnect/inventory/cron_expr',
+            'is_enabled'      => 'groups/inventory/fields/enable_scheduled_inventory_import/value',
+            'type'            => Queue::ACTION_IMPORT,
+            'entity'          => Queue\Inventory::CODE
         ],
 
-        'malibucommerce_mconnect/invoice/scheduled_invoices_import_week_days' => [
-            'cron_expr_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_invoice_import/schedule/cron_expr',
+        'malibucommerce_mconnect/invoice/scheduled_invoice_import_week_days' => [
+            'cron_expr_path'  => 'crontab/default/jobs/malibucommerce_mconnect_navision_invoice_import/schedule/cron_expr',
             'cron_model_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_invoice_import/run/model',
-            'default_cron' => 'malibucommerce_mconnect/invoice/cron_expr',
-            'is_enable' => 'groups/invoice/fields/enable_scheduled_invoices_import/value',
-            'type' => 'import',
-            'entity' => 'invoice'
+            'default_cron'    => 'malibucommerce_mconnect/invoice/cron_expr',
+            'is_enabled'      => 'groups/invoice/fields/enable_scheduled_invoice_import/value',
+            'type'            => Queue::ACTION_IMPORT,
+            'entity'          => Queue\Invoice::CODE
         ],
 
-        'malibucommerce_mconnect/shipment/scheduled_shipments_import_week_days' => [
-            'cron_expr_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_shipment_import/schedule/cron_expr',
+        'malibucommerce_mconnect/shipment/scheduled_shipment_import_week_days' => [
+            'cron_expr_path'  => 'crontab/default/jobs/malibucommerce_mconnect_navision_shipment_import/schedule/cron_expr',
             'cron_model_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_shipment_import/run/model',
-            'default_cron' => 'malibucommerce_mconnect/queue/cron_expr',
-            'is_enable' => 'groups/shipment/fields/enable_scheduled_shipments_import/value',
-            'type' => 'import',
-            'entity' => 'shipment'
+            'default_cron'    => 'malibucommerce_mconnect/queue/cron_expr',
+            'is_enabled'      => 'groups/shipment/fields/enable_scheduled_shipment_import/value',
+            'type'            => Queue::ACTION_IMPORT,
+            'entity'          => Queue\Shipment::CODE
         ],
     ];
-
 
     /** @var \Magento\Framework\App\Config\ValueFactory */
     protected $configValueFactory;
 
-    /** @var \Magento\Framework\App\Config\ScopeConfigInterface  */
+    /** @var \Magento\Framework\App\Config\ScopeConfigInterface */
     protected $scopeConfig;
 
     public function __construct(
@@ -87,8 +88,7 @@ class SyncSchedule extends \Magento\Framework\App\Config\Value
         $runModelPath = '',
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         array $data = []
-    )
-    {
+    ) {
         $this->configValueFactory = $configValueFactory;
         $this->scopeConfig = $scopeConfig;
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
@@ -109,14 +109,13 @@ class SyncSchedule extends \Magento\Framework\App\Config\Value
             return $this;
         }
 
-
-        $scheduledExportEnabled = $this->getData(self::CRON_PATH_CONFIG[$currentPath]['is_enable']);
+        $scheduledExportEnabled = $this->getData(self::CRON_PATH_CONFIG[$currentPath]['is_enabled']);
         $weekDays = $this->getValue();
 
         $action = self::CRON_PATH_CONFIG[$currentPath]['type'];
         $entity = self::CRON_PATH_CONFIG[$currentPath]['entity'];
 
-        $path = 'malibucommerce_mconnect/'.$entity.'/scheduled_' . $entity . 's_'.$action.'_start_times';
+        $path = 'malibucommerce_mconnect/' . $entity . '/scheduled_' . $entity . '_' . $action . '_start_times';
 
         $values = $this->scopeConfig->getValue(
             $path,
@@ -125,7 +124,7 @@ class SyncSchedule extends \Magento\Framework\App\Config\Value
         );
         $minutes = '*';
 
-        if(strpos($values, 'every hour') !== false) {
+        if (strpos($values, self::CRON_EVERY_HOUR) !== false) {
             $minutes = '0';
         }
 
@@ -135,7 +134,7 @@ class SyncSchedule extends \Magento\Framework\App\Config\Value
                 '*',                                                            # Hour
                 '*',                                                            # Day of the Month
                 '*',                                                            # Month of the Year
-                count(explode(',', $weekDays)) == 7 ? '*' : $weekDays,       # Day of the Week
+                count(explode(',', $weekDays)) == 7 ? '*' : $weekDays, # Day of the Week
             ];
             $cronExprString = join(' ', $cronExprArray);
         } else {

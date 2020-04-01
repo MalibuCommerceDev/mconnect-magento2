@@ -2,6 +2,8 @@
 
 namespace MalibuCommerce\MConnect\Model;
 
+use MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron\SyncSchedule;
+
 class Config
 {
     const XML_PATH_CONFIG_SECTION        = 'malibucommerce_mconnect';
@@ -11,13 +13,13 @@ class Config
     const AUTH_METHOD_NTLM   = 1;
     const AUTH_METHOD_DIGEST = 2;
 
-    /** @var \Magento\Framework\App\Config\ScopeConfigInterface  */
+    /** @var \Magento\Framework\App\Config\ScopeConfigInterface */
     protected $scopeConfig;
 
-    /** @var \Magento\Framework\Registry  */
+    /** @var \Magento\Framework\Registry */
     protected $registry;
 
-    /** @var \Magento\Framework\Module\Manager  */
+    /** @var \Magento\Framework\Module\Manager */
     protected $moduleManager;
 
     public function __construct(
@@ -168,7 +170,7 @@ class Config
     public function getIsHoldNewOrdersExport($websiteId = null)
     {
         return (bool)$this->getWebsiteData('order/hold_new_orders_export', $websiteId)
-               && !$this->isScheduledOrdersExportEnabled($websiteId);
+               && !$this->isScheduledOrdersExportEnabled();
     }
 
     /**
@@ -222,46 +224,29 @@ class Config
      */
     public function isScheduledOrdersExportEnabled()
     {
-        return (bool)$this->getWebsiteData('order/enable_scheduled_orders_export');
+        return (bool)$this->getWebsiteData('order/enable_scheduled_order_export');
     }
 
     /**
-     * @return bool
-     */
-    public function isScheduledCustomersExportEnabled()
-    {
-        return (bool)$this->getWebsiteData('customer/enable_scheduled_customers_export');
-    }
-
-
-
-    /**
+     * @param $entityType
+     *
      * @return int
      */
-    public function getScheduledEntityExportDelayTime($type)
+    public function getScheduledEntityExportDelayTime($entityType)
     {
-        return (int)$this->getWebsiteData($type . '/scheduled_' . $type . 's_export_delay_time');
-    }
-
-
-    public function getScheduledEntityExportRunTimes($type)
-    {
-        $values = $this->getWebsiteData($type . '/scheduled_' . $type . 's_export_start_times');
-        if((stripos($values, 'every minute') === false) && (stripos($values, 'every hour') === false)) {
-            return array_map('trim', explode(',', $values));
-        } else {
-            return false;
-        }
-
+        return (int)$this->getWebsiteData($entityType . '/scheduled_' . $entityType . '_export_delay_time');
     }
 
     /**
-     * @return array
+     * @param string $entityType
+     *
+     * @return array|bool
      */
-    public function getScheduledEntityImportRunTimes($code)
+    public function getScheduledEntityExportRunTimes($entityType)
     {
-        $values = $this->getWebsiteData($code . '/scheduled_' . $code . 's_import_start_times');
-        if((stripos($values, 'every minute') === false) && (stripos($values, 'every hour') === false)) {
+        $values = $this->getWebsiteData($entityType . '/scheduled_' . $entityType . '_export_start_times');
+        $possiblePhraseValues = [SyncSchedule::CRON_EVERY_MINUTE, SyncSchedule::CRON_EVERY_HOUR];
+        if (!in_array($values, $possiblePhraseValues)) {
             return array_map('trim', explode(',', $values));
         } else {
             return false;
@@ -269,22 +254,40 @@ class Config
     }
 
     /**
-     * @return bool
+     * @param $entityType
+     *
+     * @return array|bool
      */
-    public function isScheduledEntityImportEnabled($code)
+    public function getScheduledEntityImportRunTimes($entityType)
     {
-        return (bool)$this->getWebsiteData($code . '/enable_scheduled_' . $code . 's_import');
+        $values = $this->getWebsiteData($entityType . '/scheduled_' . $entityType . '_import_start_times');
+        $possiblePhraseValues = [SyncSchedule::CRON_EVERY_MINUTE, SyncSchedule::CRON_EVERY_HOUR];
+        if (!in_array($values, $possiblePhraseValues)) {
+            return array_map('trim', explode(',', $values));
+        } else {
+            return false;
+        }
     }
 
     /**
-     * @return int
+     * @param string $entityType
+     *
+     * @return bool
      */
-    public function getScheduledEntityImportDelayTime($code)
+    public function isScheduledEntityImportEnabled($entityType)
     {
-        return (int)$this->getWebsiteData($code . '/scheduled_' . $code . 's_import_delay_time');
+        return (bool)$this->getWebsiteData($entityType . '/enable_scheduled_' . $entityType . '_import');
     }
 
-
+    /**
+     * @param string $entityType
+     *
+     * @return int
+     */
+    public function getScheduledEntityImportDelayTime($entityType)
+    {
+        return (int)$this->getWebsiteData($entityType . '/scheduled_' . $entityType . '_import_delay_time');
+    }
 
     /**
      * @param null|int|string|\Magento\Store\Model\Website $websiteId

@@ -2,9 +2,6 @@
 
 namespace MalibuCommerce\MConnect\Model;
 
-use MalibuCommerce\MConnect\Model\Queue as QueueModel;
-use MalibuCommerce\MConnect\Model\Queue\Customer as CustomerModel;
-
 class Cron
 {
     /**
@@ -75,7 +72,13 @@ class Cron
         }
     }
 
-    protected function queueImportItem($code)
+    /**
+     * @param string $entityType
+     *
+     * @return bool|string
+     * @throws \Exception
+     */
+    protected function queueImportItem($entityType)
     {
         if (!$this->config->isModuleEnabled()) {
 
@@ -85,13 +88,13 @@ class Cron
         $activeWebsites = $this->getMultiCompanyActiveWebsites();
 
         foreach ($activeWebsites as $websiteId) {
-            if (!(bool)$this->config->getWebsiteData($code . '/import_enabled', $websiteId)) {
-                return sprintf('Import functionality is disabled for %s at Website ID "%s"', $code, $websiteId) . PHP_EOL;
+            if (!(bool)$this->config->getWebsiteData($entityType . '/import_enabled', $websiteId)) {
+                return sprintf('Import functionality is disabled for %s at Website ID "%s"', $entityType, $websiteId) . PHP_EOL;
                 continue;
             }
 
             $queue = $this->queue->create()->add(
-                $code,
+                $entityType,
                 \MalibuCommerce\MConnect\Model\Queue::ACTION_IMPORT,
                 $websiteId,
                 0,
@@ -102,17 +105,17 @@ class Cron
                 true
             );
 
-            if ($this->isScheduleProcessAllow($code)) {
+            if ($this->canProcess($entityType)) {
                 $queue->process();
-                $this->saveLastEntityImportTime($code);
+                $this->saveLastEntityImportTime($entityType);
 
-                return sprintf('The "%s" item added/exists in the queue and proceed for Website ID "%s"', $code, $websiteId) . PHP_EOL;
+                return sprintf('The "%s" item added/exists in the queue and proceed for Website ID "%s"', $entityType, $websiteId) . PHP_EOL;
 
             } else {
                 if ($queue->getId()) {
-                    return sprintf('The "%s" item added/exists in the queue for Website ID "%s"', $code, $websiteId) . PHP_EOL;
+                    return sprintf('The "%s" item added/exists in the queue for Website ID "%s"', $entityType, $websiteId) . PHP_EOL;
                 } else {
-                    return sprintf('Failed to add new %s item added to queue for Website ID "%s"', $code, $websiteId) . PHP_EOL;
+                    return sprintf('Failed to add new %s item added to queue for Website ID "%s"', $entityType, $websiteId) . PHP_EOL;
                 }
             }
 
@@ -121,25 +124,30 @@ class Cron
         return true;
     }
 
-    public function isScheduleProcessAllow($code)
+    /**
+     * @param string $entityType
+     *
+     * @return bool
+     */
+    public function canProcess($entityType)
     {
         $currentTime = time();
         $config = $this->config;
 
-        if (!$config->isScheduledEntityImportEnabled($code)) {
+        if (!$config->isScheduledEntityImportEnabled($entityType)) {
 
             return false;
         }
-        $lastProcessingTime = $this->getLastEntityImportTime($code);
-        if ($lastProcessingTime && $config->getScheduledEntityImportDelayTime($code) > 0
-            && ($currentTime - $lastProcessingTime) < $config->getScheduledEntityImportDelayTime($code)
+        $lastProcessingTime = $this->getLastEntityImportTime($entityType);
+        if ($lastProcessingTime && $config->getScheduledEntityImportDelayTime($entityType) > 0
+            && ($currentTime - $lastProcessingTime) < $config->getScheduledEntityImportDelayTime($entityType)
         ) {
 
             return false;
         }
 
         $lastProcessingTime = !$lastProcessingTime ? strtotime('12:00 AM') : $lastProcessingTime;
-        $runTimes = $config->getScheduledEntityImportRunTimes($code);
+        $runTimes = $config->getScheduledEntityImportRunTimes($entityType);
         if (!$runTimes) {
             $runAllowed = true;
         } else {
@@ -162,13 +170,15 @@ class Cron
     }
 
     /**
+     * @param string $entityType
+     *
      * @return int
      */
-    public function saveLastEntityImportTime($code)
+    public function saveLastEntityImportTime($entityType)
     {
         $time = time();
         $this->flagFactory->create()
-            ->setMconnectFlagCode('malibucommerce_mconnect_' . $code . '_import_last_run_time')
+            ->setMconnectFlagCode('malibucommerce_mconnect_' . $entityType . '_import_last_run_time')
             ->loadSelf()
             ->setLastUpdate(date('Y-d-m H:i:s', $time))
             ->save();
@@ -177,12 +187,14 @@ class Cron
     }
 
     /**
-     * @return bool|int
+     * @param string $entityType
+     *
+     * @return bool|false|int
      */
-    public function getLastEntityImportTime($code)
+    public function getLastEntityImportTime($entityType)
     {
         $flag = $this->flagFactory->create()
-            ->setMconnectFlagCode('malibucommerce_mconnect_' . $code . '_import_last_run_time')
+            ->setMconnectFlagCode('malibucommerce_mconnect_' . $entityType . '_import_last_run_time')
             ->loadSelf();
 
         $time = $flag->hasData() ? $flag->getLastUpdate() : false;
@@ -194,7 +206,9 @@ class Cron
         return strtotime($time);
     }
 
-
+    /**
+     * @return array
+     */
     public function getMultiCompanyActiveWebsites()
     {
         $connection = $this->queue->create()->getResource()->getConnection();

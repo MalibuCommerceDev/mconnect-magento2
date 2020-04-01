@@ -12,13 +12,10 @@ use Magento\Customer\Model\Customer;
 use Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
-use MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron\OrderExport;
+use MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron\SyncSchedule;
 
 class UpgradeData implements UpgradeDataInterface
 {
-    const CRON_STRING_SCHEDULE_PATH = 'crontab/default/jobs/malibucommerce_mconnect_queue_orders_export/schedule/cron_expr';
-    const CRON_STRING_MODEL_PATH = 'crontab/default/jobs/malibucommerce_mconnect_queue_orders_export/run/model';
-
     /**
      * @var CustomerSetupFactory
      */
@@ -88,8 +85,8 @@ class UpgradeData implements UpgradeDataInterface
             $this->upgrade1_1_55($setup);
         }
 
-        if (version_compare($context->getVersion(), '2.8.0', '<')) {
-            $this->upgrade2_8_0($setup);
+        if (version_compare($context->getVersion(), '2.9.0', '<')) {
+            $this->upgrade2_9_0($setup);
         }
 
         $setup->endSetup();
@@ -252,7 +249,8 @@ class UpgradeData implements UpgradeDataInterface
         /**
          * Fix nav_price_group and nav_payment_terms attributes
          */
-        if (version_compare($context->getVersion(), '1.1.17', '<') && version_compare($context->getVersion(), '1.1.6', '>')) {
+        if (version_compare($context->getVersion(), '1.1.17', '<') && version_compare($context->getVersion(), '1.1.6',
+                '>')) {
             // Needed to reset foreign checks flag
             $setup->endSetup();
 
@@ -292,12 +290,14 @@ class UpgradeData implements UpgradeDataInterface
              */
             if (!empty($priceGroupValues)) {
                 foreach ($priceGroupValues as $entityId => $value) {
-                    $setup->getConnection()->update('customer_entity', ['nav_price_group' => $value], ['entity_id = ?' => $entityId]);
+                    $setup->getConnection()->update('customer_entity', ['nav_price_group' => $value],
+                        ['entity_id = ?' => $entityId]);
                 }
             }
             if (!empty($paymentTermsValues)) {
                 foreach ($paymentTermsValues as $entityId => $value) {
-                    $setup->getConnection()->update('customer_entity', ['nav_payment_terms' => $value], ['entity_id = ?' => $entityId]);
+                    $setup->getConnection()->update('customer_entity', ['nav_payment_terms' => $value],
+                        ['entity_id = ?' => $entityId]);
                 }
             }
 
@@ -331,10 +331,20 @@ class UpgradeData implements UpgradeDataInterface
         }
     }
 
-    protected function upgrade2_8_0(ModuleDataSetupInterface $setup)
+    protected function upgrade2_9_0(ModuleDataSetupInterface $setup)
     {
-        $value = $this->scopeConfig->getValue('malibucommerce_mconnect/queue/cron_expr');
-        $this->configWriter->save(self::CRON_STRING_SCHEDULE_PATH, $value);
-        $this->configWriter->save(self::CRON_STRING_MODEL_PATH, '');
+        foreach (SyncSchedule::CRON_PATH_CONFIG as $key => $config) {
+            $this->configWriter->save($config['cron_expr_path'], $this->scopeConfig->getValue($config['default_cron']));
+            $this->configWriter->save($config['cron_model_path'], '');
+        }
+
+        $select = $setup->getConnection()
+            ->select()
+            ->from('core_config_data', ['config_id'])
+            ->where('path LIKE ?', '%scheduled_orders_export%');
+        $deleteIds = $select->getConnection()->fetchCol($select);
+        if (!empty($deleteIds)) {
+            $setup->getConnection()->delete('core_config_data', ['config_id IN (?)' => $deleteIds]);
+        }
     }
 }

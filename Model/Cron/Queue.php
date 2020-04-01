@@ -8,10 +8,10 @@ use \MalibuCommerce\MConnect\Model\Queue\Customer as CustomerModel;
 
 class Queue
 {
-    const FLAG_ORDERS_EXPORT_LAST_RUN_TIME = 'malibucommerce_mconnect_orders_export_last_run_time';
+    const FLAG_ORDERS_EXPORT_LAST_RUN_TIME    = 'malibucommerce_mconnect_orders_export_last_run_time';
     const FLAG_CUSTOMERS_EXPORT_LAST_RUN_TIME = 'malibucommerce_mconnect_customers_export_last_run_time';
 
-    /** @var \MalibuCommerce\MConnect\Model\Config  */
+    /** @var \MalibuCommerce\MConnect\Model\Config */
     protected $config;
 
     /**
@@ -29,10 +29,10 @@ class Queue
      */
     protected $mConnectMailer;
 
-    /** @var \Magento\Sales\Model\OrderFactory  */
+    /** @var \Magento\Sales\Model\OrderFactory */
     protected $salesOrderFactory;
 
-    /** @var \MalibuCommerce\MConnect\Model\FlagFactory  */
+    /** @var \MalibuCommerce\MConnect\Model\FlagFactory */
     protected $flagFactory;
 
     public function __construct(
@@ -74,7 +74,7 @@ class Queue
                 ),
                 []
             )
-            ->where('q1.code != ?', OrderModel::CODE)
+            ->where('q1.code NOT IN (?)', [OrderModel::CODE, CustomerModel::CODE])
             ->where('q1.status = ?', QueueModel::STATUS_PENDING)
             ->where('q2.id IS NULL');
 
@@ -207,16 +207,20 @@ class Queue
 
     public function exportCustomers()
     {
-     return $this->exportEntity('customer');
+        return $this->exportEntity(CustomerModel::CODE);
     }
 
     public function exportOrders()
     {
-        return $this->exportEntity('order');
+        return $this->exportEntity(OrderModel::CODE);
     }
 
     public function exportEntity($type)
     {
+        if (!in_array($type, [OrderModel::CODE, CustomerModel::CODE])) {
+            return 'Export for ' . $type. ' is not supported.';
+        }
+
         $currentTime = time();
         $config = $this->config;
         if (!$config->isModuleEnabled()) {
@@ -252,12 +256,6 @@ class Queue
             return 'Execution not allowed at this time';
         }
 
-        if ($type == 'order') {
-            $code = OrderModel::CODE;
-        } elseif ($type == 'customer') {
-            $code = CustomerModel::CODE;
-        }
-
         /**
          * Make sure to process only those queue items with where action and code not matching any running queue items per website
          */
@@ -265,17 +263,11 @@ class Queue
         $queues->getSelect()->reset();
         $queues->getSelect()
             ->from(['q1' => 'malibucommerce_mconnect_queue'], '*')
-            ->where('q1.code = ?', OrderModel::CODE)
+            ->where('q1.code = ?', $type)
             ->where('q1.status = ?', QueueModel::STATUS_PENDING);
 
-        if ($type == 'customer') {
-            if ($this->config->isScheduledCustomersExportEnabled()) {
-                $queues->getSelect()->where('q1.scheduled_at <= ?', $this->date->gmtDate());
-            }
-        } elseif ($type == 'order') {
-            if ($this->config->getIsHoldNewEntityExport()) {
-                $queues->getSelect()->where('q1.scheduled_at <= ?', $this->date->gmtDate());
-            }
+        if (($type == OrderModel::CODE && $this->config->getIsHoldNewOrdersExport())) {
+            $queues->getSelect()->where('q1.scheduled_at <= ?', $this->date->gmtDate());
         }
 
         $count = $queues->getSize();
@@ -289,19 +281,22 @@ class Queue
         }
         $this->saveLastEntityExportTime($type);
 
-        return sprintf('Processed %d item(s) in queue.', $count);
+        return sprintf('Processed %d %s item(s) in the queue.', $count, $type);
     }
 
     /**
+     * @param string $type
+     *
      * @return int
      */
     public function saveLastEntityExportTime($type)
     {
-        if ($type == 'order') {
-            $flagCode = self::FLAG_ORDERS_EXPORT_LAST_RUN_TIME;
-        } elseif ($type == 'customer') {
-            $flagCode = self::FLAG_CUSTOMERS_EXPORT_LAST_RUN_TIME;
+        $flagCode = $this->getExportLastRunFlagCode($type);
+        if (!$flagCode) {
+
+            return false;
         }
+
         $time = time();
         $this->flagFactory->create()
             ->setMconnectFlagCode($flagCode)
@@ -317,11 +312,12 @@ class Queue
      */
     public function getLastEntityExportTime($type)
     {
-        if ($type == 'order') {
-            $flagCode = self::FLAG_ORDERS_EXPORT_LAST_RUN_TIME;
-        } elseif ($type == 'customer') {
-            $flagCode = self::FLAG_CUSTOMERS_EXPORT_LAST_RUN_TIME;
+        $flagCode = $this->getExportLastRunFlagCode($type);
+        if (!$flagCode) {
+
+            return false;
         }
+
         $flag = $this->flagFactory->create()
             ->setMconnectFlagCode($flagCode)
             ->loadSelf();
@@ -333,6 +329,21 @@ class Queue
         }
 
         return strtotime($time);
+    }
+
+    public function getExportLastRunFlagCode($type)
+    {
+        if (!in_array($type, [OrderModel::CODE, CustomerModel::CODE])) {
+
+            return false;
+        }
+
+        $flagCode = self::FLAG_CUSTOMERS_EXPORT_LAST_RUN_TIME;
+        if ($type == OrderModel::CODE) {
+            $flagCode = self::FLAG_ORDERS_EXPORT_LAST_RUN_TIME;
+        }
+
+        return $flagCode;
     }
 
     /**
@@ -347,9 +358,9 @@ class Queue
             return 'Module is disabled.';
         }
         $maxRetryAmount = $config->get('order/auto_retry_attempts');
-        $retryDelay     = $config->get('order/auto_retry_delay');
-        $ordersAmount   = $config->get('order/auto_retry_batch_size');
-        $ordersPeriod   = (int)$config->get('order/auto_retry_period');
+        $retryDelay = $config->get('order/auto_retry_delay');
+        $ordersAmount = $config->get('order/auto_retry_batch_size');
+        $ordersPeriod = (int)$config->get('order/auto_retry_period');
         if ($ordersPeriod) {
             $orderPeriodToTime = date("y-m-d", strtotime("-$ordersPeriod day"));
         } else {
@@ -396,9 +407,9 @@ class Queue
 
         if (count($prepareOrdersToEmail) > 0) {
             $this->mConnectMailer->sendRetryOrderErrorEmail([
-                'error_title'   => 'List of orders with error status after '.$maxRetryAmount. ' attempts to retry',
-                'orders'        => implode(", ", $prepareOrdersToEmail),
-                'attempts'      => $maxRetryAmount
+                'error_title' => 'List of orders with error status after ' . $maxRetryAmount . ' attempts to retry',
+                'orders'      => implode(", ", $prepareOrdersToEmail),
+                'attempts'    => $maxRetryAmount
             ]);
         }
 
