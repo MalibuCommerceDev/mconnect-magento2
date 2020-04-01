@@ -2,14 +2,14 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
         <section id="malibucommerce_mconnect" translate="label" sortOrder="500" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Malibu Connect</label>
+            <label>M-Connect</label>
             <tab>service</tab>
             <resource>MalibuCommerce_MConnect::config</resource>
 
             <group id="info" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
                 <label>Information</label>
                 <field id="version" sortOrder="10" type="label" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
-                    <label>Malibu Connect Version</label>
+                    <label>M-Connect Version</label>
                     <frontend_model>\MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Version\Module</frontend_model>
                 </field>
             </group>
@@ -61,19 +61,18 @@
                     <frontend_model>\MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Connection\TriggerPassword</frontend_model>
                     <label />
                 </field>
-
-                <field id="soap_debug" sortOrder="20" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="soap_debug" sortOrder="100" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Debug All SOAP requests/responses</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Warning: all SOAP requests/responses will be logged into Magento log file ./var/log/malibu_connect_soap.log]]></comment>
                 </field>
 
-                <field id="log" sortOrder="90" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="log" sortOrder="110" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Log Requests</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[May consume a large amount of disk space.]]></comment>
                 </field>
-                <field id="log_to_db" sortOrder="100" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="log_to_db" sortOrder="120" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Save Request Logs to DB</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Save logs to Magento database instead of files. File logs still will be shown if no logs found in database (fallback feature)]]></comment>
@@ -81,12 +80,12 @@
                         <field id="log">1</field>
                     </depends>
                 </field>
-                <field id="retry_on_failure" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="retry_on_failure" translate="label" type="select" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Retry NAV Requests On Failure When Exporting Data from NAV</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Each consequent retry <strong>Export</strong> request will be delayed by certain amount of seconds that will increase with each attempt. Delay in seconds formula is: 2<sup>n</sup>, where n = CURRENT_RETRY_ATTEMPT_NUMBER]]></comment>
                 </field>
-                <field id="retry_max_count" sortOrder="110" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="retry_max_count" sortOrder="140" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Maximum NAV Export Requests Retry Attempts On Failure</label>
                     <comment><![CDATA[Maximum Retry Attempts before interrupting NAV <strong>Export</strong> requests. The more attempts allowed, the longer delay will be between further attempts.]]></comment>
                     <depends>
@@ -94,18 +93,18 @@
                     </depends>
                 </field>
 
-                <field id="send_error_emails" translate="label" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="send_error_emails" translate="label" type="select" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Send NAV API Error Emails</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="error_email_sender" translate="label" type="select" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="error_email_sender" translate="label" type="select" sortOrder="160" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Error Email Sender</label>
                     <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
                     <depends>
                         <field id="send_error_emails">1</field>
                     </depends>
                 </field>
-                <field id="error_email_recipient" translate="label" type="text" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="error_email_recipient" translate="label" type="text" sortOrder="170" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Error Email Recipient</label>
                     <validate>validate-emails</validate>
                     <comment><![CDATA[Comma-separated emails]]></comment>
@@ -113,7 +112,7 @@
                         <field id="send_error_emails">1</field>
                     </depends>
                 </field>
-                <field id="error_email_template" translate="label comment" type="select" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="error_email_template" translate="label comment" type="select" sortOrder="180" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Error Email Template</label>
                     <comment>Email template chosen based on theme fallback when "Default" option is selected.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
@@ -121,7 +120,7 @@
                         <field id="send_error_emails">1</field>
                     </depends>
                 </field>
-                <field id="retry_error_orders_email_template" translate="label comment" type="select" sortOrder="160" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="retry_error_orders_email_template" translate="label comment" type="select" sortOrder="190" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Retry Errored Orders Email Template</label>
                     <comment>Email template chosen based on theme fallback when "Default" option is selected.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
@@ -583,21 +582,21 @@
 
             <group id="invoice" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                 <label>Invoice</label>
-                <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="import_enabled" sortOrder="10" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="ignore_magento_errors" sortOrder="10" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="ignore_magento_errors" sortOrder="20" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Ignore Magento Logical Errors</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Will allow continuation of NAV sync process by changing last sync date even if there were any Magento Logical Exceptions during the sync process]]></comment>
                 </field>
-                <field id="cron_expr" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="cron_expr" sortOrder="30" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Schedule (cron syntax)</label>
                     <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
                     <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron</backend_model>
                 </field>
-                <field id="scheduled_invoices_import_week_days" translate="label" type="multiselect" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="scheduled_invoices_import_week_days" translate="label" type="multiselect" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Scheduled Invoices Import on Week Days</label>
                     <source_model>Magento\Config\Model\Config\Source\Locale\Weekdays</source_model>
                     <backend_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron\SyncSchedule</backend_model>
@@ -606,7 +605,7 @@
                         <field id="import_enabled">1</field>
                     </depends>
                 </field>
-                <field id="enable_scheduled_invoices_import" sortOrder="40" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="enable_scheduled_invoices_import" sortOrder="50" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Enable Scheduled Invoices Import</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Allows Invoices Import to be executed by specific datetime schedule. See schedule settings below]]></comment>
@@ -614,7 +613,7 @@
                         <field id="import_enabled">1</field>
                     </depends>
                 </field>
-                <field id="scheduled_invoices_import_start_times" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="scheduled_invoices_import_start_times" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Scheduled Invoices Import Run Times</label>
                     <comment><![CDATA[Please use variable "every minute" or "every hour", also can specify exact time, coma separated start times: 9:30 AM, 12:00 PM, 4:00 PM. Times are treated as UTC times]]></comment>
                     <depends>
@@ -622,7 +621,7 @@
                         <field id="import_enabled">1</field>
                     </depends>
                 </field>
-                <field id="scheduled_invoices_import_delay_time" sortOrder="60" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="scheduled_invoices_import_delay_time" sortOrder="70" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Scheduled Invoices Import Minutes Between Runs</label>
                     <validate>validate-number validate-zero-or-greater</validate>
                     <comment><![CDATA[In minutes. Put 0 to disable delay between runs]]></comment>
@@ -631,14 +630,22 @@
                         <field id="import_enabled">1</field>
                     </depends>
                 </field>
-                <field id="max_rows" sortOrder="70" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="max_rows" sortOrder="80" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
                 </field>
-                <field id="capture_type" sortOrder="80" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Default invoice capture type</label>
-                    <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\System\Config\Sales\Invoice\Capture\Type</source_model>
+                <field id="invoice_do_not_capture" sortOrder="90" type="multiselect" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Invoice "Do Not Capture" Payment Methods</label>
+                    <source_model>\Magento\Payment\Model\Config\Source\Allmethods</source_model>
                 </field>
-                <field id="send_email_enabled" sortOrder="90" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                <field id="invoice_offline_capture" sortOrder="100" type="multiselect" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Invoice "Capture Offline" Payment Methods</label>
+                    <source_model>\Magento\Payment\Model\Config\Source\Allmethods</source_model>
+                </field>
+                <field id="invoice_online_capture" sortOrder="110" type="multiselect" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Invoice "Capture Online" Payment Methods</label>
+                    <source_model>\Magento\Payment\Model\Config\Source\Allmethods</source_model>
+                </field>
+                <field id="send_email_enabled" sortOrder="120" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Send invoice email to customers</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
@@ -755,7 +762,7 @@
             </group>
 
             <group id="price_rule" type="text" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                <label>Malibu Connect Price Rule</label>
+                <label>M-Connect Price Rule</label>
                 <field id="import_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Import Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -792,11 +799,11 @@
             </group>
 
             <group id="tier_price" type="text" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                <label>Malibu Connect Tier Price</label>
+                <label>M-Connect Tier Price</label>
                 <field id="is_enabled" sortOrder="5" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[Note: This functionality will override standard Magento Tier Pricing logic. Malibu Connect Tier Price Logic works for ALL customer groups by default. Malibu Connect Tier Pricing logic is based on Malibu Connect Promotion Prices if available, if not it will load tier pricing from Malibu Connect Price Rules]]></comment>
+                    <comment><![CDATA[Note: This functionality will override standard Magento Tier Pricing logic. M-Connect Tier Price Logic works for ALL customer groups by default. M-Connect Tier Pricing logic is based on M-Connect Promotion Prices if available, if not it will load tier pricing from M-Connect Price Rules]]></comment>
                 </field>
             </group>
         </section>

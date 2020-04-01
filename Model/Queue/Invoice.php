@@ -160,7 +160,33 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue implements Importable
             );
         }
 
-        $invoice->setRequestedCaptureCase($this->config->get($this->getQueueCode() . '/capture_type'));
+        $paymentMethod = $order->getPayment()->getMethod();
+        $invoiceFlag = false;
+
+        $getEnabledPaymentMEthodForDoNoCapture = $this->config->get($this->getQueueCode() . '/invoice_do_not_capture');
+        $getEnabledPaymentMEthodForOfflineCapture = $this->config->get($this->getQueueCode() . '/invoice_offline_capture');
+        $getEnabledPaymentMEthodForOnlineCapture = $this->config->get($this->getQueueCode() . '/invoice_online_capture');
+
+        if (is_array(explode(',', $getEnabledPaymentMEthodForDoNoCapture))) {
+            if (in_array($paymentMethod, explode(',', $getEnabledPaymentMEthodForDoNoCapture))) {
+                $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::NOT_CAPTURE);
+                $invoiceFlag = true;
+            }
+        }
+
+        if (is_array(explode(',', $getEnabledPaymentMEthodForOfflineCapture)) && !$invoiceFlag) {
+            if (in_array($paymentMethod, explode(',', $getEnabledPaymentMEthodForOfflineCapture))) {
+                $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE);
+                $invoiceFlag = true;
+            }
+        }
+
+        if (is_array(explode(',', $getEnabledPaymentMEthodForOnlineCapture)) && !$invoiceFlag) {
+            if (in_array($paymentMethod, explode(',', $getEnabledPaymentMEthodForOnlineCapture))) {
+                $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE);
+            }
+        }
+
         $invoice->register();
 
         return $invoice;

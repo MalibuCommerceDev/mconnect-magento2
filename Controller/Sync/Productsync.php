@@ -88,7 +88,7 @@ class Productsync extends Action
         $data = [];
         if (!$this->config->isModuleEnabled()) {
             $data['error'] = 1;
-            $data['message'] = 'Malibu Connect is disabled.';
+            $data['message'] = 'M-Connect is disabled).';
         } else {
             try {
                 $queue = $this->queue->create()->add(

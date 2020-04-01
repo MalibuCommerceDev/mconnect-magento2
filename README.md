@@ -1,4 +1,4 @@
-Malibu Connect for Magento 2
+M-Connect for Magento 2
 ===
 
 # Installation

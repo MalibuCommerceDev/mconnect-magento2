@@ -107,7 +107,8 @@
                 <scheduled_invoices_import_start_times>9:00 AM,12:00 PM,4:00 PM</scheduled_invoices_import_start_times>
                 <scheduled_invoices_import_delay_time>5</scheduled_invoices_import_delay_time>
                 <max_rows>50</max_rows>
-                <capture_type>online</capture_type>
+                <invoice_offline_capture>banktransfer,cashondelivery,checkmo,free,purchaseorder</invoice_offline_capture>
+                <invoice_online_capture>amazonlogin,amazon_payment,authorizenet_directpost,klarna,authorizenet_directpost,braintree,braintree_paypal,braintree_paypal_vault,braintree_cc_vault,authorizenet_acceptjs,cybersource,eway,payflowpro,payflow_advanced,paypal_billing_agreement,payflow_express_bml,paypal_express_bml,paypal_express,hosted_pro,payflowpro_cc_vault,worldpay</invoice_online_capture>
                 <send_email_enabled>1</send_email_enabled>
             </invoice>
             <shipment>
