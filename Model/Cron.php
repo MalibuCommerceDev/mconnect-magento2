@@ -140,12 +140,16 @@ class Cron
 
         $lastProcessingTime = !$lastProcessingTime ? strtotime('12:00 AM') : $lastProcessingTime;
         $runTimes = $config->getScheduledEntityImportRunTimes($code);
-        $runAllowed = false;
-        foreach ($runTimes as $strTime) {
-            $scheduledTime = strtotime($strTime);
-            if ($currentTime >= $scheduledTime && $scheduledTime > $lastProcessingTime) {
-                $runAllowed = true;
-                break;
+        if (!$runTimes) {
+            $runAllowed = true;
+        } else {
+            $runAllowed = false;
+            foreach ($runTimes as $strTime) {
+                $scheduledTime = strtotime($strTime);
+                if ($currentTime >= $scheduledTime && $scheduledTime > $lastProcessingTime) {
+                    $runAllowed = true;
+                    break;
+                }
             }
         }
 

@@ -226,43 +226,46 @@ class Config
     }
 
     /**
-     * @return int
-     */
-    public function getScheduledOrdersExportDelayTime()
-    {
-        return (int)$this->getWebsiteData('order/scheduled_orders_export_delay_time');
-    }
-
-    /**
-     * @return array
-     */
-    public function getScheduledOrdersExportRunTimes()
-    {
-        return array_map('trim', explode(',', $this->getWebsiteData('order/scheduled_orders_export_start_times')));
-    }
-
-    /**
      * @return bool
      */
     public function isScheduledCustomersExportEnabled()
     {
-        return (bool)$this->getWebsiteData('customer/enable_scheduled_customers_importexport');
+        return (bool)$this->getWebsiteData('customer/enable_scheduled_customers_export');
     }
+
+
 
     /**
      * @return int
      */
-    public function getScheduledCustomersExportDelayTime()
+    public function getScheduledEntityExportDelayTime($type)
     {
-        return (int)$this->getWebsiteData('customer/scheduled_customers_importexport_delay_time');
+        return (int)$this->getWebsiteData($type . '/scheduled_' . $type . 's_export_delay_time');
+    }
+
+
+    public function getScheduledEntityExportRunTimes($type)
+    {
+        $values = $this->getWebsiteData($type . '/scheduled_' . $type . 's_export_start_times');
+        if((stripos($values, 'every minute') === false) && (stripos($values, 'every hour') === false)) {
+            return array_map('trim', explode(',', $values));
+        } else {
+            return false;
+        }
+
     }
 
     /**
      * @return array
      */
-    public function getScheduledCustomersExportRunTimes()
+    public function getScheduledEntityImportRunTimes($code)
     {
-        return array_map('trim', explode(',', $this->getWebsiteData('customer/scheduled_customers_importexport_start_times')));
+        $values = $this->getWebsiteData($code . '/scheduled_' . $code . 's_import_start_times');
+        if((stripos($values, 'every minute') === false) && (stripos($values, 'every hour') === false)) {
+            return array_map('trim', explode(',', $values));
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -281,13 +284,7 @@ class Config
         return (int)$this->getWebsiteData($code . '/scheduled_' . $code . 's_import_delay_time');
     }
 
-    /**
-     * @return array
-     */
-    public function getScheduledEntityImportRunTimes($code)
-    {
-        return array_map('trim', explode(',', $this->getWebsiteData($code . '/scheduled_' . $code . 's_import_start_times')));
-    }
+
 
     /**
      * @param null|int|string|\Magento\Store\Model\Website $websiteId

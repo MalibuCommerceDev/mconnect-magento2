@@ -207,101 +207,16 @@ class Queue
 
     public function exportCustomers()
     {
-        $currentTime = time();
-        $config = $this->config;
-        if (!$config->isModuleEnabled()) {
-
-            return 'Module is disabled.';
-        }
-
-        $lastProcessingTime = $this->getLastCustomersExportTime();
-        if ($lastProcessingTime && $config->getScheduledCustomersExportDelayTime() > 0
-            && ($currentTime - $lastProcessingTime) < $config->getScheduledCustomersExportDelayTime()
-        ) {
-
-            return 'Execution postponed due to configured export delay between runs';
-        }
-
-        $lastProcessingTime = !$lastProcessingTime ? strtotime('12:00 AM') : $lastProcessingTime;
-        $runTimes = $config->getScheduledCustomersExportRunTimes();
-        $runAllowed = false;
-        foreach ($runTimes as $strTime) {
-            $scheduledTime = strtotime($strTime);
-            if ($currentTime >= $scheduledTime && $scheduledTime > $lastProcessingTime) {
-                $runAllowed = true;
-                break;
-            }
-        }
-
-        if (!$runAllowed) {
-
-            return 'Execution not allowed at this time';
-        }
-
-        /**
-         * Make sure to process only those queue items with where action and code not matching any running queue items per website
-         */
-        $queues = $this->queueCollectionFactory->create();
-        $queues->getSelect()->reset();
-        $queues->getSelect()
-            ->from(['q1' => 'malibucommerce_mconnect_queue'], '*')
-            ->where('q1.code = ?', CustomerModel::CODE)
-            ->where('q1.status = ?', QueueModel::STATUS_PENDING);
-
-        if ($this->config->isScheduledCustomersExportEnabled()) {
-            $queues->getSelect()->where('q1.scheduled_at <= ?', $this->date->gmtDate());
-        }
-
-        $count = $queues->getSize();
-        if (!$count) {
-            return 'No items in queue need processing.';
-        }
-
-        /** @var \MalibuCommerce\MConnect\Model\Queue $queue */
-        foreach ($queues as $queue) {
-            $queue->process();
-        }
-        $this->saveLastCustomersExportTime();
-
-        return sprintf('Processed %d item(s) in queue.', $count);
+     return $this->exportEntity('customer');
     }
-
-    /**
-     * @return int
-     */
-    public function saveLastCustomersExportTime()
-    {
-        $time = time();
-        $this->flagFactory->create()
-            ->setMconnectFlagCode(self::FLAG_CUSTOMERS_EXPORT_LAST_RUN_TIME)
-            ->loadSelf()
-            ->setLastUpdate(date('Y-d-m H:i:s', $time))
-            ->save();
-
-        return $time;
-    }
-
-    /**
-     * @return bool|int
-     */
-    public function getLastCustomersExportTime()
-    {
-        $flag = $this->flagFactory->create()
-            ->setMconnectFlagCode(self::FLAG_CUSTOMERS_EXPORT_LAST_RUN_TIME)
-            ->loadSelf();
-
-        $time = $flag->hasData() ? $flag->getLastUpdate() : false;
-        if (!$time) {
-
-            return false;
-        }
-
-        return strtotime($time);
-    }
-
 
     public function exportOrders()
     {
+        return $this->exportEntity('order');
+    }
+
+    public function exportEntity($type)
+    {
         $currentTime = time();
         $config = $this->config;
         if (!$config->isModuleEnabled()) {
@@ -309,28 +224,38 @@ class Queue
             return 'Module is disabled.';
         }
 
-        $lastProcessingTime = $this->getLastOrdersExportTime();
-        if ($lastProcessingTime && $config->getScheduledOrdersExportDelayTime() > 0
-            && ($currentTime - $lastProcessingTime) < $config->getScheduledOrdersExportDelayTime()
+        $lastProcessingTime = $this->getLastEntityExportTime($type);
+        if ($lastProcessingTime && $config->getScheduledEntityExportDelayTime($type) > 0
+            && ($currentTime - $lastProcessingTime) < $config->getScheduledEntityExportDelayTime($type)
         ) {
 
             return 'Execution postponed due to configured export delay between runs';
         }
 
         $lastProcessingTime = !$lastProcessingTime ? strtotime('12:00 AM') : $lastProcessingTime;
-        $runTimes = $config->getScheduledOrdersExportRunTimes();
-        $runAllowed = false;
-        foreach ($runTimes as $strTime) {
-            $scheduledTime = strtotime($strTime);
-            if ($currentTime >= $scheduledTime && $scheduledTime > $lastProcessingTime) {
-                $runAllowed = true;
-                break;
+        $runTimes = $config->getScheduledEntityExportRunTimes($type);
+        if (!$runTimes) {
+            $runAllowed = true;
+        } else {
+            $runAllowed = false;
+            foreach ($runTimes as $strTime) {
+                $scheduledTime = strtotime($strTime);
+                if ($currentTime >= $scheduledTime && $scheduledTime > $lastProcessingTime) {
+                    $runAllowed = true;
+                    break;
+                }
             }
         }
 
         if (!$runAllowed) {
 
             return 'Execution not allowed at this time';
+        }
+
+        if ($type == 'order') {
+            $code = OrderModel::CODE;
+        } elseif ($type == 'customer') {
+            $code = CustomerModel::CODE;
         }
 
         /**
@@ -343,8 +268,14 @@ class Queue
             ->where('q1.code = ?', OrderModel::CODE)
             ->where('q1.status = ?', QueueModel::STATUS_PENDING);
 
-        if ($this->config->getIsHoldNewOrdersExport()) {
-            $queues->getSelect()->where('q1.scheduled_at <= ?', $this->date->gmtDate());
+        if ($type == 'customer') {
+            if ($this->config->isScheduledCustomersExportEnabled()) {
+                $queues->getSelect()->where('q1.scheduled_at <= ?', $this->date->gmtDate());
+            }
+        } elseif ($type == 'order') {
+            if ($this->config->getIsHoldNewEntityExport()) {
+                $queues->getSelect()->where('q1.scheduled_at <= ?', $this->date->gmtDate());
+            }
         }
 
         $count = $queues->getSize();
@@ -356,7 +287,7 @@ class Queue
         foreach ($queues as $queue) {
             $queue->process();
         }
-        $this->saveLastOrdersExportTime();
+        $this->saveLastEntityExportTime($type);
 
         return sprintf('Processed %d item(s) in queue.', $count);
     }
@@ -364,11 +295,16 @@ class Queue
     /**
      * @return int
      */
-    public function saveLastOrdersExportTime()
+    public function saveLastEntityExportTime($type)
     {
+        if ($type == 'order') {
+            $flagCode = self::FLAG_ORDERS_EXPORT_LAST_RUN_TIME;
+        } elseif ($type == 'customer') {
+            $flagCode = self::FLAG_CUSTOMERS_EXPORT_LAST_RUN_TIME;
+        }
         $time = time();
         $this->flagFactory->create()
-            ->setMconnectFlagCode(self::FLAG_ORDERS_EXPORT_LAST_RUN_TIME)
+            ->setMconnectFlagCode($flagCode)
             ->loadSelf()
             ->setLastUpdate(date('Y-d-m H:i:s', $time))
             ->save();
@@ -379,10 +315,15 @@ class Queue
     /**
      * @return bool|int
      */
-    public function getLastOrdersExportTime()
+    public function getLastEntityExportTime($type)
     {
+        if ($type == 'order') {
+            $flagCode = self::FLAG_ORDERS_EXPORT_LAST_RUN_TIME;
+        } elseif ($type == 'customer') {
+            $flagCode = self::FLAG_CUSTOMERS_EXPORT_LAST_RUN_TIME;
+        }
         $flag = $this->flagFactory->create()
-            ->setMconnectFlagCode(self::FLAG_ORDERS_EXPORT_LAST_RUN_TIME)
+            ->setMconnectFlagCode($flagCode)
             ->loadSelf();
 
         $time = $flag->hasData() ? $flag->getLastUpdate() : false;

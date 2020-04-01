@@ -32,10 +32,15 @@
                 <export_enabled>1</export_enabled>
                 <ignore_magento_errors>1</ignore_magento_errors>
                 <cron_expr>0 * * * *</cron_expr>
-                <enable_scheduled_customers_importexport>0</enable_scheduled_customers_importexport>
-                <scheduled_customers_importexport_week_days>0,1,2,3,4,5,6</scheduled_customers_importexport_week_days>
-                <scheduled_customers_importexport_start_times>9:00 AM,12:00 PM,4:00 PM</scheduled_customers_importexport_start_times>
-                <scheduled_customers_importexport_delay_time>5</scheduled_customers_importexport_delay_time>
+                <enable_scheduled_customers_import>0</enable_scheduled_customers_import>
+                <scheduled_customers_import_week_days>0,1,2,3,4,5,6</scheduled_customers_import_week_days>
+                <scheduled_customers_import_start_times>9:00 AM,12:00 PM,4:00 PM</scheduled_customers_import_start_times>
+                <scheduled_customers_import_delay_time>5</scheduled_customers_import_delay_time>
+                <cron_expr_export>0 * * * *</cron_expr_export>
+                <enable_scheduled_customers_export>0</enable_scheduled_customers_export>
+                <scheduled_customers_export_week_days>0,1,2,3,4,5,6</scheduled_customers_export_week_days>
+                <scheduled_customers_export_start_times>9:00 AM,12:00 PM,4:00 PM</scheduled_customers_export_start_times>
+                <scheduled_customers_export_delay_time>5</scheduled_customers_export_delay_time>
                 <max_rows>50</max_rows>
                 <default_nav_id_magento_registered></default_nav_id_magento_registered>
                 <default_nav_id_magento_guest></default_nav_id_magento_guest>
