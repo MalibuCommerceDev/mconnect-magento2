@@ -624,14 +624,15 @@
                     <can_be_empty>1</can_be_empty>
                     <depends>
                         <field id="import_enabled">1</field>
+                        <field id="enable_scheduled_invoice_import">1</field>
                     </depends>
                 </field>
                 <field id="scheduled_invoice_import_start_times" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Custom Scheduled Import Run Times</label>
                     <comment><![CDATA[Can be "every minute", "every hour" or can contain coma separated start times: 9:30 AM, 12:00 PM, 4:00 PM. Times are treated as UTC times]]></comment>
                     <depends>
-                        <field id="enable_scheduled_invoice_import">0</field>
                         <field id="import_enabled">1</field>
+                        <field id="enable_scheduled_invoice_import">1</field>
                     </depends>
                 </field>
                 <field id="scheduled_invoice_import_delay_time" sortOrder="80" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
@@ -639,8 +640,8 @@
                     <validate>validate-number validate-zero-or-greater</validate>
                     <comment><![CDATA[In minutes. Put 0 to disable delay between runs]]></comment>
                     <depends>
-                        <field id="enable_scheduled_invoice_import">1</field>
                         <field id="import_enabled">1</field>
+                        <field id="enable_scheduled_invoice_import">1</field>
                     </depends>
                 </field>
                 <field id="invoice_do_not_capture" sortOrder="90" type="multiselect" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
