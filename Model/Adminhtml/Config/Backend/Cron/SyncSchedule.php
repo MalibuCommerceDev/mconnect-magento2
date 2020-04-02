@@ -26,7 +26,7 @@ class SyncSchedule extends \Magento\Framework\App\Config\Value
             'entity'          => Queue\Customer::CODE
         ],
         'malibucommerce_mconnect/order/scheduled_order_export_week_days'       => [
-            'cron_expr_path'  => 'crontab/default/jobs/malibucommerce_mconnect_navision_order_export/schedule/cron_exp',
+            'cron_expr_path'  => 'crontab/default/jobs/malibucommerce_mconnect_navision_order_export/schedule/cron_expr',
             'cron_model_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_order_export/run/model',
             'default_cron'    => 'malibucommerce_mconnect/order/cron_expr_export',
             'is_enabled'      => 'groups/order/fields/enable_scheduled_order_export/value',
@@ -35,7 +35,7 @@ class SyncSchedule extends \Magento\Framework\App\Config\Value
         ],
 
         'malibucommerce_mconnect/product/scheduled_product_import_week_days' => [
-            'cron_expr_path'  => 'crontab/default/jobs/malibucommerce_mconnect_navision_product_import/schedule/cron_exp',
+            'cron_expr_path'  => 'crontab/default/jobs/malibucommerce_mconnect_navision_product_import/schedule/cron_expr',
             'cron_model_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_product_import/run/model',
             'default_cron'    => 'malibucommerce_mconnect/product/cron_expr',
             'is_enabled'      => 'groups/product/fields/enable_scheduled_product_import/value',
