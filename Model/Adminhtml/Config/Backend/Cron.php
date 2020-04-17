@@ -6,33 +6,41 @@ class Cron extends \Magento\Framework\App\Config\Value
 {
     const CRON_PATH_CONFIG = [
         'malibucommerce_mconnect/queue/cron_expr' => [
-            'cron_expr_path' => 'crontab/default/jobs/malibucommerce_mconnect_queue_process/schedule/cron_expr',
-            'cron_model_path' => 'crontab/default/jobs/malibucommerce_mconnect_queue_process/run/model'
+            'cron_expr_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_queue_process/schedule/cron_expr',
+            'cron_model_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_queue_process/run/model'
         ],
         'malibucommerce_mconnect/customer/cron_expr' => [
-            'cron_expr_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_customer_import/schedule/cron_expr',
-            'cron_model_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_customer_import/run/model'
+            'cron_expr_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_customer_import/schedule/cron_expr',
+            'cron_model_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_customer_import/run/model'
         ],
         'malibucommerce_mconnect/product/cron_expr' => [
-            'cron_expr_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_product_import/schedule/cron_expr',
-            'cron_model_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_product_import/run/model'
+            'cron_expr_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_product_import/schedule/cron_expr',
+            'cron_model_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_product_import/run/model'
         ],
         'malibucommerce_mconnect/invoice/cron_expr' => [
-            'cron_expr_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_invoice_import/schedule/cron_expr',
-            'cron_model_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_invoice_import/run/model'
+            'cron_expr_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_invoice_import/schedule/cron_expr',
+            'cron_model_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_invoice_import/run/model'
         ],
         'malibucommerce_mconnect/shipment/cron_expr' => [
-            'cron_expr_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_shipment_import/schedule/cron_expr',
-            'cron_model_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_shipment_import/run/model'
+            'cron_expr_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_shipment_import/schedule/cron_expr',
+            'cron_model_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_shipment_import/run/model'
         ],
         'malibucommerce_mconnect/price_rule/cron_expr' => [
-            'cron_expr_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_pricerule_import/schedule/cron_expr',
-            'cron_model_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_pricerule_import/run/model'
+            'cron_expr_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_pricerule_import/schedule/cron_expr',
+            'cron_model_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_pricerule_import/run/model'
         ],
         'malibucommerce_mconnect/inventory/cron_expr' => [
-            'cron_expr_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_inventory_import/schedule/cron_expr',
-            'cron_model_path' => 'crontab/default/jobs/malibucommerce_mconnect_navision_inventory_import/run/model'
+            'cron_expr_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_inventory_import/schedule/cron_expr',
+            'cron_model_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_inventory_import/run/model'
         ],
+        'malibucommerce_mconnect/customer/cron_expr_export' => [
+            'cron_expr_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_customer_export/schedule/cron_expr',
+            'cron_model_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_customer_import/run/model'
+        ],
+        'malibucommerce_mconnect/order/cron_expr_export' => [
+            'cron_expr_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_order_export/schedule/cron_expr',
+            'cron_model_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_order_export/run/model'
+        ]
     ];
 
     /** @var \Magento\Framework\App\Config\ValueFactory */
@@ -88,15 +96,7 @@ class Cron extends \Magento\Framework\App\Config\Value
             )->setPath(
                 self::CRON_PATH_CONFIG[$currentPath]['cron_expr_path']
             )->save();
-
-            $this->_configValueFactory->create()->load(
-                self::CRON_PATH_CONFIG[$currentPath]['cron_model_path'],
-                'path'
-            )->setValue(
-                ''
-            )->setPath(
-                self::CRON_PATH_CONFIG[$currentPath]['cron_model_path']
-            )->save();
+            
         } catch (\Throwable $e) {
             throw new \Magento\Framework\Exception\LocalizedException(__('Can\'t save the Cron expression.'));
         }
