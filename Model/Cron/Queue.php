@@ -74,7 +74,6 @@ class Queue
                 ),
                 []
             )
-            ->where('q1.code NOT IN (?)', [OrderModel::CODE, CustomerModel::CODE])
             ->where('q1.status = ?', QueueModel::STATUS_PENDING)
             ->where('q2.id IS NULL');
 
@@ -86,6 +85,9 @@ class Queue
         /** @var \MalibuCommerce\MConnect\Model\Queue $queue */
         foreach ($queues as $queue) {
             if (($queue->getCode() == CustomerModel::CODE) && ($queue->getAction() == QueueModel::ACTION_EXPORT)) {
+                continue;
+            }
+            if (($queue->getCode() == OrderModel::CODE) && ($queue->getAction() == QueueModel::ACTION_EXPORT)) {
                 continue;
             }
 
