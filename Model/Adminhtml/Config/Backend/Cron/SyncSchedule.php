@@ -79,9 +79,9 @@ class SyncSchedule extends \Magento\Framework\App\Config\Value
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Magento\Framework\App\Cache\TypeListInterface $cacheTypeList,
         \Magento\Framework\App\Config\ValueFactory $configValueFactory,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         array $data = []
     ) {
         $this->configValueFactory = $configValueFactory;
@@ -143,12 +143,6 @@ class SyncSchedule extends \Magento\Framework\App\Config\Value
                     ->setValue($cronExprString)
                     ->setPath(self::CRON_PATH_CONFIG[$currentPath]['cron_expr_path'])
                     ->save();
-
-                /*$this->configValueFactory->create()
-                    ->load(self::CRON_PATH_CONFIG[$currentPath]['cron_model_path'], 'path')
-                    ->setValue('')
-                    ->setPath(self::CRON_PATH_CONFIG[$currentPath]['cron_model_path'])
-                    ->save();*/
             } catch (\Exception $e) {
                 throw new \Magento\Framework\Exception\LocalizedException(__('Can\'t save the Cron expression.'));
             }

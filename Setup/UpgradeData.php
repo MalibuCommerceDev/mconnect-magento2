@@ -89,6 +89,10 @@ class UpgradeData implements UpgradeDataInterface
             $this->upgrade2_9_0($setup);
         }
 
+        if (version_compare($context->getVersion(), '2.9.2', '<')) {
+            $this->upgrade2_9_2($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -331,20 +335,19 @@ class UpgradeData implements UpgradeDataInterface
         }
     }
 
-    protected function upgrade2_9_0(ModuleDataSetupInterface $setup)
+    protected function upgrade2_9_2(ModuleDataSetupInterface $setup)
     {
-        foreach (SyncSchedule::CRON_PATH_CONFIG as $key => $config) {
-            $this->configWriter->save($config['cron_expr_path'], $this->scopeConfig->getValue($config['default_cron']));
-            $this->configWriter->save($config['cron_model_path'], '');
-        }
-
         $select = $setup->getConnection()
             ->select()
             ->from('core_config_data', ['config_id'])
-            ->where('path LIKE ?', '%scheduled_orders_export%');
+            ->where('path LIKE ?', '%/jobs/malibucommerce_mconnect%');
         $deleteIds = $select->getConnection()->fetchCol($select);
         if (!empty($deleteIds)) {
             $setup->getConnection()->delete('core_config_data', ['config_id IN (?)' => $deleteIds]);
+        }
+
+        foreach (SyncSchedule::CRON_PATH_CONFIG as $key => $config) {
+            $this->configWriter->save($config['cron_expr_path'], $this->scopeConfig->getValue($config['default_cron']));
         }
     }
 }

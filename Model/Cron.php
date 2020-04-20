@@ -134,10 +134,6 @@ class Cron
         $currentTime = time();
         $config = $this->config;
 
-        if (!$config->isScheduledEntityImportEnabled($entityType)) {
-
-            return false;
-        }
         $lastProcessingTime = $this->getLastEntityImportTime($entityType);
         if ($lastProcessingTime && $config->getScheduledEntityImportDelayTime($entityType) > 0
             && ($currentTime - $lastProcessingTime) < $config->getScheduledEntityImportDelayTime($entityType)

@@ -35,7 +35,7 @@ class Cron extends \Magento\Framework\App\Config\Value
         ],
         'malibucommerce_mconnect/customer/cron_expr_export' => [
             'cron_expr_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_customer_export/schedule/cron_expr',
-            'cron_model_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_customer_import/run/model'
+            'cron_model_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_customer_export/run/model'
         ],
         'malibucommerce_mconnect/order/cron_expr_export' => [
             'cron_expr_path' => 'crontab/malibucommerce_connect/jobs/malibucommerce_mconnect_navision_order_export/schedule/cron_expr',
@@ -96,7 +96,7 @@ class Cron extends \Magento\Framework\App\Config\Value
             )->setPath(
                 self::CRON_PATH_CONFIG[$currentPath]['cron_expr_path']
             )->save();
-            
+
         } catch (\Throwable $e) {
             throw new \Magento\Framework\Exception\LocalizedException(__('Can\'t save the Cron expression.'));
         }
