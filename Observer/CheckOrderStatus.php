@@ -46,21 +46,19 @@ class CheckOrderStatus implements \Magento\Framework\Event\ObserverInterface
     }
 
     /**
-     * Add order to export queue
-     *
      * @param \Magento\Framework\Event\Observer $observer
-     * @return $this
      *
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @return $this|void
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         /** @var \Magento\Sales\Model\Order $order */
         $order = $observer->getOrder();
         $websiteId = $this->storeManager->getStore($order->getStoreId())->getWebsiteId();
-        $isEnableAllowedStatusesToSync = $this->config->isExportStatusAllowedToSync($websiteId);
+        $isOrderExportFilteringBeforeQueue = $this->config->isOrderExportStatusFilteringBeforeQueueEnabled($websiteId);
 
-        if (!$this->config->isModuleEnabled() || !$isEnableAllowedStatusesToSync) {
+        if (!$this->config->isModuleEnabled() || !$isOrderExportFilteringBeforeQueue) {
 
             return $this;
         }
@@ -77,7 +75,6 @@ class CheckOrderStatus implements \Magento\Framework\Event\ObserverInterface
         if ($order && !$order->getSkipMconnect()
             && $originalOrderStatus
             && ($originalOrderStatus != $orderStatus)
-            && $isEnableAllowedStatusesToSync
             && in_array($order->getStatus(), $allowedStatusesToSync)
             && $orderDoesntExistInQueue
         ) {

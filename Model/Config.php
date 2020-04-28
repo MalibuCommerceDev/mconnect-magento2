@@ -222,11 +222,13 @@ class Config
     }
 
     /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
      * @return bool
      */
-    public function isExportStatusAllowedToSync()
+    public function isOrderExportStatusFilteringBeforeQueueEnabled($websiteId = null)
     {
-        return (bool)$this->getWebsiteData('order/order_export_status_filtering_for_sync_queue_enabled');
+        return (bool)$this->getWebsiteData('order/order_export_status_filtering_for_sync_queue_enabled', $websiteId);
     }
 
     /**

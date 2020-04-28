@@ -62,8 +62,16 @@ class Order extends \MalibuCommerce\MConnect\Model\Queue
         }
 
         $websiteId = $this->storeManager->getStore($orderEntity->getStoreId())->getWebsiteId();
-        if (!in_array($orderEntity->getStatus(), $this->config->getOrderStatuesAllowedForExportToNav($websiteId))) {
-            $message = sprintf('Order "%s" (ID: %s) was not exported because its status is: %s', $orderEntity->getIncrementId(), $entityId, $orderEntity->getStatus());
+        $message = sprintf(
+            'Order "%s" (ID: %s) was not exported because its status was %s and it is not allowed for export',
+            $orderEntity->getIncrementId(),
+            $entityId,
+            $orderEntity->getStatus()
+        );
+
+        if (!$this->config->isOrderExportStatusFilteringBeforeQueueEnabled($websiteId)
+            && !in_array($orderEntity->getStatus(), $this->config->getOrderStatuesAllowedForExportToNav($websiteId))
+        ) {
             throw new \LogicException($message);
         }
 

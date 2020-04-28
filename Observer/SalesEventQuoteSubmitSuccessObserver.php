@@ -92,9 +92,9 @@ class SalesEventQuoteSubmitSuccessObserver implements \Magento\Framework\Event\O
                 return false;
             }
 
-            $isEnableAllowedStatusesToSync = $this->config->isExportStatusAllowedToSync($websiteId);
+            $isOrderExportFilteringBeforeQueue = $this->config->isOrderExportStatusFilteringBeforeQueueEnabled($websiteId);
             $allowedStatusesToSync = $this->config->getOrderStatuesAllowedForSync($websiteId);
-            if ($isEnableAllowedStatusesToSync && !in_array($order->getStatus(), $allowedStatusesToSync)) {
+            if ($isOrderExportFilteringBeforeQueue && !in_array($order->getStatus(), $allowedStatusesToSync)) {
 
                 return false;
             }
@@ -103,18 +103,32 @@ class SalesEventQuoteSubmitSuccessObserver implements \Magento\Framework\Event\O
             $items = $items->addFieldToFilter('entity_id', ['eq' => $order->getEntityId()])
                 ->addFieldToFilter('code', ['eq' => OrderModel::CODE])
                 ->addFieldToFilter('action', ['eq' => QueueModel::ACTION_EXPORT])
-                ->addFieldToFilter('status', ['in' => [QueueModel::STATUS_PENDING, QueueModel::STATUS_RUNNING, QueueModel::STATUS_SUCCESS]]);
+                ->addFieldToFilter(
+                    'status',
+                    ['in' => [QueueModel::STATUS_PENDING, QueueModel::STATUS_RUNNING, QueueModel::STATUS_SUCCESS]]
+                );
             if ($items->getSize()) {
 
                 return false;
             }
 
-            if ($this->config->getIsHoldNewOrdersExport($websiteId) || $this->config->shouldNewOrdersBeForcefullyHeld()) {
+            if ($this->config->getIsHoldNewOrdersExport($websiteId)
+                || $this->config->shouldNewOrdersBeForcefullyHeld()
+            ) {
                 $delayInMinutes =  $this->config->getHoldNewOrdersDelay($websiteId);
                 $scheduledAt = date('Y-m-d H:i:s', strtotime('+' . (int)$delayInMinutes . ' minutes'));
             }
 
-            return $this->queue->create()->add($code, $action, $websiteId, 0, $order->getId(), $order->getIncrementId(), [], $scheduledAt);
+            return $this->queue->create()->add(
+                $code,
+                $action,
+                $websiteId,
+                0,
+                $order->getId(),
+                $order->getIncrementId(),
+                [],
+                $scheduledAt
+            );
         } catch (\Throwable $e) {
             $this->logger->critical($e);
         }
