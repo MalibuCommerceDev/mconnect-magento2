@@ -87,6 +87,7 @@ class Customer extends AbstractModel
         $child->is_default_shipping = $address->isDefaultShipping();
         $child->first_name          = $address->getFirstname();
         $child->last_name           = $address->getLastname();
+        $child->company_name        = $address->getCompany();
         $child->address_1           = $street[0];
         $child->address_2           = isset($street[1]) ? $street[1] : '';
         $child->city                = $address->getCity();
