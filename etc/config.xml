@@ -127,6 +127,7 @@
                 <create_invoice_with_shipment>0</create_invoice_with_shipment>
                 <skip_shipment_but_invoice_for_virtual_orders>0</skip_shipment_but_invoice_for_virtual_orders>
                 <cancel_remaining_not_shipped_items>0</cancel_remaining_not_shipped_items>
+                <allow_shipment_without_tracking_number>1</allow_shipment_without_tracking_number>
             </shipment>
             <creditmemo>
                 <export_enabled>1</export_enabled>

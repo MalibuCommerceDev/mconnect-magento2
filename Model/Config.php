@@ -571,6 +571,16 @@ class Config
     }
 
     /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return bool
+     */
+    public function canCreateShipmentWithNoTracking($websiteId = null)
+    {
+        return (bool)$this->getWebsiteData('shipment/enable_shipment_without_tracking_number', $websiteId);
+    }
+
+    /**
      * Get Malibu Mconnect config value per store
      *
      * @param string          $path
