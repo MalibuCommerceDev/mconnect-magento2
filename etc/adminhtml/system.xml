@@ -756,6 +756,10 @@
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[If set to "Yes" then for any partial shipment remaining not shipped order items will be canceled and order status will changed to Complete.]]></comment>
                 </field>
+                <field id="enable_shipment_without_tracking_number" sortOrder="120" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Mark An Order As Shipped Even If There Is No Tracking Number</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
             </group>
 
             <group id="creditmemo" type="text" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
