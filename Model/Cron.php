@@ -32,53 +32,79 @@ class Cron
         $this->queue = $queue;
         $this->moduleManager = $moduleManager;
         $this->flagFactory = $flagFactory;
-
     }
 
+    /**
+     * @return string
+     * @throws \Exception
+     */
     public function queueCustomerImport()
     {
-        return $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Customer::CODE);
+        return $this->importEntitiesByType(\MalibuCommerce\MConnect\Model\Queue\Customer::CODE);
     }
 
+    /**
+     * @return string
+     * @throws \Exception
+     */
     public function queueProductImport()
     {
-        return $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Product::CODE);
+        return $this->importEntitiesByType(\MalibuCommerce\MConnect\Model\Queue\Product::CODE);
     }
 
+    /**
+     * @return string
+     * @throws \Exception
+     */
     public function queueInventoryImport()
     {
-        return $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Inventory::CODE);
+        return $this->importEntitiesByType(\MalibuCommerce\MConnect\Model\Queue\Inventory::CODE);
     }
 
+    /**
+     * @return string
+     * @throws \Exception
+     */
     public function queueInvoiceImport()
     {
-        return $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Invoice::CODE);
+        return $this->importEntitiesByType(\MalibuCommerce\MConnect\Model\Queue\Invoice::CODE);
     }
 
+    /**
+     * @return string
+     * @throws \Exception
+     */
     public function queueShipmentImport()
     {
-        return $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Shipment::CODE);
+        return $this->importEntitiesByType(\MalibuCommerce\MConnect\Model\Queue\Shipment::CODE);
     }
 
+    /**
+     * @return string
+     * @throws \Exception
+     */
     public function queuePriceRuleImport()
     {
-        return $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Pricerule::CODE);
+        return $this->importEntitiesByType(\MalibuCommerce\MConnect\Model\Queue\Pricerule::CODE);
     }
 
+    /**
+     * @throws \Exception
+     */
     public function queueRmaImport()
     {
         if ($this->moduleManager->isEnabled('Magento_Rma')) {
-            $this->queueImportItem(\MalibuCommerce\MConnect\Model\Queue\Rma::CODE);
+            $this->importEntitiesByType(\MalibuCommerce\MConnect\Model\Queue\Rma::CODE);
         }
     }
 
     /**
      * @param string $entityType
      *
-     * @return bool|string
+     * @return string
      * @throws \Exception
      */
-    protected function queueImportItem($entityType)
+    protected function importEntitiesByType($entityType)
     {
         if (!$this->config->isModuleEnabled()) {
 
@@ -86,14 +112,16 @@ class Cron
         }
 
         $activeWebsites = $this->getMultiCompanyActiveWebsites();
+        $canProcess = $this->config->canImportEntityType($entityType, $this->getLastEntityImportTime($entityType));
+        $messages = '';
 
         foreach ($activeWebsites as $websiteId) {
             if (!(bool)$this->config->getWebsiteData($entityType . '/import_enabled', $websiteId)) {
-                return sprintf('Import functionality is disabled for %s at Website ID "%s"', $entityType, $websiteId) . PHP_EOL;
+                $messages .= sprintf('Import functionality is disabled for "%s" at Website ID "%s"', $entityType, $websiteId) . PHP_EOL;
                 continue;
             }
 
-            $queue = $this->queue->create()->add(
+            $queueItem = $this->queue->create()->add(
                 $entityType,
                 \MalibuCommerce\MConnect\Model\Queue::ACTION_IMPORT,
                 $websiteId,
@@ -105,64 +133,23 @@ class Cron
                 true
             );
 
-            if ($this->canProcess($entityType)) {
-                $queue->process();
+            if ($canProcess) {
+                $queueItem->process();
                 $this->saveLastEntityImportTime($entityType);
 
-                return sprintf('The "%s" item added/exists in the queue and proceed for Website ID "%s"', $entityType, $websiteId) . PHP_EOL;
+                $messages .= sprintf('The "%s" import queue items added/exist in the queue and proceed for Website ID "%s"', $entityType, $websiteId) . PHP_EOL;
 
             } else {
-                if ($queue->getId()) {
-                    return sprintf('The "%s" item added/exists in the queue for Website ID "%s"', $entityType, $websiteId) . PHP_EOL;
+                if ($queueItem->getId()) {
+                    $messages .= sprintf('The "%s" import queue items added/exist in the queue for Website ID "%s"', $entityType, $websiteId) . PHP_EOL;
                 } else {
-                    return sprintf('Failed to add new %s item added to queue for Website ID "%s"', $entityType, $websiteId) . PHP_EOL;
+                    $messages .= sprintf('Failed to add new "%s" import queue items to queue for Website ID "%s"', $entityType, $websiteId) . PHP_EOL;
                 }
             }
 
         }
 
-        return true;
-    }
-
-    /**
-     * @param string $entityType
-     *
-     * @return bool
-     */
-    public function canProcess($entityType)
-    {
-        $currentTime = time();
-        $config = $this->config;
-
-        $lastProcessingTime = $this->getLastEntityImportTime($entityType);
-        if ($lastProcessingTime && $config->getScheduledEntityImportDelayTime($entityType) > 0
-            && ($currentTime - $lastProcessingTime) < $config->getScheduledEntityImportDelayTime($entityType)
-        ) {
-
-            return false;
-        }
-
-        $lastProcessingTime = !$lastProcessingTime ? strtotime('12:00 AM') : $lastProcessingTime;
-        $runTimes = $config->getScheduledEntityImportRunTimes($entityType);
-        if (!$runTimes) {
-            $runAllowed = true;
-        } else {
-            $runAllowed = false;
-            foreach ($runTimes as $strTime) {
-                $scheduledTime = strtotime($strTime);
-                if ($currentTime >= $scheduledTime && $scheduledTime > $lastProcessingTime) {
-                    $runAllowed = true;
-                    break;
-                }
-            }
-        }
-
-        if (!$runAllowed) {
-
-            return false;
-        }
-
-        return true;
+        return $messages;
     }
 
     /**

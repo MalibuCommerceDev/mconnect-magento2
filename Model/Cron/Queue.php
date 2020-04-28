@@ -8,8 +8,7 @@ use \MalibuCommerce\MConnect\Model\Queue\Customer as CustomerModel;
 
 class Queue
 {
-    const FLAG_ORDERS_EXPORT_LAST_RUN_TIME    = 'malibucommerce_mconnect_orders_export_last_run_time';
-    const FLAG_CUSTOMERS_EXPORT_LAST_RUN_TIME = 'malibucommerce_mconnect_customers_export_last_run_time';
+    const FLAG_EXPORT_ENTITY_MASK = 'malibucommerce_mconnect_%ss_export_last_run_time';
 
     /** @var \MalibuCommerce\MConnect\Model\Config */
     protected $config;
@@ -51,6 +50,12 @@ class Queue
         $this->flagFactory = $flagFactory;
     }
 
+    /**
+     * @param bool $forceSyncNow
+     *
+     * @return string
+     * @throws \Exception
+     */
     public function process($forceSyncNow = false)
     {
         $config = $this->config;
@@ -60,15 +65,16 @@ class Queue
         }
 
         /**
-         * Make sure to process only those queue items with where action and code not matching any running queue items per website
+         * Make sure to process only those queue items where action and code not matching any running items per website
          */
-        $queues = $this->queueCollectionFactory->create();
-        $queues->getSelect()->reset();
-        $queues->getSelect()
+        /** @var \MalibuCommerce\MConnect\Model\ResourceModel\Queue\Collection $queueItems */
+        $queueItems = $this->queueCollectionFactory->create();
+        $queueItems->getSelect()->reset();
+        $queueItems->getSelect()
             ->from(['q1' => 'malibucommerce_mconnect_queue'], '*')
             ->joinLeft(
                 ['q2' => 'malibucommerce_mconnect_queue'],
-                $queues->getConnection()->quoteInto(
+                $queueItems->getConnection()->quoteInto(
                     'q1.code = q2.code AND q1.action = q2.action AND q1.website_id = q2.website_id AND q2.status = ?',
                     QueueModel::STATUS_RUNNING
                 ),
@@ -78,21 +84,21 @@ class Queue
             ->where('q2.id IS NULL');
 
         if (!$forceSyncNow || ($forceSyncNow instanceof \Magento\Cron\Model\Schedule)) {
-            $queues->getSelect()->where('q1.scheduled_at <= ?', $this->date->gmtDate());
+            $queueItems->getSelect()->where('q1.scheduled_at <= ?', $this->date->gmtDate());
         }
 
         $items = 0;
-        /** @var \MalibuCommerce\MConnect\Model\Queue $queue */
-        foreach ($queues as $queue) {
-            if (($queue->getCode() == CustomerModel::CODE) && ($queue->getAction() == QueueModel::ACTION_EXPORT)) {
+        /** @var \MalibuCommerce\MConnect\Model\Queue $item */
+        foreach ($queueItems as $item) {
+            if (($item->getCode() == CustomerModel::CODE) && ($item->getAction() == QueueModel::ACTION_EXPORT)) {
                 continue;
             }
-            if (($queue->getCode() == OrderModel::CODE) && ($queue->getAction() == QueueModel::ACTION_EXPORT)) {
+            if (($item->getCode() == OrderModel::CODE) && ($item->getAction() == QueueModel::ACTION_EXPORT)) {
                 continue;
             }
 
             $items++;
-            $queue->process();
+            $item->process();
         }
 
         if ($items == 0) {
@@ -102,6 +108,10 @@ class Queue
         return sprintf('Processed %d item(s) in queue.', $items);
     }
 
+    /**
+     * @return string
+     * @throws \Exception
+     */
     public function processExportsOnly()
     {
         $config = $this->config;
@@ -111,15 +121,16 @@ class Queue
         }
 
         /**
-         * Make sure to process only those queue items with where action and code not matching any running queue items per website
+         * Make sure to process only those queue items where action and code not matching any running items per website
          */
-        $queues = $this->queueCollectionFactory->create();
-        $queues->getSelect()->reset();
-        $queues->getSelect()
+        /** @var \MalibuCommerce\MConnect\Model\ResourceModel\Queue\Collection $queueItems */
+        $queueItems = $this->queueCollectionFactory->create();
+        $queueItems->getSelect()->reset();
+        $queueItems->getSelect()
             ->from(['q1' => 'malibucommerce_mconnect_queue'], '*')
             ->joinLeft(
                 ['q2' => 'malibucommerce_mconnect_queue'],
-                $queues->getConnection()->quoteInto(
+                $queueItems->getConnection()->quoteInto(
                     'q1.code = q2.code AND q1.action = q2.action AND q1.website_id = q2.website_id AND q2.status = ?',
                     QueueModel::STATUS_RUNNING
                 ),
@@ -129,19 +140,23 @@ class Queue
             ->where('q1.status = ?', QueueModel::STATUS_PENDING)
             ->where('q2.id IS NULL');
 
-        $count = $queues->getSize();
+        $count = $queueItems->getSize();
         if (!$count) {
             return 'No items in queue need processing.';
         }
 
-        /** @var \MalibuCommerce\MConnect\Model\Queue $queue */
-        foreach ($queues as $queue) {
-            $queue->process();
+        /** @var \MalibuCommerce\MConnect\Model\Queue $item */
+        foreach ($queueItems as $item) {
+            $item->process();
         }
 
         return sprintf('Processed %d item(s) in queue.', $count);
     }
 
+    /**
+     * @return string
+     * @throws \Exception
+     */
     public function clean()
     {
         $config = $this->config;
@@ -152,22 +167,31 @@ class Queue
 
         $value = $config->get('queue/delete_after');
         if (!$value) {
+
             return 'Queue cleaning is not enabled.';
         }
 
-        $queues = $this->queueCollectionFactory->create();
-        $queues = $queues->olderThanDays($value, $this->date);
-        $count = $queues->getSize();
+        /** @var \MalibuCommerce\MConnect\Model\ResourceModel\Queue\Collection $queueItems */
+        $queueItems = $this->queueCollectionFactory->create();
+        $queueItems = $queueItems->olderThanDays($value, $this->date);
+        $count = $queueItems->getSize();
         if (!$count) {
+
             return 'No items in queue to remove.';
         }
-        foreach ($queues as $queue) {
-            $queue->delete();
+
+        /** @var \MalibuCommerce\MConnect\Model\Queue $item */
+        foreach ($queueItems as $item) {
+            $item->delete();
         }
 
-        return sprintf('Removed %d item(s) in queue.', $count);
+        return sprintf('Removed %d item(s) from the queue.', $count);
     }
 
+    /**
+     * @return string
+     * @throws \Exception
+     */
     public function error()
     {
         $config = $this->config;
@@ -181,17 +205,21 @@ class Queue
             return 'Mconnect module is not configured, queue/error_after is missing.';
         }
 
-        $queues = $this->queueCollectionFactory->create();
-        $queues = $queues->olderThanMinutes($value, $this->date)
+
+
+        /** @var \MalibuCommerce\MConnect\Model\ResourceModel\Queue\Collection $queueItems */
+        $queueItems = $this->queueCollectionFactory->create();
+        $queueItems = $queueItems->olderThanMinutes($value, $this->date)
             ->addFieldToFilter('status', ['eq' => QueueModel::STATUS_RUNNING]);
-        $count = $queues->getSize();
+        $count = $queueItems->getSize();
         if (!$count) {
             return 'No items in queue to mark with error status.';
         }
 
-        foreach ($queues as $queue) {
+        /** @var \MalibuCommerce\MConnect\Model\Queue $item */
+        foreach ($queueItems as $item) {
             $message = sprintf("Marked as staled after %s minutes\n\n", $value);
-            $message .= $queue->getMessage();
+            $message .= $item->getMessage();
             $message = mb_strimwidth(
                 $message,
                 0,
@@ -199,7 +227,7 @@ class Queue
                 '...'
             );
 
-            $queue->setStatus(QueueModel::STATUS_ERROR)
+            $item->setStatus(QueueModel::STATUS_ERROR)
                 ->setMessage($message)
                 ->save();
         }
@@ -207,79 +235,68 @@ class Queue
         return sprintf('Marked %d item(s) in queue.', $count);
     }
 
+    /**
+     * @return string
+     * @throws \Exception
+     */
     public function exportCustomers()
     {
-        return $this->exportEntity(CustomerModel::CODE);
+        return $this->exportEntitiesByType(CustomerModel::CODE);
     }
 
+    /**
+     * @return string
+     * @throws \Exception
+     */
     public function exportOrders()
     {
-        return $this->exportEntity(OrderModel::CODE);
+        return $this->exportEntitiesByType(OrderModel::CODE);
     }
 
-    public function exportEntity($type)
+    /**
+     * @param string $type
+     *
+     * @return string
+     * @throws \Exception
+     */
+    public function exportEntitiesByType($type)
     {
-        if (!in_array($type, [OrderModel::CODE, CustomerModel::CODE])) {
-            return 'Export for ' . $type. ' is not supported.';
-        }
-
-        $currentTime = time();
         $config = $this->config;
         if (!$config->isModuleEnabled()) {
 
             return 'Module is disabled.';
         }
 
-        $lastProcessingTime = $this->getLastEntityExportTime($type);
-        if ($lastProcessingTime && $config->getScheduledEntityExportDelayTime($type) > 0
-            && ($currentTime - $lastProcessingTime) < $config->getScheduledEntityExportDelayTime($type)
-        ) {
-
-            return 'Execution postponed due to configured export delay between runs';
+        if (!in_array($type, [OrderModel::CODE, CustomerModel::CODE])) {
+            return 'Export for ' . $type. 's is not supported.';
         }
 
-        $lastProcessingTime = !$lastProcessingTime ? strtotime('12:00 AM') : $lastProcessingTime;
-        $runTimes = $config->getScheduledEntityExportRunTimes($type);
-        if (!$runTimes) {
-            $runAllowed = true;
-        } else {
-            $runAllowed = false;
-            foreach ($runTimes as $strTime) {
-                $scheduledTime = strtotime($strTime);
-                if ($currentTime >= $scheduledTime && $scheduledTime > $lastProcessingTime) {
-                    $runAllowed = true;
-                    break;
-                }
-            }
+        if (!$config->canExportEntityType($type, $this->getLastEntityExportTime($type))) {
+
+            return 'Export for ' . $type. 's is not allowed at this time.';
         }
 
-        if (!$runAllowed) {
-
-            return 'Execution not allowed at this time';
-        }
-
-        /**
-         * Make sure to process only those queue items with where action and code not matching any running queue items per website
-         */
-        $queues = $this->queueCollectionFactory->create();
-        $queues->getSelect()->reset();
-        $queues->getSelect()
+        /** @var \MalibuCommerce\MConnect\Model\ResourceModel\Queue\Collection $queueItems */
+        $queueItems = $this->queueCollectionFactory->create();
+        $queueItems->getSelect()->reset();
+        $queueItems->getSelect()
             ->from(['q1' => 'malibucommerce_mconnect_queue'], '*')
             ->where('q1.code = ?', $type)
             ->where('q1.status = ?', QueueModel::STATUS_PENDING);
 
-        if (($type == OrderModel::CODE && $this->config->getIsHoldNewOrdersExport())) {
-            $queues->getSelect()->where('q1.scheduled_at <= ?', $this->date->gmtDate());
+        if ($type == OrderModel::CODE && $this->config->getIsHoldNewOrdersExport()) {
+            $queueItems->getSelect()->where('q1.scheduled_at <= ?', $this->date->gmtDate());
         }
 
-        $count = $queues->getSize();
+        $count = $queueItems->getSize();
         if (!$count) {
-            return 'No items in queue need processing.';
+
+            return 'No items found in the queue for processing.';
         }
 
-        /** @var \MalibuCommerce\MConnect\Model\Queue $queue */
-        foreach ($queues as $queue) {
-            $queue->process();
+        /** @var \MalibuCommerce\MConnect\Model\Queue $item */
+        foreach ($queueItems as $item) {
+            $item->process();
         }
         $this->saveLastEntityExportTime($type);
 
@@ -333,6 +350,11 @@ class Queue
         return strtotime($time);
     }
 
+    /**
+     * @param string $type
+     *
+     * @return bool|string
+     */
     public function getExportLastRunFlagCode($type)
     {
         if (!in_array($type, [OrderModel::CODE, CustomerModel::CODE])) {
@@ -340,12 +362,7 @@ class Queue
             return false;
         }
 
-        $flagCode = self::FLAG_CUSTOMERS_EXPORT_LAST_RUN_TIME;
-        if ($type == OrderModel::CODE) {
-            $flagCode = self::FLAG_ORDERS_EXPORT_LAST_RUN_TIME;
-        }
-
-        return $flagCode;
+        return sprintf(self::FLAG_EXPORT_ENTITY_MASK, $type);
     }
 
     /**

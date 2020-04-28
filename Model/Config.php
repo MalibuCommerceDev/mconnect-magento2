@@ -3,6 +3,8 @@
 namespace MalibuCommerce\MConnect\Model;
 
 use MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron\SyncSchedule;
+use MalibuCommerce\MConnect\Model\Queue\Customer as CustomerModel;
+use MalibuCommerce\MConnect\Model\Queue\Order as OrderModel;
 
 class Config
 {
@@ -228,6 +230,14 @@ class Config
     }
 
     /**
+     * @return bool
+     */
+    public function isScheduledCustomersExportEnabled()
+    {
+        return (bool)$this->getWebsiteData('customer/enable_scheduled_customer_export');
+    }
+
+    /**
      * @param $entityType
      *
      * @return int
@@ -287,6 +297,85 @@ class Config
     public function getScheduledEntityImportDelayTime($entityType)
     {
         return (int)$this->getWebsiteData($entityType . '/scheduled_' . $entityType . '_import_delay_time');
+    }
+
+    /**
+     * @param string $type
+     * @param string $lastProcessingTime
+     *
+     * @return bool|string
+     */
+    public function canExportEntityType($type, $lastProcessingTime)
+    {
+        $currentTime = time();
+        $scheduledMode = false;
+
+        if ($type == OrderModel::CODE && $this->isScheduledOrdersExportEnabled()) {
+            $scheduledMode = true;
+        }
+        if ($type == CustomerModel::CODE && $this->isScheduledCustomersExportEnabled()) {
+            $scheduledMode = true;
+        }
+
+        $isProcessingAllowed = !$scheduledMode;
+        $lastProcessingTime = !$lastProcessingTime ? strtotime('12:00 AM') : $lastProcessingTime;
+
+        if ($scheduledMode && $lastProcessingTime && $this->getScheduledEntityExportDelayTime($type) > 0
+            && ($currentTime - $lastProcessingTime) < $this->getScheduledEntityExportDelayTime($type)
+        ) {
+
+            return $isProcessingAllowed;
+        }
+
+        if ($scheduledMode && $runTimes = $this->getScheduledEntityExportRunTimes($type)) {
+            foreach ($runTimes as $strTime) {
+                $scheduledTime = strtotime($strTime);
+                if ($currentTime >= $scheduledTime && $scheduledTime > $lastProcessingTime) {
+                    $isProcessingAllowed = true;
+                    break;
+                }
+            }
+        }
+
+        return $isProcessingAllowed;
+    }
+
+    /**
+     * @param string $type
+     * @param string $lastProcessingTime
+     *
+     * @return bool|string
+     */
+    public function canImportEntityType($type, $lastProcessingTime)
+    {
+        $currentTime = time();
+        $scheduledMode = false;
+
+        if ($this->isScheduledEntityImportEnabled($type)) {
+            $scheduledMode = true;
+        }
+
+        $isProcessingAllowed = !$scheduledMode;
+        $lastProcessingTime = !$lastProcessingTime ? strtotime('12:00 AM') : $lastProcessingTime;
+
+        if ($scheduledMode && $lastProcessingTime && $this->getScheduledEntityImportDelayTime($type) > 0
+            && ($currentTime - $lastProcessingTime) < $this->getScheduledEntityImportDelayTime($type)
+        ) {
+
+            return $isProcessingAllowed;
+        }
+
+        if ($scheduledMode && $runTimes = $this->getScheduledEntityImportRunTimes($type)) {
+            foreach ($runTimes as $strTime) {
+                $scheduledTime = strtotime($strTime);
+                if ($currentTime >= $scheduledTime && $scheduledTime > $lastProcessingTime) {
+                    $isProcessingAllowed = true;
+                    break;
+                }
+            }
+        }
+
+        return $isProcessingAllowed;
     }
 
     /**
