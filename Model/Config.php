@@ -216,6 +216,24 @@ class Config
      *
      * @return array
      */
+    public function getOrderStatuesAllowedForSync($websiteId = null)
+    {
+        return explode(',', $this->getWebsiteData('order/allowed_order_statuses_to_be_added_to_sync_queue', $websiteId));
+    }
+
+    /**
+     * @return bool
+     */
+    public function isExportStatusAllowedToSync()
+    {
+        return (bool)$this->getWebsiteData('order/order_export_status_filtering_for_sync_queue_enabled');
+    }
+
+    /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return array
+     */
     public function getOrderExportDisallowedCustomerGroups($websiteId = null)
     {
         return explode(',', $this->getWebsiteData('order/export_disallowed_customer_groups', $websiteId));

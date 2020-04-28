@@ -96,6 +96,8 @@
                 <scheduled_order_export_start_times>9:00 AM,12:00 PM,4:00 PM</scheduled_order_export_start_times>
                 <scheduled_order_export_delay_time>5</scheduled_order_export_delay_time>
                 <order_status_when_synced_to_nav>nav_preparing_for_shipment</order_status_when_synced_to_nav>
+                <order_export_status_filtering_for_sync_queue_enabled>0</order_export_status_filtering_for_sync_queue_enabled>
+                <allowed_order_statuses_to_be_added_to_sync_queue>pending</allowed_order_statuses_to_be_added_to_sync_queue>
                 <allowed_order_statuses_to_export>pending</allowed_order_statuses_to_export>
                 <gift_wrapping_force_enabled>0</gift_wrapping_force_enabled>
             </order>

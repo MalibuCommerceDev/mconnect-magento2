@@ -567,21 +567,37 @@
                     </depends>
                 </field>
 
-                <field id="allowed_order_statuses_to_export" sortOrder="150" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                    <label>Allowed Order Statuses to be Exported to NAV</label>
-                    <source_model>\Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                <field id="order_export_status_filtering_for_sync_queue_enabled" sortOrder="150" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Use Export Order Statuses Allowed for Sync Queue</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
-                <field id="export_disallowed_customer_groups" sortOrder="160" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="allowed_order_statuses_to_be_added_to_sync_queue" sortOrder="160" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Order Statuses Allowed for Sync Queue to NAV</label>
+                    <source_model>\Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                    <depends>
+                        <field id="order_export_status_filtering_for_sync_queue_enabled">1</field>
+                        <field id="export_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="allowed_order_statuses_to_export" sortOrder="170" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Allowed Order Statuses to be Exported to NAV</label>
+                    <source_model>\Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                    <depends>
+                        <field id="order_export_status_filtering_for_sync_queue_enabled">0</field>
+                        <field id="export_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="export_disallowed_customer_groups" sortOrder="180" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Export Disallowed Customer Groups</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Source\CustomerGroups</source_model>
                     <depends>
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
-                <field id="gift_wrapping_force_enabled" sortOrder="170" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="gift_wrapping_force_enabled" sortOrder="190" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>GiftWrapping Functionality Forcefully Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>

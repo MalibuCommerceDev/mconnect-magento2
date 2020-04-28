@@ -18,4 +18,7 @@
     <event name="sales_order_creditmemo_save_after">
         <observer name="malibucommerce_mconnect_order_creditmemo_save_after" instance="MalibuCommerce\MConnect\Observer\SalesEventCreditmemoSaveObserver"/>
     </event>
+    <event name="sales_order_save_after">
+        <observer name="malibucommerce_mconnect_sales_order_save_after" instance="MalibuCommerce\MConnect\Observer\CheckOrderStatus" />
+    </event>
 </config>

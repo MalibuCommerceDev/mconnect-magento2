@@ -4,7 +4,7 @@ namespace MalibuCommerce\MConnect\Observer;
 use MalibuCommerce\MConnect\Model\Queue as QueueModel;
 use MalibuCommerce\MConnect\Model\Queue\Order as OrderModel;
 
-class SalesEventQuoteSubmitSuccessObserver implements \Magento\Framework\Event\ObserverInterface
+class CheckOrderStatus implements \Magento\Framework\Event\ObserverInterface
 {
     /**
      * @var \MalibuCommerce\MConnect\Model\QueueFactory
@@ -55,14 +55,32 @@ class SalesEventQuoteSubmitSuccessObserver implements \Magento\Framework\Event\O
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
-        if (!$this->config->isModuleEnabled()) {
+        /** @var \Magento\Sales\Model\Order $order */
+        $order = $observer->getOrder();
+        $websiteId = $this->storeManager->getStore($order->getStoreId())->getWebsiteId();
+        $isEnableAllowedStatusesToSync = $this->config->isExportStatusAllowedToSync($websiteId);
+
+        if (!$this->config->isModuleEnabled() || !$isEnableAllowedStatusesToSync) {
 
             return $this;
         }
 
-        /** @var \Magento\Sales\Model\Order $order */
-        $order = $observer->getOrder();
-        if ($order && !$order->getSkipMconnect()) {
+        $originalOrderStatus = $order->getOrigData('status');
+        $orderStatus = $order->getStatus();
+        $allowedStatusesToSync = $this->config->getOrderStatuesAllowedForSync($websiteId);
+        $items = $this->queueCollectionFactory->create();
+        $items = $items->addFieldToFilter('entity_id', ['eq' => $order->getEntityId()])
+            ->addFieldToFilter('code', ['eq' => OrderModel::CODE])
+            ->addFieldToFilter('action', ['eq' => QueueModel::ACTION_EXPORT])
+            ->addFieldToFilter('status', ['in' => [QueueModel::STATUS_PENDING, QueueModel::STATUS_RUNNING, QueueModel::STATUS_SUCCESS]]);
+        $orderDoesntExistInQueue = !(bool)$items->getSize();
+        if ($order && !$order->getSkipMconnect()
+            && $originalOrderStatus
+            && ($originalOrderStatus != $orderStatus)
+            && $isEnableAllowedStatusesToSync
+            && in_array($order->getStatus(), $allowedStatusesToSync)
+            && $orderDoesntExistInQueue
+        ) {
             $this->queueNewItem(
                 \MalibuCommerce\MConnect\Model\Queue\Order::CODE,
                 \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT,
@@ -88,23 +106,6 @@ class SalesEventQuoteSubmitSuccessObserver implements \Magento\Framework\Event\O
 
             $customerGroupId = $order->getCustomerGroupId();
             if (in_array((string)$customerGroupId, $this->config->getOrderExportDisallowedCustomerGroups($websiteId))) {
-
-                return false;
-            }
-
-            $isEnableAllowedStatusesToSync = $this->config->isExportStatusAllowedToSync($websiteId);
-            $allowedStatusesToSync = $this->config->getOrderStatuesAllowedForSync($websiteId);
-            if ($isEnableAllowedStatusesToSync && !in_array($order->getStatus(), $allowedStatusesToSync)) {
-
-                return false;
-            }
-
-            $items = $this->queueCollectionFactory->create();
-            $items = $items->addFieldToFilter('entity_id', ['eq' => $order->getEntityId()])
-                ->addFieldToFilter('code', ['eq' => OrderModel::CODE])
-                ->addFieldToFilter('action', ['eq' => QueueModel::ACTION_EXPORT])
-                ->addFieldToFilter('status', ['in' => [QueueModel::STATUS_PENDING, QueueModel::STATUS_RUNNING, QueueModel::STATUS_SUCCESS]]);
-            if ($items->getSize()) {
 
                 return false;
             }
