@@ -575,7 +575,7 @@ class Config
      *
      * @return bool
      */
-    public function isEnableCreateShipmentWithoutTrackingNumber($websiteId = null)
+    public function canCreateShipmentWithNoTracking($websiteId = null)
     {
         return (bool)$this->getWebsiteData('shipment/enable_shipment_without_tracking_number', $websiteId);
     }

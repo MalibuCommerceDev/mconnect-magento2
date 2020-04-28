@@ -246,7 +246,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             foreach ($navEntity->package_tracking as $tracking) {
                 $carrier = strtolower((string)$tracking->shipping_carrier);
                 $trackingNumber = (string)$tracking->tracking_number;
-                if (!$trackingNumber && $this->config->isEnableCreateShipmentWithoutTrackingNumber()) {
+                if (!$trackingNumber && $this->config->canCreateShipmentWithNoTracking()) {
                     $trackingNumber = '-';
                 }
                 if (array_key_exists($carrier, $systemCarriers)) {

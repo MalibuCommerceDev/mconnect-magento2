@@ -756,9 +756,10 @@
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[If set to "Yes" then for any partial shipment remaining not shipped order items will be canceled and order status will changed to Complete.]]></comment>
                 </field>
-                <field id="enable_shipment_without_tracking_number" sortOrder="120" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                    <label>Mark An Order As Shipped Even If There Is No Tracking Number</label>
+                <field id="allow_shipment_without_tracking_number" sortOrder="120" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Allow Shipment Without Tracking Number</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[When shipment is imported from NAV without tracking number Magento by default will not allow it. When current flag is enabled, shipment without tracking number will still be created.]]></comment>
                 </field>
             </group>
 
