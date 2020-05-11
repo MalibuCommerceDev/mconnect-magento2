@@ -61,7 +61,18 @@ class AfterCustomerSaveObserver implements \Magento\Framework\Event\ObserverInte
         return $this;
     }
 
-    protected function queueNewItem($code, $action, $websiteId = 0, $id, $email)
+    /**
+     * Add new queue item
+     *
+     * @param string $code
+     * @param string $action
+     * @param int    $websiteId
+     * @param int    $id
+     * @param string $email
+     *
+     * @return bool|\Magento\Framework\DataObject|\MalibuCommerce\MConnect\Model\Queue
+     */
+    protected function queueNewItem($code, $action, $websiteId, $id, $email)
     {
         try {
             return $this->queue->create()->add($code, $action, $websiteId, 0, $id, $email);
