@@ -120,33 +120,29 @@ class Cron
                 $messages .= sprintf('Import functionality is disabled for "%s" at Website ID "%s"', $entityType, $websiteId) . PHP_EOL;
                 continue;
             }
-
-            $queueItem = $this->queue->create()->add(
-                $entityType,
-                \MalibuCommerce\MConnect\Model\Queue::ACTION_IMPORT,
-                $websiteId,
-                0,
-                null,
-                null,
-                [],
-                null,
-                true
-            );
-
             if ($canProcess) {
+                $queueItem = $this->queue->create()->add(
+                    $entityType,
+                    \MalibuCommerce\MConnect\Model\Queue::ACTION_IMPORT,
+                    $websiteId,
+                    0,
+                    null,
+                    null,
+                    [],
+                    null,
+                    true
+                );
+
                 $queueItem->process();
                 $this->saveLastEntityImportTime($entityType);
 
                 $messages .= sprintf('The "%s" import queue items added/exist in the queue and proceed for Website ID "%s"', $entityType, $websiteId) . PHP_EOL;
-
-            } else {
-                if ($queueItem->getId()) {
+                if (isset($queueItem) && $queueItem->getId()) {
                     $messages .= sprintf('The "%s" import queue items added/exist in the queue for Website ID "%s"', $entityType, $websiteId) . PHP_EOL;
                 } else {
                     $messages .= sprintf('Failed to add new "%s" import queue items to queue for Website ID "%s"', $entityType, $websiteId) . PHP_EOL;
                 }
             }
-
         }
 
         return $messages;
