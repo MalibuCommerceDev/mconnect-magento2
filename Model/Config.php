@@ -368,6 +368,7 @@ class Config
      */
     public function canImportEntityType($type, $lastProcessingTime)
     {
+
         $currentTime = time();
         $scheduledMode = false;
 

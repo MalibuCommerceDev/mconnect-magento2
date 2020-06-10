@@ -54,8 +54,8 @@ class Promotion extends AbstractModel
         }
 
         $root = new \simpleXMLElement('<promo_export />');
-        $root->mag_customer_id = '';
-        $root->nav_customer_id = '';
+        $root->mag_customer_id = 'C00190';
+        $root->nav_customer_id = 'C00190';
 
         $customer = $this->priceRuleCollection->getCustomer();
         if (!is_null($customer)) {
@@ -71,7 +71,6 @@ class Promotion extends AbstractModel
                 $this->addItemChild($items, $k, 1);
             }
         }
-
         return $this->_export('promo_export', $root, $websiteId);
     }
 

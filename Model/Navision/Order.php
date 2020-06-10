@@ -33,11 +33,6 @@ class Order extends AbstractModel
     protected $productMetadata;
 
     /**
-     * @var \Magento\Framework\Serialize\Serializer\Json
-     */
-    protected $serializer;
-
-    /**
      * @var \Magento\Framework\Module\Manager
      */
     protected $moduleManager;
@@ -52,7 +47,6 @@ class Order extends AbstractModel
      * @param \MalibuCommerce\MConnect\Model\Config           $config
      * @param Connection                                      $mConnectNavisionConnection
      * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
-     * @param \Magento\Framework\Serialize\Serializer\Json    $serializer
      * @param Manager                                         $moduleManager
      * @param \Psr\Log\LoggerInterface                        $logger
      * @param array                                           $data
@@ -65,7 +59,6 @@ class Order extends AbstractModel
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection,
         \Magento\Framework\App\ProductMetadataInterface $productMetadata,
-        \Magento\Framework\Serialize\Serializer\Json $serializer,
         \Magento\Framework\Module\Manager $moduleManager,
         \Psr\Log\LoggerInterface $logger,
         array $data = []
@@ -75,7 +68,6 @@ class Order extends AbstractModel
         $this->customerFactory = $customerFactory;
         $this->productMetadata = $productMetadata;
         $this->giftMessage = $giftMessage;
-        $this->serializer = $serializer;
         $this->moduleManager = $moduleManager;
 
         parent::__construct($config, $mConnectNavisionConnection, $logger, $data);
@@ -224,7 +216,7 @@ class Order extends AbstractModel
              */
             if ($this->moduleManager->isEnabled('Magento_GiftCard')) {
                 $giftCards = $orderEntity->getGiftCards();
-                $giftCards = $giftCards ? $this->serializer->unserialize($giftCards) : [];
+                $giftCards = $giftCards ? json_decode($giftCards) : [];
                 if (!empty($giftCards)) {
                     $baseAmount = 0.00;
                     $codes = [];

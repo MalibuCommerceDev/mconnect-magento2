@@ -4,7 +4,6 @@ namespace MalibuCommerce\MConnect\Model\Queue;
 
 use Magento\Customer\Model\Group;
 use Magento\Framework\Registry;
-use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\App\CacheInterface;
 use Magento\Customer\Model\SessionFactory;
 use MalibuCommerce\MConnect\Model\Queue;
@@ -50,11 +49,6 @@ class Promotion extends Queue implements ImportableEntity
     protected $cache;
 
     /**
-     * @var Json
-     */
-    protected $serializer;
-
-    /**
      * @var \Magento\Customer\Model\SessionFactory
      */
     protected $customerSessionFactory;
@@ -69,7 +63,6 @@ class Promotion extends Queue implements ImportableEntity
         \MalibuCommerce\MConnect\Model\Navision\Promotion $navPromotion,
         Config $config,
         CacheInterface $cache,
-        Json $serializer,
         SessionFactory $customerSessionFactory,
         FlagFactory $queueFlagFactory,
         QueueFactory $queueFactory
@@ -79,7 +72,6 @@ class Promotion extends Queue implements ImportableEntity
         $this->config = $config;
         $this->cache = $cache;
         $this->customerSessionFactory = $customerSessionFactory;
-        $this->serializer = $serializer;
         $this->queueFlagFactory = $queueFlagFactory;
         $this->queueFactory = $queueFactory;
     }
@@ -205,7 +197,7 @@ class Promotion extends Queue implements ImportableEntity
     {
         $cache = $this->cache->load($this->getCacheId($sku));
         if ($cache != false) {
-            $productPromoInfo = $this->serializer->unserialize($cache);
+            $productPromoInfo = json_decode($cache);
             krsort($productPromoInfo);
             foreach ($productPromoInfo as $promoPriceQty => $promoPricePrice) {
                 if ($qty >= $promoPriceQty) {
@@ -229,7 +221,7 @@ class Promotion extends Queue implements ImportableEntity
     {
         $lifeTime = $this->config->getWebsiteData(self::CODE . '/price_ttl', $websiteId);
         $this->cache->save(
-            $this->serializer->serialize($productPromoInfo),
+            json_encode($productPromoInfo),
             $this->getCacheId($sku),
             [self::CACHE_TAG],
             $lifeTime
@@ -280,7 +272,7 @@ class Promotion extends Queue implements ImportableEntity
     {
         $cache = $this->cache->load($this->getCacheId($sku));
         if ($cache != false) {
-            $productPromoInfo = $this->serializer->unserialize($cache);
+            $productPromoInfo = json_decode($cache);
             ksort($productPromoInfo);
 
             return $productPromoInfo;

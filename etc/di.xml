@@ -30,9 +30,6 @@
     <type name="Magento\Sales\Model\Order">
         <plugin name="orderStatesPlugin" type="MalibuCommerce\MConnect\Plugin\OrderPlugin" />
     </type>
-    <type name="Magento\Framework\View\Layout\Reader\Visibility\Condition">
-        <plugin name="mconnect_layout_visibility_condition_plugin" type="MalibuCommerce\MConnect\Plugin\Framework\View\Layout\Reader\Visibility\ConditionPlugin" />
-    </type>
     <virtualType name="Magento\Sales\Model\ResourceModel\Order\Grid" type="Magento\Sales\Model\ResourceModel\Grid">
         <arguments>
             <argument name="columns" xsi:type="array">

@@ -17,11 +17,6 @@ class Productsync extends Action
     protected $queue;
 
     /**
-     * @var \Magento\Framework\Controller\ResultFactory
-     */
-    protected $resultFactory;
-
-    /**
      * @var \Magento\Catalog\Api\ProductRepositoryInterface|ProductRepositoryInterface
      */
     protected $productRepository;
@@ -50,7 +45,6 @@ class Productsync extends Action
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\QueueFactory $queue,
-        \Magento\Framework\Controller\ResultFactory $result,
         \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
         \MalibuCommerce\MConnect\Helper\Data $helper,
         \Magento\Backend\Helper\Data $backendHelper,
@@ -59,7 +53,6 @@ class Productsync extends Action
         $this->resultJsonFactory = $resultJsonFactory;
         $this->config = $config;
         $this->queue = $queue;
-        $this->resultFactory = $result;
         $this->productRepository = $productRepository;
         $this->helper = $helper;
         $this->backendHelper = $backendHelper;

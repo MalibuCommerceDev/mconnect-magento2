@@ -2,8 +2,6 @@
 
 namespace MalibuCommerce\MConnect\Model\Queue;
 
-use Magento\Framework\Serialize\Serializer\Json;
-
 class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
 {
     const CODE                   = 'rma';
@@ -47,13 +45,6 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
     protected $escaper;
 
     /**
-     * Serializer instance.
-     *
-     * @var Json
-     */
-    protected $serializer;
-
-    /**
      * @var \Magento\Framework\Module\Manager
      */
     protected $moduleManager;
@@ -66,7 +57,6 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Eav\Api\AttributeRepositoryInterface $eavAttributeRepositoryInterface,
         \Magento\Framework\Escaper $escaper,
-        Json $serializer,
         \Magento\Framework\Module\Manager $moduleManager
     ) {
         $this->orderFactory = $orderFactory;
@@ -76,7 +66,6 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         $this->storeManager = $storeManager;
         $this->eavAttributeRepository = $eavAttributeRepositoryInterface;
         $this->escaper = $escaper;
-        $this->serializer = $serializer;
         $this->moduleManager = $moduleManager;
     }
 
@@ -381,7 +370,7 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         $preparePost['product_sku'] = $realItem->getSku();
         $preparePost['product_admin_name'] = $rmaData->getAdminProductName($realItem);
         $preparePost['product_admin_sku'] = $rmaData->getAdminProductSku($realItem);
-        $preparePost['product_options'] = $this->serializer->serialize($realItem->getProductOptions());
+        $preparePost['product_options'] = json_encode($realItem->getProductOptions());
         $preparePost['is_qty_decimal'] = $realItem->getIsQtyDecimal();
 
         if ($preparePost['is_qty_decimal']) {
