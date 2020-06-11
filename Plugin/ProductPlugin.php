@@ -49,6 +49,7 @@ class ProductPlugin
      */
     public function afterGetPrice(\Magento\Catalog\Model\Product $product, $originalFinalPrice)
     {
+        $r = 1;
         if (!$this->promotion->getConfig()->isModuleEnabled()) {
 
             return $originalFinalPrice;

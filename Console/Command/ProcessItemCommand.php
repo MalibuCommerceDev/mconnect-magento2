@@ -8,7 +8,6 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Magento\Config\Console\Command\EmulatedAdminhtmlAreaProcessor;
 use Magento\Framework\Console\Cli;
 
 class ProcessItemCommand extends Command
@@ -27,9 +26,9 @@ class ProcessItemCommand extends Command
     /**
      * Emulator adminhtml area for CLI command.
      *
-     * @var EmulatedAdminhtmlAreaProcessor
+     * @var \Magento\Framework\App\State
      */
-    protected $emulatedAreaProcessor;
+    protected $appState;
 
     /**
      * @var \MalibuCommerce\MConnect\Model\Cron
@@ -43,12 +42,12 @@ class ProcessItemCommand extends Command
 
     public function __construct(
         Queue $queue,
-        EmulatedAdminhtmlAreaProcessor $emulatedAreaProcessor,
+        \Magento\Framework\App\State $appState,
         \MalibuCommerce\MConnect\Model\Cron $cronModel,
         \MalibuCommerce\MConnect\Model\Config $config
     ) {
         $this->queue = $queue;
-        $this->emulatedAreaProcessor = $emulatedAreaProcessor;
+        $this->appState = $appState;
         $this->cronModel = $cronModel;
         $this->config = $config;
 
@@ -94,49 +93,49 @@ class ProcessItemCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         try {
-            $this->emulatedAreaProcessor->process(function () use ($input, $output) {
-                $code = $input->getArgument(self::ARGUMENT_CODE);
-                $action = $input->getArgument(self::ARGUMENT_ACTION);
-                $websiteIds = $input->getArgument(self::ARGUMENT_WEBSITE_ID);
-                $entityId = $input->getArgument(self::ARGUMENT_ENTITY_ID);
-                $sync = $input->getOption(self::OPTION_SYNC);
+            $this->appState->setAreaCode(\Magento\Framework\App\Area::AREA_ADMIN);
 
-                if ($websiteIds === null || $websiteIds === '') {
-                    $websiteIds = $this->cronModel->getMultiCompanyActiveWebsites();
+            $code = $input->getArgument(self::ARGUMENT_CODE);
+            $action = $input->getArgument(self::ARGUMENT_ACTION);
+            $websiteIds = $input->getArgument(self::ARGUMENT_WEBSITE_ID);
+            $entityId = $input->getArgument(self::ARGUMENT_ENTITY_ID);
+            $sync = $input->getOption(self::OPTION_SYNC);
+
+            if ($websiteIds === null || $websiteIds === '') {
+                $websiteIds = $this->cronModel->getMultiCompanyActiveWebsites();
+            }
+            if (!is_array($websiteIds)) {
+                $websiteIds = [$websiteIds];
+            }
+
+            foreach ($websiteIds as $websiteId) {
+                if ($action == Queue::ACTION_IMPORT && !(bool)$this->config->getWebsiteData($code . '/import_enabled', $websiteId)) {
+                    $message = sprintf('Import functionality is disabled for %s at Website ID %s', $code, $websiteId);
+                    $output->writeln('<warning>' . $message . ' </warning>');
+                    continue;
                 }
-                if (!is_array($websiteIds)) {
-                    $websiteIds = [$websiteIds];
+                if ($action == Queue::ACTION_EXPORT && !(bool)$this->config->getWebsiteData($code . '/export_enabled', $websiteId)) {
+                    $message = sprintf('Export functionality is disabled for %s at Website ID %s', $code, $websiteId);
+                    $output->writeln('<warning>' . $message . ' </warning>');
+                    continue;
                 }
 
-                foreach ($websiteIds as $websiteId) {
-                    if ($action == Queue::ACTION_IMPORT && !(bool)$this->config->getWebsiteData($code . '/import_enabled', $websiteId)) {
-                        $message = sprintf('Import functionality is disabled for %s at Website ID %s', $code, $websiteId);
-                        $output->writeln('<warning>' . $message . ' </warning>');
-                        continue;
-                    }
-                    if ($action == Queue::ACTION_EXPORT && !(bool)$this->config->getWebsiteData($code . '/export_enabled', $websiteId)) {
-                        $message = sprintf('Export functionality is disabled for %s at Website ID %s', $code, $websiteId);
-                        $output->writeln('<warning>' . $message . ' </warning>');
-                        continue;
-                    }
+                $queue = $this->queue->add($code, $action, $websiteId, 0, $entityId, null, [], null, true);
 
-                    $queue = $this->queue->add($code, $action, $websiteId, 0, $entityId, null, [], null, true);
-
-                    if ($queue->getId()) {
-                        $message = sprintf('New %s item added to queue for Website ID %s: %s', $code, $websiteId, $queue->getId());
-                        $output->writeln('<info>' . $message . ' </info>');
-                    } else {
-                        $message = sprintf('Failed to add new %s item added to queue for Website ID %s', $code, $websiteId);
-                        $output->writeln('<error>' . $message . ' </error>');
-                    }
-
-                    if ($sync) {
-                        $output->writeln('Syncing...');
-                        $queue->process();
-                        $output->writeln('Sync Completed!');
-                    }
+                if ($queue->getId()) {
+                    $message = sprintf('New %s item added to queue for Website ID %s: %s', $code, $websiteId, $queue->getId());
+                    $output->writeln('<info>' . $message . ' </info>');
+                } else {
+                    $message = sprintf('Failed to add new %s item added to queue for Website ID %s', $code, $websiteId);
+                    $output->writeln('<error>' . $message . ' </error>');
                 }
-            });
+
+                if ($sync) {
+                    $output->writeln('Syncing...');
+                    $queue->process();
+                    $output->writeln('Sync Completed!');
+                }
+            }
 
             return Cli::RETURN_SUCCESS;
         } catch (\Throwable $e) {

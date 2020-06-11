@@ -71,7 +71,6 @@ class Promotion extends AbstractModel
                 $this->addItemChild($items, $k, 1);
             }
         }
-
         return $this->_export('promo_export', $root, $websiteId);
     }
 

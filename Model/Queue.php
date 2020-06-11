@@ -310,6 +310,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         $detectedErrors = $lastSync = false;
         $maxPagesPerRun = $this->config->get('queue/max_pages_per_execution');
         $lastUpdated = $this->getLastSyncTime($this->getImportLastSyncFlagName($websiteId));
+        $lastUpdated = false;
         do {
             $result = $navExporter->export($navPageNumber, $lastUpdated, $websiteId);
             foreach ($result->{$this->getNavXmlNodeName()} as $data) {

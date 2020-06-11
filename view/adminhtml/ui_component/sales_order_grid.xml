@@ -3,25 +3,33 @@
     <listingToolbar name="listing_top">
         <massaction name="listing_massaction" component="Magento_Ui/js/grid/tree-massactions">
             <action name="addToQueue">
-                <settings>
-                    <url path="mconnect/order/massQueue"/>
-                    <type>addToQueue</type>
-                    <label translate="true">Add To NAV Sync Queue</label>
-                </settings>
+                <argument name="data" xsi:type="array">
+                    <item name="config" xsi:type="array">
+                        <item name="type" xsi:type="string">addToQueue</item>
+                        <item name="label" xsi:type="string" translate="true">Add To NAV Sync Queue</item>
+                        <item name="url" xsi:type="string">mconnect/order/massQueue</item>
+                    </item>
+                </argument>
             </action>
             <action name="proceed">
-                <settings>
-                    <url path="mconnect/order/massProceed"/>
-                    <type>proceed</type>
-                    <label translate="true">Sync to NAV Now</label>
-                </settings>
+                <argument name="data" xsi:type="array">
+                    <item name="config" xsi:type="array">
+                        <item name="type" xsi:type="string">proceed</item>
+                        <item name="label" xsi:type="string" translate="true">Sync to NAV Now</item>
+                        <item name="url" xsi:type="string">mconnect/order/massProceed</item>
+
+                    </item>
+                </argument>
             </action>
             <action name="synced">
-                <settings>
-                    <url path="mconnect/order/massSynced"/>
-                    <type>synced</type>
-                    <label translate="true">Mark as Synced to NAV</label>
-                </settings>
+                <argument name="data" xsi:type="array">
+                    <item name="config" xsi:type="array">
+                        <item name="type" xsi:type="string">synced</item>
+                        <item name="label" xsi:type="string" translate="true">Mark as Synced to NAV</item>
+                        <item name="url" xsi:type="string">mconnect/order/massSynced</item>
+
+                    </item>
+                </argument>
             </action>
         </massaction>
     </listingToolbar>

@@ -3,40 +3,46 @@
     <argument name="data" xsi:type="array">
         <item name="js_config" xsi:type="array">
             <item name="provider" xsi:type="string">mconnect_queue_grid.mconnect_queue_grid_data_source</item>
+            <item name="deps" xsi:type="string">mconnect_queue_grid.mconnect_queue_grid_data_source</item>
+        </item>
+        <item name="spinner" xsi:type="string">mconnect_queue_columns</item>
+        <item name="buttons" xsi:type="array">
+            <item name="add" xsi:type="array">
+                <item name="name" xsi:type="string">add</item>
+                <item name="label" xsi:type="string" translate="true">Add New</item>
+                <item name="class" xsi:type="string">primary</item>
+                <item name="url" xsi:type="string">*/*/new</item>
+            </item>
+            <item name="sync" xsi:type="array">
+                <item name="name" xsi:type="string">sync</item>
+                <item name="label" xsi:type="string" translate="true">Sync All Pending Now</item>
+                <item name="class" xsi:type="string">action secondary</item>
+                <item name="url" xsi:type="string">*/*/sync</item>
+            </item>
         </item>
     </argument>
-    <settings>
-        <buttons>
-            <button name="sync">
-                <url path="*/*/sync"/>
-                <class>action secondary</class>
-                <label translate="true">Sync All Pending Now</label>
-            </button>
-        </buttons>
-        <spinner>mconnect_queue_columns</spinner>
-        <deps>
-            <dep>mconnect_queue_grid.mconnect_queue_grid_data_source</dep>
-        </deps>
-    </settings>
-    <dataSource name="mconnect_queue_grid_data_source" component="Magento_Ui/js/grid/provider">
-        <settings>
-            <storageConfig>
-                <param name="indexField" xsi:type="string">id</param>
-            </storageConfig>
-            <updateUrl path="mui/index/render"/>
-        </settings>
-        <aclResource>MalibuCommerce_MConnect::queue</aclResource>
-        <dataProvider class="Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider" name="mconnect_queue_grid_data_source">
-            <settings>
-                <requestFieldName>id</requestFieldName>
-                <primaryFieldName>id</primaryFieldName>
-            </settings>
-        </dataProvider>
+    <dataSource name="mconnect_queue_grid_data_source">
+        <argument name="dataProvider" xsi:type="configurableObject">
+            <argument name="class" xsi:type="string">Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider</argument>
+            <argument name="name" xsi:type="string">mconnect_queue_grid_data_source</argument>
+            <argument name="primaryFieldName" xsi:type="string">id</argument>
+            <argument name="requestFieldName" xsi:type="string">id</argument>
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="update_url" xsi:type="url" path="mui/index/render"/>
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/provider</item>
+                </item>
+            </argument>
+        </argument>
     </dataSource>
+
+
     <listingToolbar name="listing_top">
-        <settings>
-            <sticky>true</sticky>
-        </settings>
+        <argument name="data" xsi:type="array">
+            <item name="config" xsi:type="array">
+                <item name="sticky" xsi:type="boolean">true</item>
+            </item>
+        </argument>
         <bookmark name="bookmarks"/>
         <columnsControls name="columns_controls"/>
         <filterSearch name="fulltext"/>
@@ -69,23 +75,18 @@
                     </item>
                 </argument>
             </action>
-            <action name="delete">
-                <argument name="data" xsi:type="array">
-                    <item name="config" xsi:type="array">
-                        <item name="type" xsi:type="string">delete</item>
-                        <item name="label" xsi:type="string" translate="true">Delete</item>
-                        <item name="url" xsi:type="url" path="mconnect/queue/massDelete"/>
-                    </item>
-                </argument>
-            </action>
         </massaction>
         <paging name="listing_paging"/>
     </listingToolbar>
     <columns name="mconnect_queue_columns">
         <selectionsColumn name="ids">
-            <settings>
-                <indexField>id</indexField>
-            </settings>
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="resizeEnabled" xsi:type="boolean">false</item>
+                    <item name="resizeDefaultWidth" xsi:type="string">55</item>
+                    <item name="indexField" xsi:type="string">id</item>
+                </item>
+            </argument>
         </selectionsColumn>
         <column name="id">
             <argument name="data" xsi:type="array">
@@ -122,38 +123,8 @@
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">textRange</item>
                     <item name="label" xsi:type="string" translate="true">Entity</item>
-                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                     <item name="sortOrder" xsi:type="number">40</item>
-                </item>
-            </argument>
-        </column>
-        <column name="entity_increment_id" class="MalibuCommerce\MConnect\Ui\Component\Listing\Column\IncrementId">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Increment ID</item>
-                    <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
-                    <item name="sortOrder" xsi:type="number">45</item>
-                </item>
-            </argument>
-        </column>
-        <column name="website_id" class="MalibuCommerce\MConnect\Ui\Component\Listing\Column\Website">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">textRange</item>
-                    <item name="label" xsi:type="string" translate="true">Website</item>
-                    <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
-                    <item name="sortOrder" xsi:type="number">50</item>
-                </item>
-            </argument>
-        </column>
-        <column name="nav_page_num">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">NAV Page #</item>
-                    <item name="dataType" xsi:type="string">text</item>
-                    <item name="sortOrder" xsi:type="number">55</item>
                 </item>
             </argument>
         </column>
@@ -165,7 +136,7 @@
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                     <item name="dataType" xsi:type="string">text</item>
                     <item name="sortable" xsi:type="boolean">false</item>
-                    <item name="sortOrder" xsi:type="number">60</item>
+                    <item name="sortOrder" xsi:type="number">50</item>
                 </item>
             </argument>
         </column>
@@ -176,32 +147,20 @@
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/date</item>
                     <item name="dataType" xsi:type="string">date</item>
                     <item name="label" xsi:type="string" translate="true">Created At</item>
-                    <item name="timezone" xsi:type="boolean">true</item>
-                    <item name="sortOrder" xsi:type="number">70</item>
+                    <item name="timezone" xsi:type="boolean">false</item>
+                    <item name="sortOrder" xsi:type="number">60</item>
                 </item>
             </argument>
         </column>
-        <column name="scheduled_at" class="Magento\Ui\Component\Listing\Columns\Date">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">dateRange</item>
-                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/date</item>
-                    <item name="dataType" xsi:type="string">date</item>
-                    <item name="label" xsi:type="string" translate="true">Scheduled At</item>
-                    <item name="timezone" xsi:type="boolean">true</item>
-                    <item name="sortOrder" xsi:type="number">80</item>
-                </item>
-            </argument>
-        </column>
-        <column name="finished_at" class="Magento\Ui\Component\Listing\Columns\Date">
+        <column name="started_at" class="Magento\Ui\Component\Listing\Columns\Date">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">dateRange</item>
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/date</item>
                     <item name="dataType" xsi:type="string">date</item>
                     <item name="label" xsi:type="string" translate="true">Synced At</item>
-                    <item name="timezone" xsi:type="boolean">true</item>
-                    <item name="sortOrder" xsi:type="number">90</item>
+                    <item name="timezone" xsi:type="boolean">false</item>
+                    <item name="sortOrder" xsi:type="number">70</item>
                 </item>
             </argument>
         </column>
@@ -210,7 +169,7 @@
                 <item name="config" xsi:type="array">
                     <item name="label" xsi:type="string" translate="true">Duration</item>
                     <item name="dataType" xsi:type="string">text</item>
-                    <item name="sortOrder" xsi:type="number">100</item>
+                    <item name="sortOrder" xsi:type="number">80</item>
                 </item>
             </argument>
         </column>
@@ -221,7 +180,7 @@
                     <item name="label" xsi:type="string" translate="true">Messages</item>
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                     <item name="dataType" xsi:type="string">text</item>
-                    <item name="sortOrder" xsi:type="number">110</item>
+                    <item name="sortOrder" xsi:type="number">90</item>
                 </item>
             </argument>
         </column>
@@ -229,10 +188,10 @@
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="sortable" xsi:type="boolean">false</item>
-                    <item name="label" xsi:type="string" translate="true">NAV API Log</item>
+                    <item name="label" xsi:type="string" translate="true">Log</item>
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                     <item name="dataType" xsi:type="string">text</item>
-                    <item name="sortOrder" xsi:type="number">120</item>
+                    <item name="sortOrder" xsi:type="number">100</item>
                 </item>
             </argument>
         </column>
@@ -244,17 +203,7 @@
                     <item name="label" xsi:type="string" translate="true">Status</item>
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                     <item name="dataType" xsi:type="string">select</item>
-                    <item name="sortOrder" xsi:type="number">130</item>
-                </item>
-            </argument>
-        </column>
-        <column name="retry_count">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Retries</item>
-                    <item name="dataType" xsi:type="string">text</item>
-                    <item name="sortOrder" xsi:type="number">140</item>
+                    <item name="sortOrder" xsi:type="number">110</item>
                 </item>
             </argument>
         </column>

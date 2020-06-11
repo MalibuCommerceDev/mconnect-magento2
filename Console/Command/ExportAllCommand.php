@@ -5,7 +5,6 @@ namespace MalibuCommerce\MConnect\Console\Command;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Magento\Config\Console\Command\EmulatedAdminhtmlAreaProcessor;
 use Magento\Framework\Console\Cli;
 
 class ExportAllCommand extends Command
@@ -18,16 +17,16 @@ class ExportAllCommand extends Command
     /**
      * Emulator adminhtml area for CLI command.
      *
-     * @var EmulatedAdminhtmlAreaProcessor
+     * @var \Magento\Framework\App\State
      */
-    protected $emulatedAreaProcessor;
+    protected $appState;
 
     public function __construct(
         \MalibuCommerce\MConnect\Model\Cron\Queue $queue,
-        EmulatedAdminhtmlAreaProcessor $emulatedAreaProcessor
+        \Magento\Framework\App\State $appState
     ) {
         $this->queue = $queue;
-        $this->emulatedAreaProcessor = $emulatedAreaProcessor;
+        $this->appState = $appState;
 
         parent::__construct();
     }
@@ -43,11 +42,10 @@ class ExportAllCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         try {
-            $this->emulatedAreaProcessor->process(function () use ($input, $output) {
-                $output->writeln(
-                    sprintf('<info>%s</info>', $this->queue->processExportsOnly())
-                );
-            });
+            $this->appState->setAreaCode(\Magento\Framework\App\Area::AREA_ADMIN);
+            $output->writeln(
+                sprintf('<info>%s</info>', $this->queue->processExportsOnly())
+            );
 
             return Cli::RETURN_SUCCESS;
         } catch (\Throwable $e) {

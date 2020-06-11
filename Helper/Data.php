@@ -4,7 +4,6 @@ namespace MalibuCommerce\MConnect\Helper;
 
 use \Magento\Framework\App\Filesystem\DirectoryList;
 use \Magento\Framework\App\ObjectManager;
-use \Magento\Framework\Serialize\Serializer\Json;
 use MalibuCommerce\MConnect\Model\Queue;
 
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
@@ -33,13 +32,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     protected $registry;
 
     /**
-     * Serializer interface instance.
-     *
-     * @var \Magento\Framework\Serialize\Serializer\Json
-     */
-    protected $serializer;
-
-    /**
      * @var \Magento\Sales\Model\OrderFactory
      */
     protected $salesOrderFactory;
@@ -52,15 +44,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         \MalibuCommerce\MConnect\Helper\Mail $mConnectMailer,
         \Magento\Sales\Model\OrderFactory $salesOrderFactory,
         \Magento\Framework\Registry $registry,
-        \Magento\Framework\App\Helper\Context $context,
-        \Magento\Framework\Serialize\Serializer\Json $serializer = null
+        \Magento\Framework\App\Helper\Context $context
     ) {
         $this->mConnectConfig = $mConnectConfig;
         $this->queueResourceModel = $queueResourceModel;
         $this->mConnectMailer = $mConnectMailer;
         $this->salesOrderFactory = $salesOrderFactory;
         $this->registry = $registry;
-        $this->serializer = $serializer ? : ObjectManager::getInstance()->get(Json::class);
 
         parent::__construct($context);
     }
@@ -197,7 +187,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             }
         } else {
             $contents = $dataLog;
-            $results[] = $this->serializer->unserialize($dataLog);
+            $results[] = json_decode($dataLog, true);
         }
 
         if (count($results)) {
@@ -379,7 +369,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         ];
 
         if ($this->isLogDataToDb()) {
-            $this->queueResourceModel->saveLog($queueItem->getId(), $this->serializer->serialize($logData));
+            $this->queueResourceModel->saveLog($queueItem->getId(), json_encode($logData));
         } else {
             $logFile = $this->getLogFile($queueItem->getId(), true, true);
             $writer = new \Zend\Log\Writer\Stream($logFile);
