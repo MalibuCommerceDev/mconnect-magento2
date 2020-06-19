@@ -58,6 +58,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->upgrade2_7_4($setup);
         }
 
+        if (version_compare($context->getVersion(), '2.9.7', '<=')) {
+            $this->upgrade2_9_7($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -392,4 +396,27 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ['entity_increment_id']
         );
     }
+
+    protected function upgrade2_9_7(SchemaSetupInterface $setup)
+    {
+        $entityTables = ['malibucommerce_mconnect_queue'];
+        foreach ($entityTables as $table) {
+            $setup->getConnection()->addColumn(
+                $setup->getTable($table),
+                'entities_number',
+                [
+                    'type'    => Table::TYPE_INTEGER,
+                    'after'   => 'message',
+                    'comment' => 'Number of unique entities'
+                ]
+            );
+        }
+
+        $setup->getConnection()->addIndex(
+            $setup->getTable('malibucommerce_mconnect_queue'),
+            $setup->getIdxName('malibucommerce_mconnect_queue', ['entities_number']),
+            ['entities_number']
+        );
+    }
+
 }
