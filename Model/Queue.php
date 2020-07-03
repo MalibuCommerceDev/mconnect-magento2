@@ -58,7 +58,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
     /**
      * @var int
      */
-    protected $entities_number;
+    protected $affectedEntitiesCount = 0;
 
     /**
      * @var \Magento\Framework\Registry
@@ -250,6 +250,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         $this->registry->unregister('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM');
         $this->registry->register('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM', $this);
 
+        $affectedEntitiesCount = 0;
         try {
             if (($code == \MalibuCommerce\MConnect\Model\Queue\Customer::CODE
                  || $code == \MalibuCommerce\MConnect\Model\Queue\Order::CODE
@@ -267,20 +268,20 @@ class Queue extends \Magento\Framework\Model\AbstractModel
 
             $resultedStatus = $model->getMagentoErrorsDetected() ? self::STATUS_WARNING : self::STATUS_SUCCESS;
             $messages = $model->getMessages();
-            $count = $model->getEntitiesNumber();
+            $affectedEntitiesCount = $model->getAffectedEntitiesCount();
         } catch (\Throwable $e) {
             $this->_logger->critical($e);
             $messages = 'Processing interrupted!' . "\n" . 'Error: ' . $e->getMessage() . "\n\nProcessing Messages: " . $model->getMessages();
             $resultedStatus = self::STATUS_ERROR;
         }
 
-        $this->endProcess($resultedStatus, $messages, $count);
+        $this->endProcess($resultedStatus, $messages, $affectedEntitiesCount);
         $this->registry->unregister('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM');
 
         return $resultedStatus;
     }
 
-    protected function endProcess($status, $message = null, $count = 0)
+    protected function endProcess($status, $message = null, $affectedEntitiesCount = 0)
     {
         $message = mb_strimwidth(
             $message . "\n\n" . $this->getMessage(),
@@ -290,7 +291,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         );
 
         $this->setMessage($message)
-            ->setEntitiesNumber($count)
+            ->setAffectedEntitiesCnt($affectedEntitiesCount)
             ->setFinishedAt(date('Y-m-d H:i:s'))
             ->setStatus($status)
             ->save();
@@ -313,7 +314,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         $websiteId,
         $navPageNumber = 0
     ) {
-        $processedPages = $count = 0;
+        $processedPages = $affectedEntitiesCount = 0;
         $detectedErrors = $lastSync = false;
         $maxPagesPerRun = $this->config->get('queue/max_pages_per_execution');
         $lastUpdated = $this->getLastSyncTime($this->getImportLastSyncFlagName($websiteId));
@@ -323,7 +324,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
                 try {
                     $importResult = $magentoImporter->importEntity($data, $websiteId);
                     if ($importResult) {
-                        $count++;
+                        $affectedEntitiesCount++;
                     }
                 } catch (\Throwable $e) {
                     $detectedErrors = true;
@@ -337,8 +338,8 @@ class Queue extends \Magento\Framework\Model\AbstractModel
             $processedPages++;
             $navPageNumber++;
             if ($processedPages >= $maxPagesPerRun && $this->hasRecords($result)) {
-                if ($count > 0) {
-                    $magentoImporter->addMessage('Successfully processed ' . $count . ' NAV records(s).');
+                if ($affectedEntitiesCount > 0) {
+                    $magentoImporter->addMessage('Successfully processed ' . $affectedEntitiesCount . ' NAV records(s).');
                 } else {
                     $magentoImporter->addMessage('Nothing to import.');
                 }
@@ -360,9 +361,9 @@ class Queue extends \Magento\Framework\Model\AbstractModel
 
         $magentoImporter->setMagentoErrorsDetected($detectedErrors);
 
-        if ($count > 0) {
-            $magentoImporter->addEntitiesNumber($count);
-            $magentoImporter->addMessage('Successfully processed ' . $count . ' NAV records(s).');
+        if ($affectedEntitiesCount > 0) {
+            $magentoImporter->addAffectedEntitiesCount($affectedEntitiesCount);
+            $magentoImporter->addMessage('Successfully processed ' . $affectedEntitiesCount . ' NAV records(s).');
         } else {
             $magentoImporter->addMessage('Nothing to import.');
         }
@@ -400,14 +401,14 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         return $this->messages;
     }
 
-    public function getEntitiesNumber()
+    public function getAffectedEntitiesCount()
     {
-        return $this->entities_number;
+        return $this->affectedEntitiesCount;
     }
 
-    public function addEntitiesNumber($count)
+    public function addAffectedEntitiesCount($count)
     {
-        return $this->entities_number = $count;
+        return $this->affectedEntitiesCount = $count;
     }
 
     public function addMessage($message)

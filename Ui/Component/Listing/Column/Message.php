@@ -19,14 +19,14 @@ class Message extends \Magento\Ui\Component\Listing\Columns\Column
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
                 if (!empty($item['message'])) {
-                    if ($item['entities_number'] == 1) {
-                        $entitiesMsg = '('.$item['entities_number'] . ' ' . __('Entity').')';
-                    } elseif ($item['entities_number'] > 1) {
-                        $entitiesMsg = '('.$item['entities_number'] . ' ' . __('Entities').')';
+                    if ($item['affected_entities_cnt'] == 1) {
+                        $entitiesMsg = '(' . $item['affected_entities_cnt'] . ' ' . __('Entity') . ')';
+                    } elseif ($item['affected_entities_cnt'] > 1) {
+                        $entitiesMsg = '(' . $item['affected_entities_cnt'] . ' ' . __('Entities') . ')';
                     } else {
                         $entitiesMsg = '';
                     }
-                    $columnData = '<a href="#" onclick="jQuery(\'#messages_' . $item['id'] . '\').toggle(); return false;">' . __('Show/Hide') . ' ' . $entitiesMsg. '</a>';
+                    $columnData = '<a href="#" onclick="jQuery(\'#messages_' . $item['id'] . '\').toggle(); return false;">' . __('Show/Hide') . ' ' . $entitiesMsg . '</a>';
                     $columnData .= '<div id="messages_' . $item['id'] . '" style="display: none; font-size: small;"><pre style="white-space: pre-line; word-break: break-word;">' . $item['message'] . '</pre></div>';
                     $item['message'] = $columnData;
                 }

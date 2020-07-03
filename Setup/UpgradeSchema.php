@@ -58,8 +58,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->upgrade2_7_4($setup);
         }
 
-        if (version_compare($context->getVersion(), '2.9.7', '<=')) {
-            $this->upgrade2_9_7($setup);
+        if (version_compare($context->getVersion(), '2.9.9', '<=')) {
+            $this->upgrade2_9_9($setup);
         }
 
         $setup->endSetup();
@@ -397,25 +397,25 @@ class UpgradeSchema implements UpgradeSchemaInterface
         );
     }
 
-    protected function upgrade2_9_7(SchemaSetupInterface $setup)
+    protected function upgrade2_9_9(SchemaSetupInterface $setup)
     {
         $entityTables = ['malibucommerce_mconnect_queue'];
         foreach ($entityTables as $table) {
             $setup->getConnection()->addColumn(
                 $setup->getTable($table),
-                'entities_number',
+                'affected_entities_cnt',
                 [
                     'type'    => Table::TYPE_INTEGER,
                     'after'   => 'message',
-                    'comment' => 'Number of unique entities'
+                    'comment' => 'Count of affected Magento entities'
                 ]
             );
         }
 
         $setup->getConnection()->addIndex(
             $setup->getTable('malibucommerce_mconnect_queue'),
-            $setup->getIdxName('malibucommerce_mconnect_queue', ['entities_number']),
-            ['entities_number']
+            $setup->getIdxName('malibucommerce_mconnect_queue', ['affected_entities_cnt']),
+            ['affected_entities_cnt']
         );
     }
 
