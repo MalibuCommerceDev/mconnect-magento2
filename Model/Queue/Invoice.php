@@ -42,6 +42,11 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue implements Importable
      */
     protected $queueFlagFactory;
 
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storeManager;
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\Navision\Invoice $navInvoice,
         \Magento\Sales\Model\OrderFactory $orderFactory,
@@ -49,7 +54,8 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         \Magento\Framework\DB\TransactionFactory $transactionFactory,
         \Magento\Sales\Model\Order\Email\Sender\InvoiceSender $invoiceSender,
         \MalibuCommerce\MConnect\Model\Config $config,
-        \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory
+        \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->navInvoice = $navInvoice;
         $this->orderFactory = $orderFactory;
@@ -58,6 +64,7 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         $this->invoiceSender = $invoiceSender;
         $this->config = $config;
         $this->queueFlagFactory = $queueFlagFactory;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -162,10 +169,10 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue implements Importable
 
         $paymentMethod = $order->getPayment()->getMethod();
         $invoiceFlag = false;
-
-        $getEnabledPaymentMEthodForDoNoCapture = $this->config->get($this->getQueueCode() . '/invoice_do_not_capture');
-        $getEnabledPaymentMEthodForOfflineCapture = $this->config->get($this->getQueueCode() . '/invoice_offline_capture');
-        $getEnabledPaymentMEthodForOnlineCapture = $this->config->get($this->getQueueCode() . '/invoice_online_capture');
+        $websiteId = $this->storeManager->getStore($order->getStoreId())->getWebsiteId();
+        $getEnabledPaymentMEthodForDoNoCapture = $this->config->getWebsiteData($this->getQueueCode() . '/invoice_do_not_capture', $websiteId);
+        $getEnabledPaymentMEthodForOfflineCapture = $this->config->getWebsiteData($this->getQueueCode() . '/invoice_offline_capture', $websiteId);
+        $getEnabledPaymentMEthodForOnlineCapture = $this->config->getWebsiteData($this->getQueueCode() . '/invoice_online_capture', $websiteId);
 
         if (is_array(explode(',', $getEnabledPaymentMEthodForDoNoCapture))) {
             if (in_array($paymentMethod, explode(',', $getEnabledPaymentMEthodForDoNoCapture))) {
