@@ -194,16 +194,16 @@ class Cron
         $select = $connection->select()
             ->from('core_config_data', ['scope', 'scope_id'])
             ->where('path = \'malibucommerce_mconnect/nav_connection/url\'');
-        $scopes = $connection->fetchCol($select);
+        $scopes = $connection->fetchAll($select);
 
         $websiteIds = [0];
         if (!empty($scopes)) {
-            foreach ($scopes as $scopeId => $scope) {
-                if (!in_array($scope, ['default', 'websites'])) {
+            foreach ($scopes as $scope) {
+                if (!in_array($scope['scope'], ['default', 'websites'])) {
                     continue;
                 }
 
-                $websiteIds[] = $scopeId;
+                $websiteIds[] = $scope['scope_id'];
             }
         }
 
