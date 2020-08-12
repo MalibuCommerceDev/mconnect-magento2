@@ -176,7 +176,7 @@
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/date</item>
                     <item name="dataType" xsi:type="string">date</item>
                     <item name="label" xsi:type="string" translate="true">Created At</item>
-                    <item name="timezone" xsi:type="boolean">true</item>
+                    <item name="timezone" xsi:type="string">true</item>
                     <item name="sortOrder" xsi:type="number">70</item>
                 </item>
             </argument>
@@ -188,7 +188,7 @@
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/date</item>
                     <item name="dataType" xsi:type="string">date</item>
                     <item name="label" xsi:type="string" translate="true">Scheduled At</item>
-                    <item name="timezone" xsi:type="boolean">true</item>
+                    <item name="timezone" xsi:type="string">true</item>
                     <item name="sortOrder" xsi:type="number">80</item>
                 </item>
             </argument>
@@ -200,7 +200,7 @@
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/date</item>
                     <item name="dataType" xsi:type="string">date</item>
                     <item name="label" xsi:type="string" translate="true">Synced At</item>
-                    <item name="timezone" xsi:type="boolean">true</item>
+                    <item name="timezone" xsi:type="string">true</item>
                     <item name="sortOrder" xsi:type="number">90</item>
                 </item>
             </argument>
