@@ -14,7 +14,8 @@
             <nav_connection>
                 <password backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <allow_insecure_connection>0</allow_insecure_connection>
-                <connection_timeout>300</connection_timeout>
+                <connection_timeout>5</connection_timeout>
+                <request_timeout>300</request_timeout>
                 <ntlm>1</ntlm>
                 <trigger_password backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <soap_debug>0</soap_debug>
@@ -148,6 +149,10 @@
             <promotion>
                 <import_enabled>0</import_enabled>
                 <price_ttl>60</price_ttl>
+                <connection_timeout>4</connection_timeout>
+                <request_timeout>7</request_timeout>
+                <retry_on_failure>0</retry_on_failure>
+                <retry_max_count>2</retry_max_count>
             </promotion>
             <tier_price>
                 <is_enable>0</is_enable>

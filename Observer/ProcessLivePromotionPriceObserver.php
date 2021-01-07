@@ -49,7 +49,7 @@ class ProcessLivePromotionPriceObserver implements \Magento\Framework\Event\Obse
      * @param \Magento\Framework\Event\Observer $observer
      *
      * @return $this|void
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws \Throwable
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
@@ -76,12 +76,12 @@ class ProcessLivePromotionPriceObserver implements \Magento\Framework\Event\Obse
 
             return $this;
         }
-        
+
         unset($this->collectedProducts);
         $this->collectedProducts = [];
         $simpleProducts = [];
         $productsRegistryKey = \MalibuCommerce\MConnect\Model\Queue\Promotion::REGISTRY_KEY_NAV_PROMO_PRODUCTS;
-        
+
         foreach ($collection as $product) {
             if (!$this->promotion->getPriceFromCache($product->getSku(), self::PRODUCT_QTY_FOR_IMPORT)) {
                 $this->collectedProducts[$product->getSku()] = self::PRODUCT_QTY_FOR_IMPORT;
@@ -97,7 +97,11 @@ class ProcessLivePromotionPriceObserver implements \Magento\Framework\Event\Obse
             $this->registry->register($productsRegistryKey, $this->collectedProducts);
             $store = $this->storeManager->getStore($collection->getStoreId());
             $websiteId = $store->getWebsiteId();
-            $this->promotion->importAction($websiteId);
+            try {
+                $this->promotion->importAction($websiteId);
+            } catch (\Throwable $e) {
+                return $this;
+            }
         }
 
         //Save products without promo price to cache

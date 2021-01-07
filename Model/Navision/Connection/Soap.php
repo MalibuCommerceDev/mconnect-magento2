@@ -2,6 +2,8 @@
 
 namespace MalibuCommerce\MConnect\Model\Navision\Connection;
 
+use MalibuCommerce\MConnect\Model\Navision\AbstractModel;
+
 class Soap
 {
     /**
@@ -36,6 +38,11 @@ class Soap
      * @var \MalibuCommerce\MConnect\Model\Navision\Connection\Stream
      */
     protected $stream;
+
+    /**
+     * @var  \MalibuCommerce\MConnect\Model\Navision\AbstractModel
+     */
+    protected $callerModel;
 
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
@@ -108,6 +115,7 @@ class Soap
         }
         $this->isStreamRegistered = true;
         $this->stream->setWebsiteId($websiteId);
+        $this->stream->setCallerModel($this->getCallerModel());
     }
 
     protected function registerClient($websiteId = 0)
@@ -127,6 +135,7 @@ class Soap
         }
 
         $this->soapClients[$websiteId]->setWebsiteId($websiteId);
+        $this->soapClients[$websiteId]->setCallerModel($this->getCallerModel());
 
         return $this;
     }
@@ -154,5 +163,25 @@ class Soap
         }
 
         return $this->protocol;
+    }
+
+    /**
+     * @param AbstractModel $model
+     *
+     * @return $this
+     */
+    public function setCallerModel(AbstractModel $model)
+    {
+        $this->callerModel = $model;
+
+        return $this;
+    }
+
+    /**
+     * @return AbstractModel
+     */
+    public function getCallerModel()
+    {
+        return $this->callerModel;
     }
 }

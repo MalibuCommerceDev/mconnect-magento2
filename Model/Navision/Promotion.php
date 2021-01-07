@@ -2,6 +2,8 @@
 
 namespace MalibuCommerce\MConnect\Model\Navision;
 
+use MalibuCommerce\MConnect\Model\Config;
+
 class Promotion extends AbstractModel
 {
     /**
@@ -85,5 +87,55 @@ class Promotion extends AbstractModel
         $item = $root->addChild('item');
         $item->addChild('sku', $sku);
         $item->addChild('quantity', $qty);
+    }
+
+    /**
+     * @param int $websiteId
+     *
+     * @return bool
+     */
+    protected function isRetryOnFailureEnabled($websiteId = 0)
+    {
+        return (bool)$this->config->getWebsiteData(\MalibuCommerce\MConnect\Model\Queue\Promotion::CODE . '/retry_on_failure', $websiteId);
+    }
+
+    /**
+     * @param int $websiteId
+     *
+     * @return int
+     */
+    protected function getRetryAttemptsCount($websiteId = 0)
+    {
+        return (int)$this->config->getWebsiteData(\MalibuCommerce\MConnect\Model\Queue\Promotion::CODE . '/retry_max_count', $websiteId);
+    }
+
+    /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return int
+     */
+    public function getConnectionTimeout($websiteId = null)
+    {
+        $timeout = (int)$this->config->getWebsiteData(\MalibuCommerce\MConnect\Model\Queue\Promotion::CODE . '/connection_timeout', $websiteId);
+        if ($timeout <= 0) {
+            return Config::DEFAULT_NAV_CONNECTION_TIMEOUT;
+        }
+
+        return $timeout;
+    }
+
+    /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return int
+     */
+    public function getRequestTimeout($websiteId = null)
+    {
+        $timeout = (int)$this->config->getWebsiteData(\MalibuCommerce\MConnect\Model\Queue\Promotion::CODE . '/request_timeout', $websiteId);
+        if ($timeout <= 0) {
+            return Config::DEFAULT_NAV_REQUEST_TIMEOUT;
+        }
+
+        return $timeout;
     }
 }

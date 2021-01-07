@@ -2,6 +2,8 @@
 
 namespace MalibuCommerce\MConnect\Model\Navision;
 
+use MalibuCommerce\MConnect\Model\Config;
+
 abstract class AbstractModel extends \Magento\Framework\DataObject
 {
     /**
@@ -15,27 +17,29 @@ abstract class AbstractModel extends \Magento\Framework\DataObject
     protected $logger;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Config
+     * @var Config
      */
     protected $config;
 
     /**
      * AbstractModel constructor.
      *
-     * @param \MalibuCommerce\MConnect\Model\Config $config
+     * @param Config $config
      * @param Connection                            $mConnectNavisionConnection
      * @param \Psr\Log\LoggerInterface              $logger
      * @param array                                 $data
      */
     public function __construct(
-        \MalibuCommerce\MConnect\Model\Config $config,
+        Config $config,
         \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection,
         \Psr\Log\LoggerInterface $logger,
         array $data = []
     ) {
         $this->config = $config;
-        $this->mConnectNavisionConnection = $mConnectNavisionConnection;
         $this->logger = $logger;
+
+        $this->mConnectNavisionConnection = $mConnectNavisionConnection;
+        $this->mConnectNavisionConnection->setCallerModel($this);
 
         parent::__construct($data);
     }
@@ -57,6 +61,66 @@ abstract class AbstractModel extends \Magento\Framework\DataObject
         return $this->mConnectNavisionConnection;
     }
 
+    /**
+     * @param int $websiteId
+     *
+     * @return bool
+     */
+    protected function isRetryOnFailureEnabled($websiteId = 0)
+    {
+        return (bool)$this->config->getWebsiteData('nav_connection/retry_on_failure', $websiteId);
+    }
+
+    /**
+     * @param int $websiteId
+     *
+     * @return int
+     */
+    protected function getRetryAttemptsCount($websiteId = 0)
+    {
+        return (int)$this->config->getWebsiteData('nav_connection/retry_max_count', $websiteId);
+    }
+
+    /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return int
+     */
+    public function getConnectionTimeout($websiteId = null)
+    {
+        $timeout = (int)$this->config->getWebsiteData('nav_connection/connection_timeout', $websiteId);
+        if ($timeout <= 0) {
+            return Config::DEFAULT_NAV_CONNECTION_TIMEOUT;
+        }
+
+        return $timeout;
+    }
+
+    /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return int
+     */
+    public function getRequestTimeout($websiteId = null)
+    {
+        $timeout = (int)$this->config->getWebsiteData('nav_connection/request_timeout', $websiteId);
+        if ($timeout <= 0) {
+            return Config::DEFAULT_NAV_REQUEST_TIMEOUT;
+        }
+
+        return $timeout;
+    }
+
+    /**
+     * @param string $action
+     * @param array $parameters
+     * @param int   $websiteId
+     * @param false $retryOnFailure
+     * @param int   $maxRetries
+     *
+     * @return \simpleXMLElement
+     * @throws \Throwable
+     */
     protected function _export($action, $parameters = [], $websiteId = 0)
     {
         static $attempts = 1;
@@ -64,12 +128,12 @@ abstract class AbstractModel extends \Magento\Framework\DataObject
         try {
             $responseXml = $this->doRequest(\MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT, $this->prepareRequestXml($action, $parameters), $websiteId);
         } catch (\Throwable $e) {
-            if (!$this->config->getWebsiteData('nav_connection/retry_on_failure', $websiteId)) {
+            if (!$this->isRetryOnFailureEnabled($websiteId)) {
                 $attempts = 1;
                 throw $e;
             }
 
-            $maxAttempts = (int)$this->config->getWebsiteData('nav_connection/retry_max_count', $websiteId);
+            $maxAttempts = $this->getRetryAttemptsCount($websiteId);
             if ($attempts <= $maxAttempts) {
                 sleep(pow(2, $attempts));
                 $attempts++;
@@ -101,6 +165,12 @@ abstract class AbstractModel extends \Magento\Framework\DataObject
         );
     }
 
+    /**
+     * @param string $action
+     * @param array|\simpleXMLElement $parameters
+     *
+     * @return string
+     */
     protected function prepareRequestXml($action, $parameters = [])
     {
         if ($parameters instanceof \simpleXMLElement) {

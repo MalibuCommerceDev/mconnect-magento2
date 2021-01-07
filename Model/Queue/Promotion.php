@@ -85,12 +85,11 @@ class Promotion extends Queue implements ImportableEntity
     }
 
     /**
-     * Import prices from NAV
-     *
      * @param int $websiteId
      * @param int $navPageNumber
      *
      * @return bool|\Magento\Framework\DataObject|Promotion
+     * @throws \Exception
      */
     public function importAction($websiteId, $navPageNumber = 0)
     {
@@ -99,7 +98,7 @@ class Promotion extends Queue implements ImportableEntity
 
     /**
      * @param \SimpleXMLElement $data
-     * @param int               $websiteId
+     * @param int $websiteId
      *
      * @return bool
      * @throws \Magento\Framework\Exception\NoSuchEntityException
@@ -167,6 +166,9 @@ class Promotion extends Queue implements ImportableEntity
 
             return false;
         }
+        if ($qty == NULL) {
+            $qty = 1;
+        }
 
         if (is_string($product)) {
             $sku = $product;
@@ -188,8 +190,11 @@ class Promotion extends Queue implements ImportableEntity
         $prepareProducts[$sku] = $qty;
         $this->registry->unregister(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
         $this->registry->register(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS, $prepareProducts);
-        $navPageNumber = 0;
-        $this->processMagentoImport($this->navPromotion, $this, $websiteId, $navPageNumber);
+        try {
+            $this->importAction($websiteId);
+        } catch (\Throwable $e) {
+            return false;
+        }
 
         return $this->getPriceFromCache($sku, $qty);
     }

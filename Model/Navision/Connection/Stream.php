@@ -3,6 +3,7 @@
 namespace MalibuCommerce\MConnect\Model\Navision\Connection;
 
 use Magento\Framework\App\Filesystem\DirectoryList;
+use MalibuCommerce\MConnect\Model\Navision\AbstractModel;
 
 class Stream
 {
@@ -48,6 +49,11 @@ class Stream
      */
     protected $websiteId = 0;
 
+    /**
+     * @var  \MalibuCommerce\MConnect\Model\Navision\AbstractModel
+     */
+    protected $callerModel;
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
         \Magento\Framework\Filesystem $filesystem,
@@ -66,6 +72,26 @@ class Stream
     public function getWebsiteId()
     {
         return $this->websiteId;
+    }
+
+    /**
+     * @param AbstractModel $model
+     *
+     * @return $this
+     */
+    public function setCallerModel(AbstractModel $model)
+    {
+        $this->callerModel = $model;
+
+        return $this;
+    }
+
+    /**
+     * @return AbstractModel
+     */
+    public function getCallerModel()
+    {
+        return $this->callerModel;
     }
 
     public function stream_open($streamUri)
@@ -174,6 +200,16 @@ class Stream
             $this->streamCurlHandle,
             CURLOPT_USERPWD,
             $config->getNavConnectionUsername($this->getWebsiteId()) . ':' . $config->getNavConnectionPassword($this->getWebsiteId())
+        );
+        curl_setopt(
+            $this->streamCurlHandle,
+            CURLOPT_CONNECTTIMEOUT,
+            $this->getCallerModel()->getConnectionTimeout($this->getWebsiteId())
+        );
+        curl_setopt(
+            $this->streamCurlHandle,
+            CURLOPT_TIMEOUT,
+            $this->getCallerModel()->getRequestTimeout($this->getWebsiteId())
         );
         $this->setStreamData(trim(curl_exec($this->streamCurlHandle)));
 

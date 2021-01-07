@@ -68,11 +68,13 @@ class Test extends Action
                 CURLOPT_USERAGENT      => 'PHP-SOAP-CURL',
                 CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
                 CURLOPT_USERPWD        => $username . ':' . $password,
-                CURLOPT_TIMEOUT        => $this->mConnectConfig->getConnectionTimeout($websiteId),
+                CURLOPT_CONNECTTIMEOUT => $this->mConnectConfig->getConnectionTimeout($websiteId),
+                CURLOPT_TIMEOUT        => $this->mConnectConfig->getRequestTimeout($websiteId),
                 CURLOPT_HEADER         => true,
                 CURLOPT_NOBODY         => true,
                 CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
             ];
+
             if ($this->mConnectConfig->getIsInsecureConnectionAllowed($websiteId)) {
                 $options[CURLOPT_SSL_VERIFYHOST] = 0;
                 $options[CURLOPT_SSL_VERIFYPEER] = 0;

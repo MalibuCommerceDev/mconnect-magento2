@@ -10,6 +10,7 @@ class Config
 {
     const XML_PATH_CONFIG_SECTION        = 'malibucommerce_mconnect';
     const DEFAULT_NAV_CONNECTION_TIMEOUT = 10; // in seconds
+    const DEFAULT_NAV_REQUEST_TIMEOUT    = 10; // in seconds
     const DEFAULT_NEW_ORDERS_DELAY       = 5; // in minutes
 
     const AUTH_METHOD_NTLM   = 1;
@@ -125,6 +126,21 @@ class Config
     }
 
     /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return int
+     */
+    public function getRequestTimeout($websiteId = null)
+    {
+        $timeout = (int)$this->getWebsiteData('nav_connection/request_timeout', $websiteId);
+        if ($timeout <= 0) {
+            return self::DEFAULT_NAV_REQUEST_TIMEOUT;
+        }
+
+        return $timeout;
+    }
+
+    /**
      * Get decrypted trigger password
      *
      * @param null|int|string|\Magento\Store\Model\Website $websiteId
@@ -218,7 +234,8 @@ class Config
      */
     public function getOrderStatuesAllowedForSync($websiteId = null)
     {
-        return explode(',', $this->getWebsiteData('order/allowed_order_statuses_to_be_added_to_sync_queue', $websiteId));
+        return explode(',',
+            $this->getWebsiteData('order/allowed_order_statuses_to_be_added_to_sync_queue', $websiteId));
     }
 
     /**

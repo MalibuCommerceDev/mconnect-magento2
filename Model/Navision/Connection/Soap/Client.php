@@ -2,17 +2,20 @@
 
 namespace MalibuCommerce\MConnect\Model\Navision\Connection\Soap;
 
+use MalibuCommerce\MConnect\Helper\Data;
+use MalibuCommerce\MConnect\Model\Config;
+use MalibuCommerce\MConnect\Model\Navision\AbstractModel;
 use SoapClient;
 
 class Client extends SoapClient
 {
     /**
-     * @var \MalibuCommerce\MConnect\Model\Config
+     * @var Config
      */
     protected $mConnectConfig;
 
     /**
-     * @var \MalibuCommerce\MConnect\Helper\Data
+     * @var Data
      */
     protected $mConnectHelper;
 
@@ -21,9 +24,14 @@ class Client extends SoapClient
      */
     protected $websiteId = 0;
 
+    /**
+     * @var  \MalibuCommerce\MConnect\Model\Navision\AbstractModel
+     */
+    protected $callerModel;
+
     public function __construct(
-        \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
-        \MalibuCommerce\MConnect\Helper\Data $mConnectHelper,
+        Config $mConnectConfig,
+        Data $mConnectHelper,
         $wsdl,
         array $options = null
     ) {
@@ -41,6 +49,26 @@ class Client extends SoapClient
     public function getWebsiteId()
     {
         return $this->websiteId;
+    }
+
+    /**
+     * @param AbstractModel $model
+     *
+     * @return $this
+     */
+    public function setCallerModel(AbstractModel $model)
+    {
+        $this->callerModel = $model;
+
+        return $this;
+    }
+
+    /**
+     * @return AbstractModel
+     */
+    public function getCallerModel()
+    {
+        return $this->callerModel;
     }
 
     /**
@@ -81,7 +109,8 @@ class Client extends SoapClient
         }
 
         curl_setopt($ch, CURLOPT_USERPWD, $username . ':' . $password);
-        curl_setopt($ch, CURLOPT_TIMEOUT, $this->mConnectConfig->getConnectionTimeout($this->getWebsiteId()));
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $this->getCallerModel()->getConnectionTimeout($this->getWebsiteId()));
+        curl_setopt($ch, CURLOPT_TIMEOUT, $this->getCallerModel()->getRequestTimeout($this->getWebsiteId()));
 
         try {
             $response = curl_exec($ch);
