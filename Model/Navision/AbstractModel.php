@@ -39,7 +39,6 @@ abstract class AbstractModel extends \Magento\Framework\DataObject
         $this->logger = $logger;
 
         $this->mConnectNavisionConnection = $mConnectNavisionConnection;
-        $this->mConnectNavisionConnection->setCallerModel($this);
 
         parent::__construct($data);
     }
@@ -211,6 +210,8 @@ abstract class AbstractModel extends \Magento\Framework\DataObject
             default:
                 throw new \RuntimeException(sprintf('Unsupported request type "%s"', $type));
         }
+
+        $this->getConnection()->setCallerModel($this);
 
         return $this->getConnection()->$method([
             'requestXML'  => $xml,

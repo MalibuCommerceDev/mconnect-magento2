@@ -2,50 +2,49 @@
 
 namespace MalibuCommerce\MConnect\Model\ResourceModel\Pricerule;
 
+use Magento\Framework\Data\Collection\Db\FetchStrategyInterface;
+use Magento\Framework\Data\Collection\EntityFactoryInterface;
+use Magento\Framework\DB\Adapter\AdapterInterface;
+use Magento\Framework\DB\Select;
+use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
+use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
+use MalibuCommerce\MConnect\Helper\Customer;
+use MalibuCommerce\MConnect\Model\Pricerule;
 
-class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
+class Collection extends AbstractCollection
 {
-    /**
-     * @var \Magento\Customer\Api\Data\CustomerInterface
-     */
-    protected $customer;
+    /** @var Customer */
+    protected $customerHelper;
 
     /**
-     * @var \Magento\Customer\Model\CustomerRegistry
+     * Collection constructor.
+     *
+     * @param Customer                     $customerHelper
+     * @param EntityFactoryInterface    $entityFactory
+     * @param \Psr\Log\LoggerInterface                                     $logger
+     * @param FetchStrategyInterface $fetchStrategy
+     * @param ManagerInterface                    $eventManager
+     * @param AdapterInterface|null          $connection
+     * @param AbstractDb|null    $resource
      */
-    protected $customerRegistry;
-
-    /**
-     * @var \Magento\Customer\Api\GroupRepositoryInterface
-     */
-    protected $groupRepository;
-
-    /**
-     * @var \Magento\Customer\Model\SessionFactory
-     */
-    protected $customerSessionFactory;
-
     public function __construct(
-        \Magento\Customer\Model\CustomerRegistry $customerRegistry,
-        \Magento\Customer\Api\GroupRepositoryInterface $groupRepository,
-        \Magento\Customer\Model\SessionFactory $customerSessionFactory,
-        \Magento\Framework\Data\Collection\EntityFactoryInterface $entityFactory,
+        Customer $customerHelper,
+        EntityFactoryInterface $entityFactory,
         \Psr\Log\LoggerInterface $logger,
-        \Magento\Framework\Data\Collection\Db\FetchStrategyInterface $fetchStrategy,
-        \Magento\Framework\Event\ManagerInterface $eventManager,
-        \Magento\Framework\DB\Adapter\AdapterInterface $connection = null,
-        \Magento\Framework\Model\ResourceModel\Db\AbstractDb $resource = null
+        FetchStrategyInterface $fetchStrategy,
+        ManagerInterface $eventManager,
+        AdapterInterface $connection = null,
+        AbstractDb $resource = null
     ) {
-        $this->customerRegistry = $customerRegistry;
-        $this->customerSessionFactory = $customerSessionFactory;
-        $this->groupRepository = $groupRepository;
+        $this->customerHelper = $customerHelper;
         parent::__construct($entityFactory, $logger, $fetchStrategy, $eventManager, $connection, $resource);
     }
 
     public function _construct()
     {
-        $this->_init(\MalibuCommerce\MConnect\Model\Pricerule::class, \MalibuCommerce\MConnect\Model\ResourceModel\Pricerule::class);
+        $this->_init(Pricerule::class, \MalibuCommerce\MConnect\Model\ResourceModel\Pricerule::class);
     }
 
     /**
@@ -61,7 +60,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     {
         $this->applyAllFilters($sku, $qty, $websiteId);
         $select = clone $this->getSelect();
-        $select->reset(\Magento\Framework\DB\Select::COLUMNS);
+        $select->reset(Select::COLUMNS);
         $select->columns('price', 'main_table');
 
         return $this->getConnection()->fetchOne($select);
@@ -144,12 +143,13 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      */
     public function applyCustomerFilter()
     {
-        if ($this->getCustomer()) {
+        $customer = $this->customerHelper->getCurrentCustomer();
+        if ($customer) {
             $this->addFieldToFilter(
                 ['navision_customer_id', 'customer_price_group'],
                 [
-                    ['eq' => $this->getCustomer()->getNavId()],
-                    ['eq' => $this->getCustomer()->getNavPriceGroup()]
+                    ['eq' => $customer->getNavId()],
+                    ['eq' => $customer->getNavPriceGroup()]
                 ]
             );
         } else {
@@ -215,64 +215,5 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
         }
 
         return $this;
-    }
-
-    /**
-     * Return logged in customer model
-     *
-     * @return \Magento\Customer\Api\Data\CustomerInterface|\Magento\Customer\Model\Customer|null
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     */
-    public function getCustomer()
-    {
-        if (!$this->customer) {
-            /** @var \Magento\Customer\Model\Session $customer */
-            $customer = $this->customerSessionFactory->create();
-            if ($customer->getCustomer() && $customer->getCustomer()->getId()) {
-                $this->customer = $this->customerRegistry->retrieve($customer->getCustomer()->getId());
-            } else {
-                return null;
-            }
-        }
-
-        return $this->customer;
-    }
-
-    /**
-     * Retrieve current customer group code
-     *
-     * @return null|string
-     */
-    public function getCustomerGroup()
-    {
-        $groupCode = null;
-
-        try {
-            $groupCode = $this->groupRepository->getById($this->getCurrentCustomerGroupId())->getCode();
-        } catch (\Throwable $e) {
-
-        }
-
-        return $groupCode;
-    }
-
-    /**
-     * Retrieve current customer group id
-     *
-     * @return int
-     */
-    public function getCurrentCustomerGroupId()
-    {
-        $groupId = \Magento\Customer\Model\Group::NOT_LOGGED_IN_ID;
-
-        try {
-            if ($this->getCustomer()) {
-                return $this->getCustomer()->getGroupId();
-            }
-        } catch (\Throwable $e) {
-
-        }
-
-        return $groupId;
     }
 }

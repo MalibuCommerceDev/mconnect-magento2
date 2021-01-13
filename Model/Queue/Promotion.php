@@ -2,11 +2,12 @@
 
 namespace MalibuCommerce\MConnect\Model\Queue;
 
-use Magento\Customer\Model\Group;
+use Magento\Framework\DataObject;
 use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\App\CacheInterface;
 use Magento\Customer\Model\SessionFactory;
+use MalibuCommerce\MConnect\Helper\Customer;
 use MalibuCommerce\MConnect\Model\Queue;
 use MalibuCommerce\MConnect\Model\Config;
 use MalibuCommerce\MConnect\Model\QueueFactory;
@@ -14,56 +15,51 @@ use MalibuCommerce\MConnect\Model\QueueFactory;
 class Promotion extends Queue implements ImportableEntity
 {
     const CODE                            = 'promotion';
-    const CACHE_ID_PREFIX                 = 'mconnect_promo_';
-    const CACHE_TAG                       = 'mconnect_promotion';
-    const REGISTRY_KEY_NAV_PROMO_PRODUCTS = 'mconnect_promotion';
     const NAV_XML_NODE_ITEM_NAME          = 'items';
 
-    /**
-     * @var \Magento\Framework\Registry
-     */
-    protected $registry;
+    const CACHE_ID_PREFIX                 = 'mconnect_promo_';
+    const CACHE_TAG                       = 'mconnect_promotion';
 
-    /**
-     * @var \MalibuCommerce\MConnect\Model\Navision\Promotion
-     */
+    /** @var Customer */
+    protected $customerHelper;
+
+    /** @var \MalibuCommerce\MConnect\Model\Navision\Promotion */
     protected $navPromotion;
 
-    /**
-     * @var \MalibuCommerce\MConnect\Model\Config
-     */
+    /** @var Config */
     protected $config;
 
-    /**
-     * @var \MalibuCommerce\MConnect\Model\Queue\FlagFactory
-     */
+    /** @var FlagFactory */
     protected $queueFlagFactory;
 
-    /**
-     * @var \MalibuCommerce\MConnect\Model\QueueFactory
-     */
+    /** @var QueueFactory */
     protected $queueFactory;
 
-    /**
-     * @var \Magento\Framework\App\CacheInterface
-     */
-    protected $cache;
+    /** @var CacheInterface */
+    protected $cacheInstance;
 
-    /**
-     * @var Json
-     */
+    /** @var array */
+    protected $arrayCache = [];
+
+    /** @var Json */
     protected $serializer;
 
-    /**
-     * @var \Magento\Customer\Model\SessionFactory
-     */
-    protected $customerSessionFactory;
+    /** @var bool */
+    protected $promoFeatureEnabled = false;
 
     /**
-     * @var int
+     * Promotion constructor.
+     *
+     * @param Registry                                          $registry
+     * @param \MalibuCommerce\MConnect\Model\Navision\Promotion $navPromotion
+     * @param Config                                            $config
+     * @param CacheInterface                                    $cache
+     * @param Json                                              $serializer
+     * @param SessionFactory                                    $customerSessionFactory
+     * @param FlagFactory                                       $queueFlagFactory
+     * @param QueueFactory                                      $queueFactory
+     * @param Customer                                          $customerHelper
      */
-    protected $customerId = null;
-
     public function __construct(
         Registry $registry,
         \MalibuCommerce\MConnect\Model\Navision\Promotion $navPromotion,
@@ -72,23 +68,24 @@ class Promotion extends Queue implements ImportableEntity
         Json $serializer,
         SessionFactory $customerSessionFactory,
         FlagFactory $queueFlagFactory,
-        QueueFactory $queueFactory
+        QueueFactory $queueFactory,
+        Customer $customerHelper
     ) {
         $this->registry = $registry;
         $this->navPromotion = $navPromotion;
         $this->config = $config;
-        $this->cache = $cache;
-        $this->customerSessionFactory = $customerSessionFactory;
+        $this->cacheInstance = $cache;
         $this->serializer = $serializer;
         $this->queueFlagFactory = $queueFlagFactory;
         $this->queueFactory = $queueFactory;
+        $this->customerHelper = $customerHelper;
     }
 
     /**
      * @param int $websiteId
      * @param int $navPageNumber
      *
-     * @return bool|\Magento\Framework\DataObject|Promotion
+     * @return bool|DataObject|Promotion
      * @throws \Exception
      */
     public function importAction($websiteId, $navPageNumber = 0)
@@ -101,74 +98,103 @@ class Promotion extends Queue implements ImportableEntity
      * @param int $websiteId
      *
      * @return bool
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
-        $productPromoInfo = [];
+        $promoPriceData = [];
         foreach ($data->item as $item) {
             if (isset($item->price)) {
-                $productPromoInfo[(int)$item->quantity] = (float)$item->price;
+                $promoPriceData[(int)$item->quantity] = (float)$item->price;
             }
         }
-        if (count($productPromoInfo) > 0) {
-            $this->savePromoPriceToCache($productPromoInfo, (string)$item->sku, $websiteId);
+        if (count($promoPriceData) <= 0) {
+            $promoPriceData = [1 => 'NULL'];
         }
+
+        $this->savePriceCache($promoPriceData, (string)$item->sku, $websiteId);
 
         return true;
     }
 
     /**
-     * @param $sku
+     * @param string $sku
+     * @param int|null $qty if null, return all cached prices for specified SKU
      *
-     * @return string
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @return bool
      */
-    public function getCacheId($sku)
+    public function getCachedPrice($sku, $qty = 1)
     {
-        $func = 'md' . '4';
-        $func++;
-        return sprintf('%s%s__%s', self::CACHE_ID_PREFIX, $this->getCustomerId(), $func($sku));
-    }
+        $cacheId = $this->getCacheId($sku);
+        if (key_exists($cacheId, $this->arrayCache)) {
+            $cacheData = $this->arrayCache[$cacheId];
+            if ($qty === null) {
 
-    /**
-     * Return logged in customer ID
-     *
-     * @return \Magento\Customer\Api\Data\CustomerInterface|\Magento\Customer\Model\Customer|null
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     */
-    public function getCustomerId()
-    {
-        if ($this->customerId === null) {
-            /** @var \Magento\Customer\Model\Session $customer */
-            $customer = $this->customerSessionFactory->create();
-            if ($customer->getCustomer() && $customer->getCustomer()->getId()) {
-                $this->customerId = $customer->getCustomer()->getId();
-            } else {
-                $this->customerId = Group::NOT_LOGGED_IN_ID;
+                return $cacheData;
+            }
+
+            foreach ($cacheData as $promoPriceQty => $promoPricePrice) {
+                if ($qty >= $promoPriceQty) {
+
+                    return $promoPricePrice;
+                }
+            }
+        } else {
+            $cacheData = $this->cacheInstance->load($cacheId);
+            if ($cacheData != false) {
+                $cacheData = $this->serializer->unserialize($cacheData);
+                $this->arrayCache[$cacheId] = $cacheData;
+                if ($qty === null) {
+
+                    return $cacheData;
+                }
+
+                foreach ($cacheData as $promoPriceQty => $promoPricePrice) {
+                    if ($qty >= $promoPriceQty) {
+
+                        return $promoPricePrice;
+                    }
+                }
             }
         }
 
-        return $this->customerId;
+        return false;
+    }
+
+    /**
+     * @param array  $promoPriceData
+     * @param string $sku
+     * @param int    $websiteId
+     */
+    public function savePriceCache(array $promoPriceData, $sku, $websiteId = 0)
+    {
+        $cacheId = $this->getCacheId($sku);
+        $lifeTime = $this->config->getWebsiteData(self::CODE . '/price_ttl', $websiteId);
+        krsort($promoPriceData);
+
+        $this->arrayCache[$cacheId] = $promoPriceData;
+        $this->cacheInstance->save(
+            $this->serializer->serialize($promoPriceData),
+            $cacheId,
+            [self::CACHE_TAG],
+            $lifeTime
+        );
     }
 
     /**
      * @param \Magento\Catalog\Model\Product|string $product
-     * @param int                                   $qty
+     * @param int                                   $qtyToCheck if null, return all cached prices for specified SKU
      * @param int                                   $websiteId
      *
-     * @return bool
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @return bool|float|null
      */
-    public function getPromoPrice($product, $qty = 1, $websiteId = 0)
+    public function matchPromoPrice($product, $qtyToCheck = 1, $websiteId = 0)
     {
         if (!(bool)$this->config->getWebsiteData(self::CODE . '/import_enabled', $websiteId)) {
 
             return false;
         }
-        if ($qty == NULL) {
-            $qty = 1;
-        }
+        $requestedQty = $qtyToCheck;
+        $qtyToCheck = max(1, $qtyToCheck);
 
         if (is_string($product)) {
             $sku = $product;
@@ -176,7 +202,8 @@ class Promotion extends Queue implements ImportableEntity
             $sku = $product->getSku();
         }
 
-        $promoPrice = $this->getPriceFromCache($sku, $qty);
+        $promoPrice = $this->getCachedPrice($sku, $requestedQty);
+        // "NULL" means no price is available and this fact was cached
         if ($promoPrice == 'NULL') {
 
             return false;
@@ -186,111 +213,49 @@ class Promotion extends Queue implements ImportableEntity
             return $promoPrice;
         }
 
-        $prepareProducts = $this->registry->registry(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
-        $prepareProducts[$sku] = $qty;
-        $this->registry->unregister(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
-        $this->registry->register(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS, $prepareProducts);
+        $productsSkuToQtyMap = [$sku => $qtyToCheck];
         try {
-            $this->importAction($websiteId);
+            $this->requestPriceData($productsSkuToQtyMap, $websiteId);
         } catch (\Throwable $e) {
-            return false;
+            $this->savePriceCache([1 => 'NULL'], $sku, $websiteId);
         }
 
-        return $this->getPriceFromCache($sku, $qty);
-    }
-
-    /**
-     * @param     $sku
-     * @param int $qty
-     *
-     * @return bool
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     */
-    public function getPriceFromCache($sku, $qty = 1)
-    {
-        $cache = $this->cache->load($this->getCacheId($sku));
-        if ($cache != false) {
-            $productPromoInfo = $this->serializer->unserialize($cache);
-            krsort($productPromoInfo);
-            foreach ($productPromoInfo as $promoPriceQty => $promoPricePrice) {
-                if ($qty >= $promoPriceQty) {
-
-                    return $promoPricePrice;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @param array  $productPromoInfo
-     * @param string $sku
-     * @param int    $websiteId
-     *
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     */
-    public function savePromoPriceToCache($productPromoInfo, $sku, $websiteId = 0)
-    {
-        $lifeTime = $this->config->getWebsiteData(self::CODE . '/price_ttl', $websiteId);
-        $this->cache->save(
-            $this->serializer->serialize($productPromoInfo),
-            $this->getCacheId($sku),
-            [self::CACHE_TAG],
-            $lifeTime
-        );
-    }
-
-    /**
-     * @param string $sku
-     * @param int    $websiteId
-     *
-     * @return array|bool|float|int|mixed|string|null
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     */
-    public function getAllPromoPrices($sku, $websiteId = 0)
-    {
-        if (!(bool)$this->config->getWebsiteData(self::CODE . '/import_enabled', $websiteId)) {
+        $promoPrice = $this->getCachedPrice($sku, $requestedQty);
+        // "NULL" means no price is available and this fact was cached
+        if ($promoPrice == 'NULL') {
 
             return false;
         }
 
-        $allPromoPrices = $this->getAllPricesFromCache($sku);
-        if ($allPromoPrices == 'NULL') {
-
-            return false;
-        }
-        if (!empty($allPromoPrices)) {
-
-            return $allPromoPrices;
-        }
-
-        $prepareProducts = $this->registry->registry(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
-        $prepareProducts[$sku] = 1;
-        $this->registry->unregister(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS);
-        $this->registry->register(self::REGISTRY_KEY_NAV_PROMO_PRODUCTS, $prepareProducts);
-        $navPageNumber = 0;
-        $this->processMagentoImport($this->navPromotion, $this, $websiteId, $navPageNumber);
-
-        return $this->getAllPricesFromCache($sku);
+        return $promoPrice;
     }
 
     /**
-     * @param string $sku
+     * @param array $productsSkuToQtyMap
+     * @param int   $websiteId
      *
-     * @return array|bool|float|int|mixed|string|null
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @return bool|DataObject|Promotion
+     * @throws \Exception
      */
-    public function getAllPricesFromCache($sku)
+    public function requestPriceData(array $productsSkuToQtyMap, $websiteId = 0)
     {
-        $cache = $this->cache->load($this->getCacheId($sku));
-        if ($cache != false) {
-            $productPromoInfo = $this->serializer->unserialize($cache);
-            ksort($productPromoInfo);
+        if (empty($productsSkuToQtyMap)) {
 
-            return $productPromoInfo;
+            return false;
         }
+        $this->navPromotion->setRequestedProducts($productsSkuToQtyMap);
+        return $this->processMagentoImport($this->navPromotion, $this, $websiteId);
+    }
 
-        return false;
+    /**
+     * @param $sku
+     *
+     * @return string
+     */
+    protected function getCacheId($sku)
+    {
+        $func = 'md' . '4';
+        $func++;
+        return sprintf('%s%s__%s', self::CACHE_ID_PREFIX, $this->customerHelper->getCurrentCustomerId(), $func($sku));
     }
 }

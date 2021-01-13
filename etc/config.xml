@@ -148,7 +148,7 @@
             </price_rule>
             <promotion>
                 <import_enabled>0</import_enabled>
-                <price_ttl>60</price_ttl>
+                <price_ttl>600</price_ttl>
                 <connection_timeout>4</connection_timeout>
                 <request_timeout>7</request_timeout>
                 <retry_on_failure>0</retry_on_failure>

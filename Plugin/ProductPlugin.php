@@ -2,13 +2,17 @@
 
 namespace MalibuCommerce\MConnect\Plugin;
 
+use Magento\Catalog\Model\Product;
+use MalibuCommerce\MConnect\Model\Pricerule;
+use MalibuCommerce\MConnect\Model\Queue\Promotion;
+
 /**
  * Used to override product price on PLP
  */
 class ProductPlugin
 {
     /**
-     * @var \MalibuCommerce\MConnect\Model\Pricerule
+     * @var Pricerule
      */
     protected $rule;
 
@@ -18,7 +22,7 @@ class ProductPlugin
     protected $logger;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Queue\Promotion
+     * @var Promotion
      */
     protected $promotion;
 
@@ -26,13 +30,13 @@ class ProductPlugin
      * Product plugin constructor.
      *
      * @param \Psr\Log\LoggerInterface $logger
-     * @param \MalibuCommerce\MConnect\Model\Pricerule $rule
-     * @param \MalibuCommerce\MConnect\Model\Queue\Promotion $promotion
+     * @param Pricerule $rule
+     * @param Promotion $promotion
      */
     public function __construct(
         \Psr\Log\LoggerInterface $logger,
-        \MalibuCommerce\MConnect\Model\Pricerule $rule,
-        \MalibuCommerce\MConnect\Model\Queue\Promotion $promotion
+        Pricerule $rule,
+        Promotion $promotion
     ) {
         $this->logger = $logger;
         $this->rule = $rule;
@@ -42,12 +46,12 @@ class ProductPlugin
     /**
      * Plugin to apply MConnect Price Rules for Product
      *
-     * @param \Magento\Catalog\Model\Product $product
+     * @param Product $product
      * @param float $originalFinalPrice
      *
      * @return float|null
      */
-    public function afterGetPrice(\Magento\Catalog\Model\Product $product, $originalFinalPrice)
+    public function afterGetPrice(Product $product, $originalFinalPrice)
     {
         if (!$this->promotion->getConfig()->isModuleEnabled()) {
 
@@ -57,9 +61,13 @@ class ProductPlugin
         $finalPrice = null;
         try {
             $websiteId = $product->getStore()->getWebsiteId();
-            $mconnectPrice = $this->promotion->getPromoPrice($product, 1, $websiteId);
+            $qty = $product->getQty();
+            $qty = max(1, $qty);
+
+            $mconnectPrice = $this->promotion->matchPromoPrice($product, $qty, $websiteId);
+
             if ($mconnectPrice === false) {
-                $mconnectPrice = $this->rule->matchDiscountPrice($product, $product->getQty(), $websiteId);
+                $mconnectPrice = $this->rule->matchDiscountPrice($product, $qty, $websiteId);
             }
 
             if ($mconnectPrice === false) {
@@ -76,7 +84,7 @@ class ProductPlugin
             return $originalFinalPrice;
         }
 
-        if (is_null($finalPrice)) {
+        if ($finalPrice === null) {
 
             return $originalFinalPrice;
         }

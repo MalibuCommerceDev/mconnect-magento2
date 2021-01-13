@@ -2,13 +2,19 @@
 
 namespace MalibuCommerce\MConnect\Observer;
 
+use Magento\Catalog\Model\Product;
+use Magento\Framework\Event\Observer;
+use Magento\Framework\Event\ObserverInterface;
+use MalibuCommerce\MConnect\Model\Pricerule;
+use MalibuCommerce\MConnect\Model\Queue\Promotion;
+
 /**
  * Override product price on PDP, Cart, Checkout level both in admin and on frontend
  */
-class ProcessFinalPriceObserver implements \Magento\Framework\Event\ObserverInterface
+class ProcessFinalPriceObserver implements ObserverInterface
 {
     /**
-     * @var \MalibuCommerce\MConnect\Model\Pricerule
+     * @var Pricerule
      */
     protected $rule;
 
@@ -18,14 +24,14 @@ class ProcessFinalPriceObserver implements \Magento\Framework\Event\ObserverInte
     protected $logger;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Queue\Promotion
+     * @var Promotion
      */
     protected $promotion;
 
     public function __construct(
         \Psr\Log\LoggerInterface $logger,
-        \MalibuCommerce\MConnect\Model\Pricerule $rule,
-        \MalibuCommerce\MConnect\Model\Queue\Promotion $promotion
+        Pricerule $rule,
+        Promotion $promotion
     ) {
         $this->logger = $logger;
         $this->rule = $rule;
@@ -35,11 +41,11 @@ class ProcessFinalPriceObserver implements \Magento\Framework\Event\ObserverInte
     /**
      * Apply MConnect product price rule to Product's final price
      *
-     * @param \Magento\Framework\Event\Observer $observer
+     * @param Observer $observer
      *
      * @return $this
      */
-    public function execute(\Magento\Framework\Event\Observer $observer)
+    public function execute(Observer $observer)
     {
         if (!$this->promotion->getConfig()->isModuleEnabled()) {
 
@@ -48,13 +54,16 @@ class ProcessFinalPriceObserver implements \Magento\Framework\Event\ObserverInte
 
         $finalPrice = null;
         try {
-            /** @var \Magento\Catalog\Model\Product $product */
+            /** @var Product $product */
             $product = $observer->getProduct();
             $websiteId = $product->getStore()->getWebsiteId();
-            $mconnectPrice = $this->promotion->getPromoPrice($product, $observer->getQty(), $websiteId);
+            $qty = $observer->getQty();
+            $qty = max(1, $qty);
+
+            $mconnectPrice = $this->promotion->matchPromoPrice($product, $qty, $websiteId);
 
             if ($mconnectPrice === false) {
-                $mconnectPrice = $this->rule->matchDiscountPrice($product, $observer->getQty(), $websiteId);
+                $mconnectPrice = $this->rule->matchDiscountPrice($product, $qty, $websiteId);
             }
 
             if ($mconnectPrice === false) {

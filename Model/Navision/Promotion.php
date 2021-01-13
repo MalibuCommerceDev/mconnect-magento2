@@ -2,38 +2,33 @@
 
 namespace MalibuCommerce\MConnect\Model\Navision;
 
+use MalibuCommerce\MConnect\Helper\Customer;
 use MalibuCommerce\MConnect\Model\Config;
+use MalibuCommerce\MConnect\Model\Queue\Promotion as PromotionModel;
 
 class Promotion extends AbstractModel
 {
-    /**
-     * @var \Magento\Framework\Registry
-     */
-    protected $registry;
+    /** @var Customer */
+    protected $customerHelper;
 
-    /**
-     * @var \MalibuCommerce\MConnect\Model\ResourceModel\Pricerule\Collection
-     */
-    protected $priceRuleCollection;
+    /** @var array */
+    protected $requestedProducts = [];
 
     /**
      * Promotion constructor.
      *
-     * @param \Magento\Framework\Registry                                  $registry
-     * @param \MalibuCommerce\MConnect\Model\ResourceModel\Pricerule\Collection $priceRuleCollection
-     * @param \MalibuCommerce\MConnect\Model\Config                        $config
-     * @param \MalibuCommerce\MConnect\Model\Navision\Connection           $mConnectNavisionConnection
-     * @param \Psr\Log\LoggerInterface                                     $logger
+     * @param Customer                 $customerHelper
+     * @param Config                   $config
+     * @param Connection               $mConnectNavisionConnection
+     * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(
-        \Magento\Framework\Registry $registry,
-        \MalibuCommerce\MConnect\Model\ResourceModel\Pricerule\Collection $priceRuleCollection,
-        \MalibuCommerce\MConnect\Model\Config $config,
-        \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection,
+        Customer $customerHelper,
+        Config $config,
+        Connection $mConnectNavisionConnection,
         \Psr\Log\LoggerInterface $logger
     ) {
-        $this->registry = $registry;
-        $this->priceRuleCollection = $priceRuleCollection;
+        $this->customerHelper = $customerHelper;
         parent::__construct($config, $mConnectNavisionConnection, $logger);
     }
 
@@ -42,38 +37,36 @@ class Promotion extends AbstractModel
      * @param bool $lastUpdated
      * @param int  $websiteId
      *
-     * @return bool|\simpleXMLElement
+     * @return \simpleXMLElement
      * @throws \Throwable
      */
     public function export($page = 0, $lastUpdated = false, $websiteId = 0)
     {
-        $prepareProducts = $this->registry->registry(
-            \MalibuCommerce\MConnect\Model\Queue\Promotion::REGISTRY_KEY_NAV_PROMO_PRODUCTS
-        );
-        if (!$prepareProducts) {
+        if (empty($this->getRequestedProducts())) {
 
-            return false;
+            $nodeName = PromotionModel::NAV_XML_NODE_ITEM_NAME;
+            new \simpleXMLElement('<' . $nodeName . ' />');
         }
-
         $root = new \simpleXMLElement('<promo_export />');
         $root->mag_customer_id = '';
         $root->nav_customer_id = '';
 
-        $customer = $this->priceRuleCollection->getCustomer();
+        $customer = $this->customerHelper->getCurrentCustomer();
         if (!is_null($customer)) {
             $root->mag_customer_id = $customer->getId();
             $root->nav_customer_id = $customer->getNavId();
         }
         $items = $root->addChild('items');
 
-        foreach ($prepareProducts as $k => $v) {
-            $this->addItemChild($items, $k, $v);
-            //Always request all items with QTY 1
+        foreach ($this->getRequestedProducts() as $k => $v) {
+            $this->addSkuQtyToRequestPayload($items, $k, $v);
+            // Always request all items with QTY 1
             if ($v > 1) {
-                $this->addItemChild($items, $k, 1);
+                $this->addSkuQtyToRequestPayload($items, $k, 1);
             }
         }
 
+        $this->requestedProducts = [];
         return $this->_export('promo_export', $root, $websiteId);
     }
 
@@ -82,11 +75,27 @@ class Promotion extends AbstractModel
      * @param string $sku
      * @param int $qty
      */
-    public function addItemChild($root, $sku, $qty)
+    protected function addSkuQtyToRequestPayload($root, $sku, $qty)
     {
         $item = $root->addChild('item');
         $item->addChild('sku', $sku);
         $item->addChild('quantity', $qty);
+    }
+
+    /**
+     * @param array $productsSkuToQtyMap
+     */
+    public function setRequestedProducts(array $productsSkuToQtyMap)
+    {
+        $this->requestedProducts = $productsSkuToQtyMap;
+    }
+
+    /**
+     * @return array
+     */
+    public function getRequestedProducts()
+    {
+        return $this->requestedProducts;
     }
 
     /**
@@ -96,7 +105,7 @@ class Promotion extends AbstractModel
      */
     protected function isRetryOnFailureEnabled($websiteId = 0)
     {
-        return (bool)$this->config->getWebsiteData(\MalibuCommerce\MConnect\Model\Queue\Promotion::CODE . '/retry_on_failure', $websiteId);
+        return (bool)$this->config->getWebsiteData(PromotionModel::CODE . '/retry_on_failure', $websiteId);
     }
 
     /**
@@ -106,7 +115,7 @@ class Promotion extends AbstractModel
      */
     protected function getRetryAttemptsCount($websiteId = 0)
     {
-        return (int)$this->config->getWebsiteData(\MalibuCommerce\MConnect\Model\Queue\Promotion::CODE . '/retry_max_count', $websiteId);
+        return (int)$this->config->getWebsiteData(PromotionModel::CODE . '/retry_max_count', $websiteId);
     }
 
     /**
@@ -116,7 +125,7 @@ class Promotion extends AbstractModel
      */
     public function getConnectionTimeout($websiteId = null)
     {
-        $timeout = (int)$this->config->getWebsiteData(\MalibuCommerce\MConnect\Model\Queue\Promotion::CODE . '/connection_timeout', $websiteId);
+        $timeout = (int)$this->config->getWebsiteData(PromotionModel::CODE . '/connection_timeout', $websiteId);
         if ($timeout <= 0) {
             return Config::DEFAULT_NAV_CONNECTION_TIMEOUT;
         }
@@ -131,7 +140,7 @@ class Promotion extends AbstractModel
      */
     public function getRequestTimeout($websiteId = null)
     {
-        $timeout = (int)$this->config->getWebsiteData(\MalibuCommerce\MConnect\Model\Queue\Promotion::CODE . '/request_timeout', $websiteId);
+        $timeout = (int)$this->config->getWebsiteData(PromotionModel::CODE . '/request_timeout', $websiteId);
         if ($timeout <= 0) {
             return Config::DEFAULT_NAV_REQUEST_TIMEOUT;
         }

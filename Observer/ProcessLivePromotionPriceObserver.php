@@ -2,42 +2,41 @@
 
 namespace MalibuCommerce\MConnect\Observer;
 
-class ProcessLivePromotionPriceObserver implements \Magento\Framework\Event\ObserverInterface
+use Magento\Catalog\Model\ResourceModel\Product\Collection;
+use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\Event\Observer;
+use Magento\Framework\Event\ObserverInterface;
+use Magento\Store\Model\StoreManagerInterface;
+use MalibuCommerce\MConnect\Model\Queue\Promotion;
+
+class ProcessLivePromotionPriceObserver implements ObserverInterface
 {
-    const PRODUCT_QTY_FOR_IMPORT = 1;
-
     /**
-     * @var \Magento\Framework\Registry
-     */
-    protected $registry;
-
-    /**
-     * @var \MalibuCommerce\MConnect\Model\Queue\Promotion
+     * @var Promotion
      */
     protected $promotion;
 
     /**
-     * @var \Magento\Framework\App\ResourceConnection
+     * @var ResourceConnection
      */
     private $resourceConnection;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface
+     * @var StoreManagerInterface
      */
     protected $storeManager;
 
     /**
      * @var array
      */
-    protected $collectedProducts = [];
+    protected $requestedProducts = [];
 
     public function __construct(
-        \Magento\Framework\Registry $registry,
-        \Magento\Framework\App\ResourceConnection $resourceConnection,
-        \MalibuCommerce\MConnect\Model\Queue\Promotion $promotion,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        ResourceConnection $resourceConnection,
+        Promotion $promotion,
+        StoreManagerInterface $storeManager
     ) {
-        $this->registry = $registry;
         $this->resourceConnection = $resourceConnection;
         $this->promotion = $promotion;
         $this->storeManager = $storeManager;
@@ -46,28 +45,28 @@ class ProcessLivePromotionPriceObserver implements \Magento\Framework\Event\Obse
     /**
      * Retrieve Live Promo Prices for products collection and cache them
      *
-     * @param \Magento\Framework\Event\Observer $observer
+     * @param Observer $observer
      *
      * @return $this|void
      * @throws \Throwable
      */
-    public function execute(\Magento\Framework\Event\Observer $observer)
+    public function execute(Observer $observer)
     {
         if (!$this->promotion->getConfig()->isModuleEnabled()) {
 
             return $this;
         }
 
-        /* @var $collection \Magento\Catalog\Model\ResourceModel\Product\Collection */
+        /* @var $collection Collection */
         $collection = $observer->getEvent()->getCollection();
 
         $websiteId = $this->storeManager->getStore($collection->getStoreId())->getWebsiteId();
-        $promoEnabled = $this->promotion->getConfig()->getWebsiteData(
-            \MalibuCommerce\MConnect\Model\Queue\Promotion::CODE . '/import_enabled',
+        $promoEnabled = (bool)$this->promotion->getConfig()->getWebsiteData(
+            Promotion::CODE . '/import_enabled',
             $websiteId
         );
 
-        if (!(bool)$promoEnabled) {
+        if (!$promoEnabled) {
 
             return $this;
         }
@@ -77,41 +76,26 @@ class ProcessLivePromotionPriceObserver implements \Magento\Framework\Event\Obse
             return $this;
         }
 
-        unset($this->collectedProducts);
-        $this->collectedProducts = [];
+        $this->requestedProducts = [];
         $simpleProducts = [];
-        $productsRegistryKey = \MalibuCommerce\MConnect\Model\Queue\Promotion::REGISTRY_KEY_NAV_PROMO_PRODUCTS;
 
         foreach ($collection as $product) {
-            if (!$this->promotion->getPriceFromCache($product->getSku(), self::PRODUCT_QTY_FOR_IMPORT)) {
-                $this->collectedProducts[$product->getSku()] = self::PRODUCT_QTY_FOR_IMPORT;
+            if (!$this->promotion->getCachedPrice($product->getSku())) {
+                $this->requestedProducts[$product->getSku()] = 1;
             }
-            if ($product->getTypeId() == \Magento\ConfigurableProduct\Model\Product\Type\Configurable::TYPE_CODE) {
+            if ($product->getTypeId() == Configurable::TYPE_CODE) {
                 $simpleProducts[] = $product->getId();
             }
         }
         $this->prepareSimpleProducts($simpleProducts);
 
-        if (count($this->collectedProducts) > 0) {
-            $this->registry->unregister($productsRegistryKey);
-            $this->registry->register($productsRegistryKey, $this->collectedProducts);
-            $store = $this->storeManager->getStore($collection->getStoreId());
-            $websiteId = $store->getWebsiteId();
+        if (!empty($this->requestedProducts)) {
             try {
-                $this->promotion->importAction($websiteId);
+                $this->promotion->requestPriceData($this->requestedProducts, $websiteId);
             } catch (\Throwable $e) {
-                return $this;
-            }
-        }
-
-        //Save products without promo price to cache
-        foreach ($this->collectedProducts as $itemKey => $itemValue) {
-            if (!$this->promotion->getPriceFromCache($itemKey, self::PRODUCT_QTY_FOR_IMPORT)) {
-                $this->promotion->savePromoPriceToCache(
-                    [self::PRODUCT_QTY_FOR_IMPORT => 'NULL'],
-                    $itemKey,
-                    $websiteId
-                );
+                foreach ($this->requestedProducts as $sku => $qty) {
+                    $this->promotion->savePriceCache([1 => 'NULL'], $sku, $websiteId);
+                }
             }
         }
 
@@ -139,8 +123,8 @@ class ProcessLivePromotionPriceObserver implements \Magento\Framework\Event\Obse
         $simpleProducts = $connection->fetchAssoc($select);
         if (count($simpleProducts) > 0) {
             foreach ($simpleProducts as $simpleProduct) {
-                if (!$this->promotion->getPriceFromCache($simpleProduct['sku'], self::PRODUCT_QTY_FOR_IMPORT)) {
-                    $this->collectedProducts[$simpleProduct['sku']] = self::PRODUCT_QTY_FOR_IMPORT;
+                if (!$this->promotion->getCachedPrice($simpleProduct['sku'])) {
+                    $this->requestedProducts[$simpleProduct['sku']] = 1;
                 }
             }
         }

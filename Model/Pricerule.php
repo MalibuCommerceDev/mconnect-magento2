@@ -2,31 +2,46 @@
 
 namespace MalibuCommerce\MConnect\Model;
 
+use Magento\Catalog\Model\Product;
+use Magento\Framework\Data\Collection\AbstractDb;
+use Magento\Framework\DB\Select;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Model\AbstractModel;
+use Magento\Framework\Model\Context;
+use Magento\Framework\Model\ResourceModel\AbstractResource;
+use Magento\Framework\Registry;
+use Magento\Store\Api\WebsiteRepositoryInterface;
+use MalibuCommerce\MConnect\Helper\Customer;
 use MalibuCommerce\MConnect\Model\ResourceModel\Pricerule as RuleResourceModel;
 
-class Pricerule extends \Magento\Framework\Model\AbstractModel
+class Pricerule extends AbstractModel
 {
     protected $matchedPrices = [];
 
+    /** @var Customer */
+    protected $customerHelper;
+
     /**
-     * @var \MalibuCommerce\MConnect\Model\Config
+     * @var Config
      */
     protected $config;
 
     /**
-     * @var \Magento\Store\Api\WebsiteRepositoryInterface
+     * @var WebsiteRepositoryInterface
      */
     protected $websiteRepository;
 
     public function __construct(
-        \MalibuCommerce\MConnect\Model\Config $config,
-        \Magento\Store\Api\WebsiteRepositoryInterface $websiteRepository,
-        \Magento\Framework\Model\Context $context,
-        \Magento\Framework\Registry $registry,
-        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        Customer $customerHelper,
+        Config $config,
+        WebsiteRepositoryInterface $websiteRepository,
+        Context $context,
+        Registry $registry,
+        AbstractResource $resource = null,
+        AbstractDb $resourceCollection = null,
         array $data = []
     ) {
+        $this->customerHelper = $customerHelper;
         $this->config = $config;
         $this->websiteRepository = $websiteRepository;
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
@@ -40,13 +55,13 @@ class Pricerule extends \Magento\Framework\Model\AbstractModel
     /**
      * Match and retrieve discount price by specified product and QTY
      *
-     * @param \Magento\Catalog\Model\Product|string $product
+     * @param Product|string $product
      * @param int $qty
      * @param int $websiteId
      *
      * @return string|bool
      *
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function matchDiscountPrice($product, $qty, $websiteId = 0)
     {
@@ -58,14 +73,14 @@ class Pricerule extends \Magento\Framework\Model\AbstractModel
         /** @var \MalibuCommerce\MConnect\Model\ResourceModel\Pricerule\Collection $collection */
         $collection = $this->getResourceCollection();
 
-        $customerGroupId = $collection->getCurrentCustomerGroupId();
+        $customerGroupId = $this->customerHelper->getCurrentCustomerGroupId();
         if (in_array($customerGroupId, $this->config->getPriceRuleDisallowedCustomerGroups($websiteId))) {
 
             return false;
         }
 
         $sku = $product;
-        if ($product instanceof \Magento\Catalog\Model\Product) {
+        if ($product instanceof Product) {
             $sku = $product->getSku();
         }
         $qty = max(1, $qty);
@@ -79,11 +94,11 @@ class Pricerule extends \Magento\Framework\Model\AbstractModel
         }
 
         $price = $collection->matchDiscountPrice($sku, $qty, $websiteId);
-        
+
         // If current website is a default website, then attempt to get price match for default scope (Website ID = 0)
         if ($price === false && $websiteId == $this->websiteRepository->getDefault()->getId()) {
-            $collection->getSelect()->reset(\Magento\Framework\DB\Select::WHERE);
-            $collection->getSelect()->reset(\Magento\Framework\DB\Select::COLUMNS);
+            $collection->getSelect()->reset(Select::WHERE);
+            $collection->getSelect()->reset(Select::COLUMNS);
             $price = $collection->matchDiscountPrice($sku, $qty, 0);
         }
 

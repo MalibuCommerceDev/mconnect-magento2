@@ -269,11 +269,15 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             return false;
         }
 
+        $e = new \Exception();
         try {
             $debugData = [
                 'time'     => date('c'),
-                'request'  => htmlentities(str_ireplace('><', ">\n<", $request)),
-                'response' => htmlentities(str_ireplace('><', ">\n<", $response)),
+                'request'  => str_ireplace('><', ">\n<", $request),
+                'response' => str_ireplace('><', ">\n<", $response),
+                'pid'      => getmypid(),
+                'host'     => gethostname(),
+                'trace'    => $e->getTraceAsString(),
             ];
             $directoryList = new DirectoryList(BP);
             $logFile = $directoryList->getPath('log') . DIRECTORY_SEPARATOR . 'malibu_connect_soap.log';

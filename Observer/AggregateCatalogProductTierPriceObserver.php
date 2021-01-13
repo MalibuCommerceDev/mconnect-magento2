@@ -2,56 +2,66 @@
 
 namespace MalibuCommerce\MConnect\Observer;
 
-class AggregateCatalogProductTierPriceObserver implements \Magento\Framework\Event\ObserverInterface
+use Magento\Customer\Model\Group;
+use Magento\Framework\Event\Observer;
+use Magento\Framework\Event\ObserverInterface;
+use MalibuCommerce\MConnect\Model\Pricerule;
+use MalibuCommerce\MConnect\Model\Queue\Promotion;
+use MalibuCommerce\MConnect\Model\ResourceModel\Pricerule\Collection;
+
+class AggregateCatalogProductTierPriceObserver implements ObserverInterface
 {
     const MIN_QTY_TO_SHOW_TIER_PRICE = 1;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Pricerule
+     * @var Pricerule
      */
     protected $rule;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Queue\Promotion
+     * @var Promotion
      */
     protected $promotion;
 
+    protected $mconnectConfig;
+
     public function __construct(
-        \MalibuCommerce\MConnect\Model\Pricerule $rule,
-        \MalibuCommerce\MConnect\Model\Queue\Promotion $promotion
+        Pricerule $rule,
+        Promotion $promotion
     ) {
         $this->rule = $rule;
         $this->promotion = $promotion;
+        $this->mconnectConfig = $this->promotion->getConfig();
     }
 
-    public function execute(\Magento\Framework\Event\Observer $observer)
+    public function execute(Observer $observer)
     {
-        if (!$this->promotion->getConfig()->isModuleEnabled()) {
+        if (!$this->mconnectConfig->isModuleEnabled()) {
 
             return $this;
         }
         $product = $observer->getEvent()->getProduct();
         $websiteId = $product->getStore()->getWebsiteId();
-        if (!$this->promotion->getConfig()->isTierPriceLogicEnabled($websiteId)) {
+        if (!$this->mconnectConfig->isTierPriceLogicEnabled($websiteId)) {
 
             return $this;
         }
 
         $tierPrices = [];
-        $mconnectAllPromoPrices = $this->promotion->getAllPromoPrices($product->getSku(), $websiteId);
-        if (!empty($mconnectAllPromoPrices)) {
-            foreach ((array)$mconnectAllPromoPrices as $itemQty => $itemPrice) {
+        $prices = $this->promotion->matchPromoPrice($product, null, $websiteId);
+        if (!empty($prices)) {
+            foreach ((array)$prices as $itemQty => $itemPrice) {
                 if ($itemQty > self::MIN_QTY_TO_SHOW_TIER_PRICE) {
                     $tierPrices[] = [
                         'website_id' => $websiteId,
-                        'cust_group' => \Magento\Customer\Model\Group::CUST_GROUP_ALL,
+                        'cust_group' => Group::CUST_GROUP_ALL,
                         'price_qty'  => $itemQty,
                         'price'      => $itemPrice
                     ];
                 }
             }
         } else {
-            /** @var \MalibuCommerce\MConnect\Model\ResourceModel\Pricerule\Collection $collection */
+            /** @var Collection $collection */
             $collection = $this->rule->getResourceCollection();
             $collection
                 ->applySkuFilter($product->getSku())
@@ -65,7 +75,7 @@ class AggregateCatalogProductTierPriceObserver implements \Magento\Framework\Eve
                 foreach ($collection as $item) {
                     $tierPrices[] = [
                         'website_id' => $websiteId,
-                        'cust_group' => \Magento\Customer\Model\Group::CUST_GROUP_ALL,
+                        'cust_group' => Group::CUST_GROUP_ALL,
                         'price_qty'  => $item->getData('qty_min'),
                         'price'      => $item->getData('price')
                     ];
