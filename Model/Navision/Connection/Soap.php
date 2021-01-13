@@ -83,6 +83,15 @@ class Soap
                 $this->soapClients[$websiteId]->__getLastResponse()
             );
         } catch (\Throwable $e) {
+            try {
+                $this->mConnectHelper->logSoapRequestResponse(
+                    $this->soapClients[$websiteId]->__getLastRequest(),
+                    $this->soapClients[$websiteId]->__getLastResponse()
+                );
+            } catch (\Throwable $e) {
+
+            }
+
             $this->mConnectHelper->logRequestError(
                 $arguments,
                 $this->mConnectConfig->getNavConnectionUrl($websiteId),

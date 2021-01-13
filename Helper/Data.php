@@ -302,46 +302,52 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function logRequestError($request, $navUrl, $action, \Throwable $e)
     {
-        if (!$this->mConnectConfig->get('nav_connection/log')) {
+        try {
+            if (!$this->mConnectConfig->get('nav_connection/log')) {
+
+                return false;
+            }
+
+            if (is_array($request) && !empty($request[0]['requestXML'])) {
+                $request = $request[0]['requestXML'];
+            }
+
+            $this->logRequest(
+                $request,
+                $navUrl,
+                $action,
+                500,
+                null,
+                'Error: ' . $e->getMessage() . "\n\n" . $e->getTraceAsString()
+            );
+
+            $request = $this->prepareLogRequest($request, $navUrl, $action);
+            /** @var Queue $queueItem */
+            $queueItem = $this->registry->registry('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM');
+
+            $entityId = $queueItem ? $queueItem->getEntityId() : 'N/A';
+            if ($queueItem && $queueItem->getCode() == \MalibuCommerce\MConnect\Model\Queue\Order::CODE
+                && $queueItem->getAction() == \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT
+            ) {
+                /** @var \Magento\Sales\Model\Order $order */
+                $order = $this->salesOrderFactory->create()->load($entityId);
+                $entityId = '#' . $order->getIncrementId();
+            }
+
+            $this->mConnectMailer->sendErrorEmail([
+                'error_title'   => 'An error occurred when processing Navision API call',
+                'queue_item_id' => $queueItem ? $queueItem->getId() : 'N/A',
+                'action'        => $queueItem ? $queueItem->getAction() : 'N/A',
+                'entity_type'   => $queueItem ? $queueItem->getCode() : 'N/A',
+                'entity_id'     => $entityId,
+                'nav_url'       => $navUrl,
+                'request'       => is_array($request) ? print_r($request, true) : $request,
+                'error'         => $e->getMessage()
+            ]);
+        } catch (\Throwable $e) {
+
             return false;
         }
-
-        if (is_array($request) && !empty($request[0]['requestXML'])) {
-            $request = $request[0]['requestXML'];
-        }
-
-        $this->logRequest(
-            $request,
-            $navUrl,
-            $action,
-            500,
-            null,
-            'Error: ' . $e->getMessage() . "\n\n" . $e->getTraceAsString()
-        );
-
-        $request = $this->prepareLogRequest($request, $navUrl, $action);
-        /** @var Queue $queueItem */
-        $queueItem = $this->registry->registry('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM');
-
-        $entityId = $queueItem ? $queueItem->getEntityId() : 'N/A';
-        if ($queueItem && $queueItem->getCode() == \MalibuCommerce\MConnect\Model\Queue\Order::CODE
-            && $queueItem->getAction() == \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT
-        ) {
-            /** @var \Magento\Sales\Model\Order $order */
-            $order = $this->salesOrderFactory->create()->load($entityId);
-            $entityId = '#' . $order->getIncrementId();
-        }
-
-        $this->mConnectMailer->sendErrorEmail([
-            'error_title'   => 'An error occurred when processing Navision API call',
-            'queue_item_id' => $queueItem ? $queueItem->getId() : 'N/A',
-            'action'        => $queueItem ? $queueItem->getAction() : 'N/A',
-            'entity_type'   => $queueItem ? $queueItem->getCode() : 'N/A',
-            'entity_id'     => $entityId,
-            'nav_url'       => $navUrl,
-            'request'       => is_array($request) ? print_r($request, true) : $request,
-            'error'         => $e->getMessage()
-        ]);
 
         return true;
     }
