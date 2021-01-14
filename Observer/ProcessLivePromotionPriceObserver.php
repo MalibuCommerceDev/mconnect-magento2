@@ -89,15 +89,7 @@ class ProcessLivePromotionPriceObserver implements ObserverInterface
         }
         $this->prepareSimpleProducts($simpleProducts);
 
-        if (!empty($this->requestedProducts)) {
-            try {
-                $this->promotion->requestPriceData($this->requestedProducts, $websiteId);
-            } catch (\Throwable $e) {
-                foreach ($this->requestedProducts as $sku => $qty) {
-                    $this->promotion->savePriceCache([1 => 'NULL'], $sku, $websiteId);
-                }
-            }
-        }
+        $this->promotion->requestAndProcessPriceData($this->requestedProducts, $websiteId);
 
         return $this;
     }

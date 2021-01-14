@@ -103,17 +103,20 @@ class Promotion extends Queue implements ImportableEntity
     {
         $promoPriceData = [];
         foreach ($data->item as $item) {
-            if (isset($item->price)) {
-                $promoPriceData[(int)$item->quantity] = (float)$item->price;
+            if (!isset($item->price)) {
+                continue;
+            }
+            $qty = (int)$item->quantity;
+            $qty = $qty > 0 ? $qty : 1;
+            $promoPriceData[(string)$item->sku][$qty] = (float)$item->price;
+        }
+        if (!empty($promoPriceData)) {
+            foreach ($promoPriceData as $sku => $data) {
+                $this->savePriceCache($data, $sku, $websiteId);
             }
         }
-        if (count($promoPriceData) <= 0) {
-            $promoPriceData = [1 => 'NULL'];
-        }
 
-        $this->savePriceCache($promoPriceData, (string)$item->sku, $websiteId);
-
-        return true;
+        return !empty($promoPriceData);
     }
 
     /**
@@ -181,6 +184,15 @@ class Promotion extends Queue implements ImportableEntity
     }
 
     /**
+     * @param string $sku
+     * @param int $websiteId
+     */
+    protected function saveNoPriceCache($sku, $websiteId)
+    {
+        $this->savePriceCache([1 => 'NULL'], $sku, $websiteId);
+    }
+
+    /**
      * @param \Magento\Catalog\Model\Product|string $product
      * @param int                                   $qtyToCheck if null, return all cached prices for specified SKU
      * @param int                                   $websiteId
@@ -213,12 +225,7 @@ class Promotion extends Queue implements ImportableEntity
             return $promoPrice;
         }
 
-        $productsSkuToQtyMap = [$sku => $qtyToCheck];
-        try {
-            $this->requestPriceData($productsSkuToQtyMap, $websiteId);
-        } catch (\Throwable $e) {
-            $this->savePriceCache([1 => 'NULL'], $sku, $websiteId);
-        }
+        $this->requestAndProcessPriceData([$sku => $qtyToCheck], $websiteId);
 
         $promoPrice = $this->getCachedPrice($sku, $requestedQty);
         // "NULL" means no price is available and this fact was cached
@@ -235,16 +242,31 @@ class Promotion extends Queue implements ImportableEntity
      * @param int   $websiteId
      *
      * @return bool|DataObject|Promotion
-     * @throws \Exception
      */
-    public function requestPriceData(array $productsSkuToQtyMap, $websiteId = 0)
+    public function requestAndProcessPriceData(array $productsSkuToQtyMap, $websiteId = 0)
     {
+        $result = false;
         if (empty($productsSkuToQtyMap)) {
 
-            return false;
+            return $result;
         }
-        $this->navPromotion->setRequestedProducts($productsSkuToQtyMap);
-        return $this->processMagentoImport($this->navPromotion, $this, $websiteId);
+
+        try {
+            $this->navPromotion->setRequestedProducts($productsSkuToQtyMap);
+            $result = $this->processMagentoImport($this->navPromotion, $this, $websiteId);
+
+            foreach ($productsSkuToQtyMap as $sku => $qty) {
+                if (!$this->getCachedPrice($sku, $qty)) {
+                    $this->saveNoPriceCache($sku, $websiteId);
+                }
+            }
+        } catch (\Throwable $e) {
+            foreach ($productsSkuToQtyMap as $sku => $qty) {
+                $this->saveNoPriceCache($sku, $websiteId);
+            }
+        }
+
+        return $result;
     }
 
     /**
