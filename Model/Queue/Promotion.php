@@ -172,7 +172,7 @@ class Promotion extends Queue implements ImportableEntity
     {
         $cacheId = $this->getCacheId($sku);
         $lifeTime = $this->config->getWebsiteData(self::CODE . '/price_ttl', $websiteId);
-        krsort($promoPriceData);
+        ksort($promoPriceData, SORT_NUMERIC);
 
         $this->arrayCache[$cacheId] = $promoPriceData;
         $this->cacheInstance->save(
