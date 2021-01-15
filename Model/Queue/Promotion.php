@@ -123,7 +123,7 @@ class Promotion extends Queue implements ImportableEntity
      * @param string $sku
      * @param int|null $qty if null, return all cached prices for specified SKU
      *
-     * @return bool
+     * @return bool|float|string|array
      */
     public function getCachedPrice($sku, $qty = 1)
     {
@@ -172,7 +172,7 @@ class Promotion extends Queue implements ImportableEntity
     {
         $cacheId = $this->getCacheId($sku);
         $lifeTime = $this->config->getWebsiteData(self::CODE . '/price_ttl', $websiteId);
-        ksort($promoPriceData, SORT_NUMERIC);
+        krsort($promoPriceData, SORT_NUMERIC);
 
         $this->arrayCache[$cacheId] = $promoPriceData;
         $this->cacheInstance->save(
@@ -197,7 +197,7 @@ class Promotion extends Queue implements ImportableEntity
      * @param int                                   $qtyToCheck if null, return all cached prices for specified SKU
      * @param int                                   $websiteId
      *
-     * @return bool|float|null
+     * @return bool|float|null|array
      */
     public function matchPromoPrice($product, $qtyToCheck = 1, $websiteId = 0)
     {
