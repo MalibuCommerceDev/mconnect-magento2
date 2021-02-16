@@ -49,7 +49,9 @@ class AggregateCatalogProductTierPriceObserver implements ObserverInterface
 
         $tierPrices = [];
         $prices = $this->promotion->matchPromoPrice($product, null, $websiteId);
-        ksort($prices, SORT_NUMERIC);
+        if (is_array($prices)) {
+            ksort($prices, SORT_NUMERIC);
+        }
         if (!empty($prices)) {
             foreach ((array)$prices as $itemQty => $itemPrice) {
                 if ($itemQty > self::MIN_QTY_TO_SHOW_TIER_PRICE) {
