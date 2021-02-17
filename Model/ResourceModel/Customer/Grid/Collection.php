@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MalibuCommerce\MConnect\Model\ResourceModel\Customer\Grid;
 
 use Magento\Customer\Model\ResourceModel\Grid\Collection as OriginalCollection;
@@ -21,5 +23,22 @@ class Collection extends OriginalCollection
         );
 
         parent::_renderFiltersBefore();
+    }
+
+    /**
+     * Add field filter to collection
+     *
+     * @param string|array $field
+     * @param null|string|array $condition
+     *
+     * @return Collection
+     */
+    public function addFieldToFilter($field, $condition = null): Collection
+    {
+        if ($field == 'mc_status') {
+            $field = 'mc_queue.mc_status';
+        }
+
+        return parent::addFieldToFilter($field, $condition);
     }
 }
