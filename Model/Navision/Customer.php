@@ -81,7 +81,7 @@ class Customer extends AbstractModel
 
         $navId                      = $address->getCustomAttribute('nav_id');
         $navId                      = $navId ? $navId->getValue() : null;
-        $child->nav_address_id      = empty($navId) ? 'default' : $navId;
+        $child->nav_address_id      = empty($navId) ? 'DEFAULT' : $navId;
         $child->mag_address_id      = $address->getId();
         $child->is_default_billing  = $address->isDefaultBilling();
         $child->is_default_shipping = $address->isDefaultShipping();
@@ -94,7 +94,7 @@ class Customer extends AbstractModel
         $child->state               = $this->directoryRegion->load($address->getRegionId())->getCode();
         $child->post_code           = $address->getPostcode();
         $child->country             = $address->getCountryId();
-        $child->telephone           = $address->getTelephone();
+        $child->telephone           = preg_replace('~[^0-9]+~', '', $address->getTelephone());
         $child->fax                 = $address->getFax();
     }
 

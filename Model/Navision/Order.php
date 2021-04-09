@@ -268,8 +268,9 @@ class Order extends AbstractModel
     {
         $child = $root->addChild('order_address');
         $navId = $address->getNavId();
-        $child->mag_address_id = $address->getEntityId();
-        $child->nav_address_id = empty($navId) ? 'default' : $navId;
+        $customerAddressId = $address->getCustomerAddressId();
+        $child->mag_address_id = !empty($customerAddressId) ? $customerAddressId : $address->getEntityId();
+        $child->nav_address_id = empty($navId) ? 'DEFAULT' : $navId;
         $child->address_type = $address->getAddressType();
         $child->first_name = $address->getFirstname();
         $child->last_name = $address->getLastname();

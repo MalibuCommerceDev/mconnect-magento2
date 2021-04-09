@@ -84,10 +84,12 @@ class Soap
             );
         } catch (\Throwable $e) {
             try {
-                $this->mConnectHelper->logSoapRequestResponse(
-                    $this->soapClients[$websiteId]->__getLastRequest(),
-                    $this->soapClients[$websiteId]->__getLastResponse()
-                );
+                if (!empty($this->soapClients[$websiteId])) {
+                    $this->mConnectHelper->logSoapRequestResponse(
+                        $this->soapClients[$websiteId]->__getLastRequest(),
+                        $this->soapClients[$websiteId]->__getLastResponse()
+                    );
+                }
             } catch (\Throwable $e) {
 
             }

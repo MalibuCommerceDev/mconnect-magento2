@@ -2,26 +2,32 @@
 
 namespace MalibuCommerce\MConnect\Controller\Navision;
 
-class Statement extends \MalibuCommerce\MConnect\Controller\Navision
+use Magento\Customer\Model\Session;
+use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\Response\Http;
+use Magento\Framework\View\Result\PageFactory;
+use MalibuCommerce\MConnect\Controller\Navision;
+
+class Statement extends Navision
 {
     /**
-     * @var \Magento\Framework\View\Result\PageFactory
+     * @var PageFactory
      */
     protected $resultPageFactory;
 
     /**
      * Statement constructor.
      *
-     * @param \Magento\Framework\App\Action\Context      $context
-     * @param \Magento\Customer\Model\Session            $customerSession
-     * @param \Magento\Framework\App\Response\Http       $httpResponse
-     * @param \Magento\Framework\View\Result\PageFactory $resultPageFactory
+     * @param Context      $context
+     * @param Session            $customerSession
+     * @param Http       $httpResponse
+     * @param PageFactory $resultPageFactory
      */
     public function __construct(
-        \Magento\Framework\App\Action\Context $context,
-        \Magento\Customer\Model\Session $customerSession,
-        \Magento\Framework\App\Response\Http $httpResponse,
-        \Magento\Framework\View\Result\PageFactory $resultPageFactory
+        Context $context,
+        Session $customerSession,
+        Http $httpResponse,
+        PageFactory $resultPageFactory
     ) {
         $this->resultPageFactory = $resultPageFactory;
 

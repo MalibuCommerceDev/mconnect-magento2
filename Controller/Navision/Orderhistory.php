@@ -2,33 +2,42 @@
 
 namespace MalibuCommerce\MConnect\Controller\Navision;
 
-class Orderhistory extends \MalibuCommerce\MConnect\Controller\Navision
+use Magento\Backend\Model\View\Result\Redirect;
+use Magento\Customer\Model\Session;
+use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\Response\Http;
+use Magento\Framework\View\Result\Page;
+use Magento\Framework\View\Result\PageFactory;
+use MalibuCommerce\MConnect\Controller\Navision;
+use MalibuCommerce\MConnect\Model\Navision\Order\History;
+
+class Orderhistory extends Navision
 {
     /**
-     * @var \Magento\Framework\View\Result\PageFactory
+     * @var PageFactory
      */
     protected $resultPageFactory;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Navision\Order\History
+     * @var History
      */
     protected $navOrderHistory;
 
     /**
      * Orderhistory constructor.
      *
-     * @param \Magento\Framework\App\Action\Context                 $context
-     * @param \Magento\Customer\Model\Session                       $customerSession
-     * @param \Magento\Framework\App\Response\Http                  $httpResponse
-     * @param \Magento\Framework\View\Result\PageFactory            $resultPageFactory
-     * @param \MalibuCommerce\MConnect\Model\Navision\Order\History $navOrderHistory
+     * @param Context                 $context
+     * @param Session                       $customerSession
+     * @param Http                  $httpResponse
+     * @param PageFactory            $resultPageFactory
+     * @param History $navOrderHistory
      */
     public function __construct(
-        \Magento\Framework\App\Action\Context $context,
-        \Magento\Customer\Model\Session $customerSession,
-        \Magento\Framework\App\Response\Http $httpResponse,
-        \Magento\Framework\View\Result\PageFactory $resultPageFactory,
-        \MalibuCommerce\MConnect\Model\Navision\Order\History $navOrderHistory
+        Context $context,
+        Session $customerSession,
+        Http $httpResponse,
+        PageFactory $resultPageFactory,
+        History $navOrderHistory
     ) {
         $this->navOrderHistory = $navOrderHistory;
         $this->resultPageFactory = $resultPageFactory;
@@ -37,13 +46,12 @@ class Orderhistory extends \MalibuCommerce\MConnect\Controller\Navision
     }
 
     /**
-     * @return \Magento\Backend\Model\View\Result\Redirect|\Magento\Framework\View\Result\Page
+     * @return Redirect|Page
      */
     public function execute()
     {
-        /** @var \Magento\Framework\View\Result\Page $resultPage */
         $resultPage = $this->resultPageFactory->create();
-        /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
+        /** @var Redirect $resultRedirect */
         $resultRedirect = $this->resultRedirectFactory->create();
 
         $resultPage->getConfig()->getTitle()->set(__('NAV Orders'));
@@ -59,16 +67,11 @@ class Orderhistory extends \MalibuCommerce\MConnect\Controller\Navision
             if ($block) {
                 $block->setOrders($orders);
             }
-        } catch (\Magento\Framework\Exception\LocalizedException $e) {
+        } catch (\Throwable $e) {
             $message = $e->getMessage();
             if (!empty($message)) {
-                $this->messageManager->addError($message);
+                $this->messageManager->addError(__('NAV orders retrieving error: %1', $message));
             }
-            $resultRedirect->setPath('*/*/orderhistory');
-
-            return $resultRedirect;
-        } catch (\Throwable $e) {
-            $this->messageManager->addException($e, __('NAV orders retrieving error: %1', $e->getMessage()));
             $resultRedirect->setPath('*/*/orderhistory');
 
             return $resultRedirect;
@@ -81,6 +84,7 @@ class Orderhistory extends \MalibuCommerce\MConnect\Controller\Navision
      * Retrieve orders from NAV
      *
      * @return array|bool
+     * @throws \Exception
      */
     protected function getOrders()
     {

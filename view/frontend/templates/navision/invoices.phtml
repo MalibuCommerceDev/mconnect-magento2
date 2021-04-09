@@ -108,8 +108,8 @@ $invoices = $block->getInvoices();
         </thead>
         <tbody>
         <?php foreach ($invoices as $invoice): ?>
-            <?php $originalAmount = $block->helper(\Magento\Framework\Pricing\Helper\Data::class)->currency($invoice->getOriginalAmt(), true, false); ?>
-            <?php $remainingAmount = $block->helper(\Magento\Framework\Pricing\Helper\Data::class)->currency($invoice->getRemainingAmt(), true, false); ?>
+            <?php $originalAmount = $block->getPriceHelper()->currency($invoice->getOriginalAmt(), true, false); ?>
+            <?php $remainingAmount = $block->getPriceHelper()->currency($invoice->getRemainingAmt(), true, false); ?>
             <tr>
                 <td><?= $invoice->getInvoiceNumber() ?></td>
                 <td><?= $invoice->getPoNumber() ?></td>

@@ -2,37 +2,44 @@
 
 namespace MalibuCommerce\MConnect\Controller\Navision;
 
-class Orderview extends \MalibuCommerce\MConnect\Controller\Navision
+use Magento\Backend\Model\View\Result\Redirect;
+use Magento\Customer\Model\Session;
+use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\Response\Http;
+use MalibuCommerce\MConnect\Controller\Navision;
+use MalibuCommerce\MConnect\Model\Navision\Order\Pdf;
+
+class Orderview extends Navision
 {
     /**
-     * @var \MalibuCommerce\MConnect\Model\Navision\Order\Pdf
+     * @var Pdf
      */
     protected $orderPdf;
 
     /**
-     * Orderview constructor.
+     * Orderview constructor
      *
-     * @param \Magento\Framework\App\Action\Context             $context
-     * @param \Magento\Customer\Model\Session                   $customerSession
-     * @param \Magento\Framework\App\Response\Http              $httpResponse
-     * @param \MalibuCommerce\MConnect\Model\Navision\Order\Pdf $orderPdf
+     * @param Context $context
+     * @param Session       $customerSession
+     * @param Http  $httpResponse
+     * @param Pdf                                   $orderPdf
      */
     public function __construct(
-        \Magento\Framework\App\Action\Context $context,
-        \Magento\Customer\Model\Session $customerSession,
-        \Magento\Framework\App\Response\Http $httpResponse,
-        \MalibuCommerce\MConnect\Model\Navision\Order\Pdf $orderPdf
+        Context $context,
+        Session $customerSession,
+        sHttp $httpResponse,
+        Pdf $orderPdf
     ) {
         $this->orderPdf = $orderPdf;
         parent::__construct($context, $customerSession, $httpResponse);
     }
 
     /**
-     * @return \Magento\Backend\Model\View\Result\Redirect|void
+     * @return Redirect|void
      */
     public function execute()
     {
-        /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
+        /** @var Redirect $resultRedirect */
         $resultRedirect = $this->resultRedirectFactory->create();
 
         try {
@@ -49,16 +56,11 @@ class Orderview extends \MalibuCommerce\MConnect\Controller\Navision
             }
 
             return;
-        } catch (\Magento\Framework\Exception\LocalizedException $e) {
+        } catch (\Throwable $e) {
             $message = $e->getMessage();
             if (!empty($message)) {
-                $this->messageManager->addError($message);
+                $this->messageManager->addError(__('NAV order retrieving error: %1', $message));
             }
-            $resultRedirect->setPath('*/*/orderhistory');
-
-            return $resultRedirect;
-        } catch (\Throwable $e) {
-            $this->messageManager->addException($e, __('NAV order retrieving error: %1', $e->getMessage()));
             $resultRedirect->setPath('*/*/orderhistory');
 
             return $resultRedirect;

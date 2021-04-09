@@ -2,37 +2,44 @@
 
 namespace MalibuCommerce\MConnect\Controller\Navision;
 
-class Invoiceview extends \MalibuCommerce\MConnect\Controller\Navision
+use Magento\Backend\Model\View\Result\Redirect;
+use Magento\Customer\Model\Session;
+use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\Response\Http;
+use MalibuCommerce\MConnect\Controller\Navision;
+use MalibuCommerce\MConnect\Model\Navision\Invoice\Pdf;
+
+class Invoiceview extends Navision
 {
     /**
-     * @var \MalibuCommerce\MConnect\Model\Navision\Invoice\Pdf
+     * @var Pdf
      */
     protected $invoicePdf;
 
     /**
      * Invoiceview constructor.
      *
-     * @param \Magento\Framework\App\Action\Context               $context
-     * @param \Magento\Customer\Model\Session                     $customerSession
-     * @param \Magento\Framework\App\Response\Http                $httpResponse
-     * @param \MalibuCommerce\MConnect\Model\Navision\Invoice\Pdf $invoicePdf
+     * @param Context $context
+     * @param Session $customerSession
+     * @param Http    $httpResponse
+     * @param Pdf     $invoicePdf
      */
     public function __construct(
-        \Magento\Framework\App\Action\Context $context,
-        \Magento\Customer\Model\Session $customerSession,
-        \Magento\Framework\App\Response\Http $httpResponse,
-        \MalibuCommerce\MConnect\Model\Navision\Invoice\Pdf $invoicePdf
+        Context $context,
+        Session $customerSession,
+        Http $httpResponse,
+        Pdf $invoicePdf
     ) {
         $this->invoicePdf = $invoicePdf;
         parent::__construct($context, $customerSession, $httpResponse);
     }
 
     /**
-     * @return \Magento\Backend\Model\View\Result\Redirect|void
+     * @return Redirect|void
      */
     public function execute()
     {
-        /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
+        /** @var Redirect $resultRedirect */
         $resultRedirect = $this->resultRedirectFactory->create();
 
         try {
@@ -43,22 +50,17 @@ class Invoiceview extends \MalibuCommerce\MConnect\Controller\Navision
                 $customerNavId
             );
             if ($pdf) {
-                $this->displayPdf($pdf, 'invoice_'. $number . '.pdf');
+                $this->displayPdf($pdf, 'invoice_' . $number . '.pdf');
             } else {
                 throw new \Exception('Requested invoice can\'t be found');
             }
 
             return;
-        } catch (\Magento\Framework\Exception\LocalizedException $e) {
+        } catch (\Throwable $e) {
             $message = $e->getMessage();
             if (!empty($message)) {
-                $this->messageManager->addError($message);
+                $this->messageManager->addError(__('NAV invoices retrieving error: %1', $message));
             }
-            $resultRedirect->setPath('*/*/invoice');
-
-            return $resultRedirect;
-        } catch (\Throwable $e) {
-            $this->messageManager->addException($e, __('NAV invoice retrieving error: %1', $e->getMessage()));
             $resultRedirect->setPath('*/*/invoice');
 
             return $resultRedirect;

@@ -2,13 +2,17 @@
 
 namespace MalibuCommerce\MConnect\Model\Navision\Export;
 
-class Common extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
+use MalibuCommerce\MConnect\Model\Config;
+use MalibuCommerce\MConnect\Model\Navision\AbstractModel;
+use MalibuCommerce\MConnect\Model\Navision\Connection;
+
+class Common extends AbstractModel
 {
     protected $_rootNode;
     protected $_listNode;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Navision\Connection
+     * @var Connection
      */
     protected $mConnectNavisionConnection;
 
@@ -18,21 +22,21 @@ class Common extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
     protected $logger;
 
     /**
-     * @var \MalibuCommerce\MConnect\Model\Config
+     * @var Config
      */
     protected $config;
 
     /**
      * Common constructor.
      *
-     * @param \MalibuCommerce\MConnect\Model\Config              $config
-     * @param \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection
+     * @param Config              $config
+     * @param Connection $mConnectNavisionConnection
      * @param \Psr\Log\LoggerInterface                           $logger
      * @param array                                              $data
      */
     public function __construct(
-        \MalibuCommerce\MConnect\Model\Config $config,
-        \MalibuCommerce\MConnect\Model\Navision\Connection $mConnectNavisionConnection,
+        Config $config,
+        Connection $mConnectNavisionConnection,
         \Psr\Log\LoggerInterface $logger,
         array $data = []
     ) {
@@ -63,13 +67,17 @@ class Common extends \MalibuCommerce\MConnect\Model\Navision\AbstractModel
         foreach ($options as $field => $value) {
             $params->$field = $value;
         }
+
+        $this->mConnectNavisionConnection->setCallerModel($this);
+
         $response = $this->mConnectNavisionConnection->ExportList([
             'requestXML'  => base64_encode($xml->asXML()),
             'responseXML' => false,
             'errorLogXML' => false,
         ]);
         $this->handleErrorLogXml($response);
-        if (!$response || (!isset($response->responseXML) && !strlen($response->responseXML))) {
+        if (!$response || !isset($response->responseXML) || !strlen($response->responseXML)) {
+
             return false;
         }
         $xml = new \simpleXMLElement(base64_decode($response->responseXML));

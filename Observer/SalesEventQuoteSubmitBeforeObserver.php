@@ -1,42 +1,63 @@
 <?php
 namespace MalibuCommerce\MConnect\Observer;
 
-class SalesEventQuoteSubmitBeforeObserver implements \Magento\Framework\Event\ObserverInterface
+use Magento\Framework\Event\Observer;
+use Magento\Framework\Event\ObserverInterface;
+use Magento\Quote\Model\Quote;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Address;
+use MalibuCommerce\MConnect\Model\Config;
+
+class SalesEventQuoteSubmitBeforeObserver implements ObserverInterface
 {
     /**
-     * @var \MalibuCommerce\MConnect\Model\Config
+     * @var Config
      */
     protected $config;
 
+    /**
+     * SalesEventQuoteSubmitBeforeObserver constructor.
+     *
+     * @param Config $config
+     */
     public function __construct(
-        \MalibuCommerce\MConnect\Model\Config $config
+        Config $config
     ) {
         $this->config = $config;
     }
 
-    public function execute(\Magento\Framework\Event\Observer $observer)
+    /**
+     * @param Observer $observer
+     *
+     * @return $this|void
+     */
+    public function execute(Observer $observer)
     {
         if (!$this->config->isModuleEnabled()) {
 
             return $this;
         }
 
-        /** @var  \Magento\Sales\Model\Order $order */
+        /** @var  Order $order */
         $order = $observer->getEvent()->getOrder();
-        /** @var  \Magento\Quote\Model\Quote $quote */
+        /** @var  Quote $quote */
         $quote = $observer->getEvent()->getQuote();
 
-        $navId = null;
+        $billingAddressNavId = $shippingAddressNavId = null;
         if ($quote && $quote->getBillingAddress()) {
-            $navId = $quote->getBillingAddress()->getNavId();
+            $billingAddressNavId = $quote->getBillingAddress()->getNavId();
         }
-        if (empty($navId) && $quote && $quote->getShippingAddress()) {
-            $navId = $quote->getShippingAddress()->getNavId();
+        if ($quote && $quote->getShippingAddress()) {
+            $shippingAddressNavId = $quote->getShippingAddress()->getNavId();
         }
 
-        if (!empty($navId)) {
-            foreach ($order->getAddresses() as $address) {
-                $address->setNavId($navId);
+        foreach ($order->getAddresses() as $address) {
+            if ($address->getAddressType() == Address::TYPE_BILLING && !empty($billingAddressNavId)) {
+                $address->setNavId($billingAddressNavId);
+            }
+
+            if ($address->getAddressType() == Address::TYPE_SHIPPING && !empty($shippingAddressNavId)) {
+                $address->setNavId($shippingAddressNavId);
             }
         }
 

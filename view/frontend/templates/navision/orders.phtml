@@ -108,7 +108,7 @@ $orders = $block->getOrders();
         </thead>
         <tbody>
         <?php foreach ($orders as $order): ?>
-            <?php $orderAmount = $block->helper(\Magento\Framework\Pricing\Helper\Data::class)->currency($order->getOrderAmt(), true, false); ?>
+            <?php $orderAmount = $block->getPriceHelper()->currency($order->getOrderAmt(), true, false); ?>
             <tr>
                 <td><?= $order->getOrderNumber() ?></td>
                 <td><?= $order->getPoNumber() ?></td>
