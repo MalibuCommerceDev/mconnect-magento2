@@ -27,7 +27,7 @@ class Orderview extends Navision
     public function __construct(
         Context $context,
         Session $customerSession,
-        sHttp $httpResponse,
+        Http $httpResponse,
         Pdf $orderPdf
     ) {
         $this->orderPdf = $orderPdf;
