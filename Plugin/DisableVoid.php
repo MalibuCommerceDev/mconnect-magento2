@@ -27,23 +27,20 @@ class DisableVoid
      * Disable void
      *
      * @param CanVoidHandler $pluginSubject
-     * @param callable $proceed
+     * @param bool $result
      * @param array $subject
      * @param int|null $storeId
      *
      * @return bool
      */
-    public function aroundHandle(
+    public function afterHandle(
         CanVoidHandler $pluginSubject,
-        callable $proceed,
+        bool $result,
         array $subject,
         ?int $storeId = null
     ): bool {
-        $paymemt = $this->subjectReader->readPayment($subject);
-        if (empty($paymemt->getPayment()->getNotVoid())) {
-            return $proceed($subject, $storeId);
-        }
+        $payment = $this->subjectReader->readPayment($subject);
 
-        return !$paymemt->getPayment()->getNotVoid();
+        return $result && !$payment->getPayment()->getNotVoid();
     }
 }
