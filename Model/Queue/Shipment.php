@@ -201,6 +201,9 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                     && $this->config->get($this->getQueueCode() . '/cancel_remaining_not_shipped_items')
                 ) {
                     if ($order->canCancel()) {
+                        if (strpos($order->getPayment()->getMethod(), 'braintree') !== false) {
+                            $order->getPayment()->setNotVoid(true);
+                        }
                         $order->cancel();
                         $order->save($order);
                         $this->messages .= 'Order #' . $incrementId . ' was completed, remaining not shipped items were canceled' . "\n";
