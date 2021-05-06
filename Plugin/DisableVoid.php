@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace MalibuCommerce\MConnect\Plugin;
 
-use PayPal\Braintree\Gateway\Config\CanVoidHandler;
-use PayPal\Braintree\Gateway\Helper\SubjectReader;
+use Magento\Braintree\Gateway\Config\CanVoidHandler;
+use Magento\Braintree\Gateway\SubjectReader;
 
 class DisableVoid
 {
