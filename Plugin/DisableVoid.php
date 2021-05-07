@@ -4,29 +4,31 @@ declare(strict_types=1);
 
 namespace MalibuCommerce\MConnect\Plugin;
 
-use PayPal\Braintree\Gateway\Config\CanVoidHandler;
-use PayPal\Braintree\Gateway\Helper\SubjectReader;
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\App\ProductMetadataInterface;
 
 class DisableVoid
 {
     /**
-     * @var SubjectReader
+     * @var \Magento\Braintree\Gateway\SubjectReader|\PayPal\Braintree\Gateway\Helper\SubjectReader
      */
     protected $subjectReader;
 
     /**
-     * @param SubjectReader $subjectReader
+     * @param ProductMetadataInterface $productMetadata
      */
     public function __construct(
-        SubjectReader $subjectReader
+        ProductMetadataInterface $productMetadata
     ) {
-        $this->subjectReader = $subjectReader;
+        $this->subjectReader = version_compare($productMetadata->getVersion(), '2.4.1', '>=')
+            ? ObjectManager::getInstance()->get('\PayPal\Braintree\Gateway\Helper\SubjectReader')
+            : ObjectManager::getInstance()->get('\Magento\Braintree\Gateway\SubjectReader');
     }
 
     /**
      * Disable void
      *
-     * @param CanVoidHandler $pluginSubject
+     * @param $pluginSubject
      * @param bool $result
      * @param array $subject
      * @param int|null $storeId
@@ -34,7 +36,7 @@ class DisableVoid
      * @return bool
      */
     public function afterHandle(
-        CanVoidHandler $pluginSubject,
+        $pluginSubject,
         bool $result,
         array $subject,
         ?int $storeId = null
