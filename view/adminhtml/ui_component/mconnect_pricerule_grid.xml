@@ -154,31 +154,29 @@
                 </item>
             </argument>
         </column>
-        <column name="date_start" class="Magento\Ui\Component\Listing\Columns\Date">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">dateRange</item>
-                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/date</item>
-                    <item name="dataType" xsi:type="string">date</item>
-                    <item name="label" xsi:type="string" translate="true">Start Date</item>
-                    <item name="timezone" xsi:type="boolean">false</item>
-                    <item name="dateFormat" xsi:type="string">MMM d, y</item>
-                    <item name="sortOrder" xsi:type="number">80</item>
-                </item>
-            </argument>
+        <column name="date_start"
+                class="Magento\Ui\Component\Listing\Columns\Date"
+                component="Magento_Ui/js/grid/columns/date"
+                sortOrder="90">
+            <settings>
+                <label translate="true">Start Date</label>
+                <filter>dateRange</filter>
+                <dataType>date</dataType>
+                <timezone>false</timezone>
+                <dateFormat>MMM d, y</dateFormat>
+            </settings>
         </column>
-        <column name="date_end" class="Magento\Ui\Component\Listing\Columns\Date">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">dateRange</item>
-                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/date</item>
-                    <item name="dataType" xsi:type="string">date</item>
-                    <item name="label" xsi:type="string" translate="true">End Date</item>
-                    <item name="timezone" xsi:type="boolean">false</item>
-                    <item name="dateFormat" xsi:type="string">MMM d, y</item>
-                    <item name="sortOrder" xsi:type="number">90</item>
-                </item>
-            </argument>
+        <column name="date_end"
+                class="Magento\Ui\Component\Listing\Columns\Date"
+                component="Magento_Ui/js/grid/columns/date"
+                sortOrder="100">
+            <settings>
+                <label translate="true">End Date</label>
+                <filter>dateRange</filter>
+                <dataType>date</dataType>
+                <timezone>false</timezone>
+                <dateFormat>MMM d, y</dateFormat>
+            </settings>
         </column>
         <actionsColumn name="actions" class="MalibuCommerce\MConnect\Ui\Component\Listing\Column\PriceruleActions">
             <argument name="data" xsi:type="array">
