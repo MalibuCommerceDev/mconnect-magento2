@@ -4,6 +4,11 @@ namespace MalibuCommerce\MConnect\Model\Queue;
 
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\CatalogInventory\Api\StockConfigurationInterface;
+use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Api\SearchCriteriaBuilderFactory;
+use Magento\InventoryApi\Api\Data\SourceItemInterfaceFactory;
+use Magento\InventoryApi\Api\SourceRepositoryInterface;
+use Magento\InventoryCatalogApi\Api\DefaultSourceProviderInterface;
 
 class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
 {
@@ -36,6 +41,21 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     protected $configuration;
 
     /**
+     * @var DefaultSourceProviderInterface
+     */
+    protected $defaultSourceProvider;
+
+    /**
+     * @var SearchCriteriaBuilderFactory
+     */
+    protected $searchCriteriaBuilderFactory;
+
+    /**
+     * @var SourceRepositoryInterface
+     */
+    protected $sourceRepository;
+
+    /**
      * Inventory constructor.
      *
      * @param \Magento\Catalog\Api\ProductRepositoryInterface      $productRepository
@@ -47,6 +67,9 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         \MalibuCommerce\MConnect\Model\Navision\Inventory $navInventory,
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
+        DefaultSourceProviderInterface $defaultSourceProvider,
+        SearchCriteriaBuilderFactory $searchCriteriaBuilderFactory,
+        SourceRepositoryInterface $sourceRepository,
         StockConfigurationInterface $configuration
     ) {
         $this->productRepository = $productRepository;
@@ -54,6 +77,9 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         $this->config = $config;
         $this->queueFlagFactory = $queueFlagFactory;
         $this->configuration = $configuration;
+        $this->defaultSourceProvider = $defaultSourceProvider;
+        $this->searchCriteriaBuilderFactory = $searchCriteriaBuilderFactory;
+        $this->sourceRepository = $sourceRepository;
     }
 
     public function importAction($websiteId, $navPageNumber = 0)
@@ -115,8 +141,23 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
                 $inventoryProcessor = $objectManager->create(
                     '\MalibuCommerce\MConnect\Model\Queue\Inventory\SourceItemsProcessor'
                 );
+                /** @var SearchCriteriaBuilder $searchCriteriaBuilder */
+                $searchCriteriaBuilder = $this->searchCriteriaBuilderFactory->create();
+                $searchCriteriaBuilder->addFilter('website_id', $websiteId);
+                $searchCriteriaBuilder->addFilter('stock_name', $this->defaultSourceProvider->getCode(), 'neq');
+                $searchCriteria = $searchCriteriaBuilder->create();
+                $sources = $this->sourceRepository->getList($searchCriteria)->getItems();
+                $sourceItemQty = [
+                    $this->defaultSourceProvider->getCode() => $quantity,
+                ];
+                foreach ($sources as $source) {
+                    $sourceCode = strtoupper($source->getSourceCode());
+                    if (isset($data->$sourceCode)) {
+                        $sourceItemQty[$sourceCode] = $data->$sourceCode;
+                    }
+                }
 
-                $inventoryProcessor->process($product, $quantity, $stockStatus && $forcedInStock ? true : null);
+                $inventoryProcessor->process($product, $sourceItemQty, $stockStatus && $forcedInStock ? true : null);
 
                 return true;
             }

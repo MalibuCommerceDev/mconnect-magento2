@@ -8,6 +8,7 @@ use Magento\Framework\Api\SearchCriteriaBuilderFactory;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\InventoryApi\Api\Data\SourceItemInterface;
+use Magento\InventoryApi\Api\Data\SourceItemInterfaceFactory;
 
 /**
  * Save source product relations during inventory sync from NAV to Magento
@@ -36,21 +37,27 @@ class SourceItemsProcessor
     protected $sourceItemRepository;
 
     /**
+     * @var SourceItemInterfaceFactory
+     */
+    protected $sourceItemFactory;
+
+    /**
      * @var \Magento\Catalog\Api\ProductRepositoryInterface|ProductRepositoryInterface
      */
     protected $productRepository;
 
     /**
-     * SourceItemsProcessor constructor.
-     *
-     * @param SearchCriteriaBuilderFactory                                   $searchCriteriaBuilderFactory
-     * @param ProductRepositoryInterface                                     $productRepository
+     * @param SearchCriteriaBuilderFactory $searchCriteriaBuilderFactory
+     * @param SourceItemInterfaceFactory $sourceItemInterfaceFactory
+     * @param ProductRepositoryInterface $productRepository
      */
     public function __construct(
         SearchCriteriaBuilderFactory $searchCriteriaBuilderFactory,
+        SourceItemInterfaceFactory  $sourceItemFactory,
         ProductRepositoryInterface $productRepository
     ) {
         $this->searchCriteriaBuilderFactory = $searchCriteriaBuilderFactory;
+        $this->sourceItemFactory = $sourceItemFactory;
         $this->productRepository = $productRepository;
     }
 
@@ -58,13 +65,13 @@ class SourceItemsProcessor
      * Process inventory source items during inventory sync from NAV to Magento
      *
      * @param ProductInterface $product
-     * @param int $qty
+     * @param array $sourceItemQty
      * @param bool $isInStock
      *
      * @return ProductInterface|void
      * @throws NoSuchEntityException
      */
-    public function process($product, $qty, $isInStock = null)
+    public function process($product, $sourceItemQty, $isInStock = null)
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $this->isSourceItemManagementAllowedForProductType = $objectManager->create(
@@ -91,14 +98,17 @@ class SourceItemsProcessor
         // $singleSourceMode = $this->isSingleSourceMode->execute();
 
         $sourceItems = $this->getSourceItems($product->getSku());
+        $newSourceItemsCode = array_diff($sourceItemQty, array_column($sourceItems, SourceItemInterface::SOURCE_CODE));
+        foreach ($newSourceItemsCode as $newSourceItemCode) {
+            $sourceItems[] = [
+                SourceItemInterface::SKU         => $product->getSku(),
+                SourceItemInterface::SOURCE_CODE => $newSourceItemCode,
+            ];
+        }
         foreach ($sourceItems as &$sourceItem) {
-            if ($sourceItem->getSourceCode() == $this->defaultSourceProvider->getCode()) {
-                $sourceItem[SourceItemInterface::QUANTITY] = (int)$qty;
-                $sourceItem[SourceItemInterface::STATUS] = $isInStock === null
-                    ? $sourceItem->getStatus()
-                    : (bool)$isInStock;
-                break;
-            }
+            $sourceItem[SourceItemInterface::QUANTITY]
+                = (int)$sourceItemQty[$sourceItem[SourceItemInterface::SOURCE_CODE]];
+            $sourceItem[SourceItemInterface::STATUS] = (bool)$isInStock ?? $sourceItem[SourceItemInterface::STATUS];
         }
         $this->sourceItemsProcessor->process($product->getSku(), $sourceItems);
 
