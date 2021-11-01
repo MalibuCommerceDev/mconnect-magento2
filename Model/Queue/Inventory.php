@@ -168,6 +168,10 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
                     if (isset($data->$sourceCode)) {
                         $sourceItemQty[$sourceCode] = (int)$data->$sourceCode;
                     }
+                    $sourceCode = strtolower($sourceCode);
+                    if (isset($data->$sourceCode)) {
+                        $sourceItemQty[$sourceCode] = (int)$data->$sourceCode;
+                    }
                 }
 
                 $inventoryProcessor->process($product, $sourceItemQty, $stockStatus && $forcedInStock ? true : null);
