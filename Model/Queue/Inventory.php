@@ -4,11 +4,14 @@ namespace MalibuCommerce\MConnect\Model\Queue;
 
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\CatalogInventory\Api\StockConfigurationInterface;
-use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\Api\SearchCriteriaBuilderFactory;
+use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Inventory\Model\ResourceModel\Source\Collection as SourceCollection;
+use Magento\Inventory\Model\ResourceModel\Source\CollectionFactory as SourceCollectionFactory;
+use Magento\InventoryApi\Api\Data\SourceInterface;
 use Magento\InventoryApi\Api\Data\SourceItemInterfaceFactory;
-use Magento\InventoryApi\Api\SourceRepositoryInterface;
 use Magento\InventoryCatalogApi\Api\DefaultSourceProviderInterface;
+use Magento\InventoryCatalogApi\Model\IsSingleSourceModeInterface;
+use Magento\InventorySalesApi\Api\Data\SalesChannelInterface;
 
 class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
 {
@@ -46,14 +49,19 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     protected $defaultSourceProvider;
 
     /**
-     * @var SearchCriteriaBuilderFactory
+     * @var IsSingleSourceModeInterface
      */
-    protected $searchCriteriaBuilderFactory;
+    protected $isSingleSourceMode;
 
     /**
-     * @var SourceRepositoryInterface
+     * @var ProductMetadataInterface
      */
-    protected $sourceRepository;
+    protected $productMetadata;
+
+    /**
+     * @var SourceCollectionFactory
+     */
+    protected $sourceCollectionFactory;
 
     /**
      * Inventory constructor.
@@ -68,8 +76,9 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
         DefaultSourceProviderInterface $defaultSourceProvider,
-        SearchCriteriaBuilderFactory $searchCriteriaBuilderFactory,
-        SourceRepositoryInterface $sourceRepository,
+        IsSingleSourceModeInterface $isSingleSourceMode,
+        ProductMetadataInterface $productMetadata,
+        SourceCollectionFactory $sourceCollectionFactory,
         StockConfigurationInterface $configuration
     ) {
         $this->productRepository = $productRepository;
@@ -78,8 +87,9 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         $this->queueFlagFactory = $queueFlagFactory;
         $this->configuration = $configuration;
         $this->defaultSourceProvider = $defaultSourceProvider;
-        $this->searchCriteriaBuilderFactory = $searchCriteriaBuilderFactory;
-        $this->sourceRepository = $sourceRepository;
+        $this->isSingleSourceMode = $isSingleSourceMode;
+        $this->productMetadata = $productMetadata;
+        $this->sourceCollectionFactory = $sourceCollectionFactory;
     }
 
     public function importAction($websiteId, $navPageNumber = 0)
@@ -135,25 +145,28 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
             }
 
             // Magento >= 2.3.x logic
-            if (class_exists(\Magento\InventoryConfigurationApi\Api\GetStockItemConfigurationInterface::class)) {
+            if (version_compare($this->productMetadata->getVersion(), '2.3.0', '>=')
+                && !$this->isSingleSourceMode->execute()
+            ) {
                 $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
                 /** @var \MalibuCommerce\MConnect\Model\Queue\Inventory\SourceItemsProcessor $inventoryProcessor */
                 $inventoryProcessor = $objectManager->create(
                     '\MalibuCommerce\MConnect\Model\Queue\Inventory\SourceItemsProcessor'
                 );
-                /** @var SearchCriteriaBuilder $searchCriteriaBuilder */
-                $searchCriteriaBuilder = $this->searchCriteriaBuilderFactory->create();
-                $searchCriteriaBuilder->addFilter('website_id', $websiteId);
-                $searchCriteriaBuilder->addFilter('stock_name', $this->defaultSourceProvider->getCode(), 'neq');
-                $searchCriteria = $searchCriteriaBuilder->create();
-                $sources = $this->sourceRepository->getList($searchCriteria)->getItems();
-                $sourceItemQty = [
-                    $this->defaultSourceProvider->getCode() => $quantity,
-                ];
-                foreach ($sources as $source) {
-                    $sourceCode = strtoupper($source->getSourceCode());
+                $sourceCodes = $this->getInventorySourceCodes($websiteId);
+                if (empty($sourceCodes)) {
+                    $this->messages .= $sku . ': skipped - inventory sources not found for website id #' . $websiteId;
+
+                    return false;
+                }
+                $sourceItemQty = [];
+                if (in_array($this->defaultSourceProvider->getCode(), $sourceCodes)) {
+                    $sourceItemQty[$this->defaultSourceProvider->getCode()] = $quantity;
+                }
+                foreach ($sourceCodes as $sourceCode) {
+                    $sourceCode = strtoupper($sourceCode);
                     if (isset($data->$sourceCode)) {
-                        $sourceItemQty[$sourceCode] = $data->$sourceCode;
+                        $sourceItemQty[$sourceCode] = (int)$data->$sourceCode;
                     }
                 }
 
@@ -177,5 +190,41 @@ class Inventory extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         }
 
         return true;
+    }
+
+    /**
+     * Get inventory source codes except default
+     *
+     * @param $websiteId
+     *
+     * @return array
+     */
+    protected function getInventorySourceCodes($websiteId)
+    {
+        /** @var SourceCollection $sourceCollection */
+        $sourceCollection = $this->sourceCollectionFactory->create();
+        if (!empty($websiteId)) {
+            $sourceCollection
+                ->join(
+                    ['issl' => 'inventory_source_stock_link'],
+                    'main_table.source_code = issl.source_code',
+                    ''
+                )
+                ->join(
+                    ['issc' => 'inventory_stock_sales_channel'],
+                    'issl.stock_id = issc.stock_id',
+                    ''
+                )
+                ->join(
+                    ['sw' => 'store_website'],
+                    sprintf('issc.code = sw.code && issc.type = "%s"', SalesChannelInterface::TYPE_WEBSITE),
+                    ''
+                )
+                ->addFieldToFilter('website_id', $websiteId);
+        }
+        $sourceCollection
+            ->addFieldToFilter(SourceInterface::ENABLED, true);
+
+        return $sourceCollection->getColumnValues(SourceInterface::SOURCE_CODE);
     }
 }

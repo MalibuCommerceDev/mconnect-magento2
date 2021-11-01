@@ -25,8 +25,6 @@ class SourceItemsProcessor
      */
     protected $sourceItemsProcessor;
 
-    private $isSingleSourceMode;
-
     protected $defaultSourceProvider;
 
     /**
@@ -78,7 +76,7 @@ class SourceItemsProcessor
             \Magento\InventoryConfigurationApi\Model\IsSourceItemManagementAllowedForProductTypeInterface::class
         );
         $this->sourceItemsProcessor = $objectManager->create(
-            \Magento\InventoryCatalogAdminUi\Observer\SourceItemsProcessor::class
+            \Magento\InventoryCatalogApi\Model\SourceItemsProcessorInterface::class
         );
         $this->defaultSourceProvider = $objectManager->create(
             \Magento\InventoryCatalogApi\Api\DefaultSourceProviderInterface::class
@@ -86,31 +84,32 @@ class SourceItemsProcessor
         $this->sourceItemRepository = $objectManager->create(
             \Magento\InventoryApi\Api\SourceItemRepositoryInterface::class
         );
-        $this->isSingleSourceMode = $objectManager->create(
-            \Magento\InventoryCatalogApi\Model\IsSingleSourceModeInterface::class
-        );
 
         if ($this->isSourceItemManagementAllowedForProductType->execute($product->getTypeId()) === false) {
             return;
         }
 
-        // @todo allow updating not only default source data
-        // $singleSourceMode = $this->isSingleSourceMode->execute();
-
         $sourceItems = $this->getSourceItems($product->getSku());
-        $newSourceItemsCode = array_diff($sourceItemQty, array_column($sourceItems, SourceItemInterface::SOURCE_CODE));
+        $newSourceItemsCode = array_diff(
+            array_keys($sourceItemQty),
+            array_column($sourceItems, SourceItemInterface::SOURCE_CODE)
+        );
         foreach ($newSourceItemsCode as $newSourceItemCode) {
             $sourceItems[] = [
                 SourceItemInterface::SKU         => $product->getSku(),
                 SourceItemInterface::SOURCE_CODE => $newSourceItemCode,
             ];
         }
-        foreach ($sourceItems as &$sourceItem) {
+        foreach ($sourceItems as $key => $sourceItem) {
+            if (empty($sourceItemQty[$sourceItem[SourceItemInterface::SOURCE_CODE]])) {
+                continue;
+            }
             $sourceItem[SourceItemInterface::QUANTITY]
                 = (int)$sourceItemQty[$sourceItem[SourceItemInterface::SOURCE_CODE]];
             $sourceItem[SourceItemInterface::STATUS] = (bool)$isInStock ?? $sourceItem[SourceItemInterface::STATUS];
+            $sourceItems[$key] = $sourceItem;
         }
-        $this->sourceItemsProcessor->process($product->getSku(), $sourceItems);
+        $this->sourceItemsProcessor->execute($product->getSku(), $sourceItems);
 
         return $this;
     }
