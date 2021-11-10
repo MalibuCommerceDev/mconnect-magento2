@@ -106,7 +106,7 @@ class SourceItemsProcessor
             }
             $sourceItem[SourceItemInterface::QUANTITY]
                 = (int)$sourceItemQty[$sourceItem[SourceItemInterface::SOURCE_CODE]];
-            $sourceItem[SourceItemInterface::STATUS] = (bool)$isInStock ?? $sourceItem[SourceItemInterface::STATUS];
+            $sourceItem[SourceItemInterface::STATUS] = (int)$isInStock ?? $sourceItem[SourceItemInterface::STATUS];
             $sourceItems[$key] = $sourceItem;
         }
         $this->sourceItemsProcessor->execute($product->getSku(), $sourceItems);
