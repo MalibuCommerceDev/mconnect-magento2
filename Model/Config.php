@@ -557,6 +557,11 @@ class Config
         return (bool)$this->getWebsiteData('inventory/set_in_stock', $websiteId);
     }
 
+    public function isInventoryUpdatePrice($websiteId = null): bool
+    {
+        return (bool)$this->getWebsiteData('inventory/update_price', $websiteId);
+    }
+
     /**
      * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
