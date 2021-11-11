@@ -81,7 +81,7 @@
                 <scheduled_inventory_import_delay_time>5</scheduled_inventory_import_delay_time>
                 <max_rows>50</max_rows>
                 <set_in_stock>1</set_in_stock>
-                <update_price>1</update_price>
+                <update_price>0</update_price>
             </inventory>
             <order>
                 <export_enabled>1</export_enabled>
