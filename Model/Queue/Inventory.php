@@ -234,7 +234,6 @@ class Inventory extends Queue implements ImportableEntity
             return false;
         }
 
-        $stockStatus = (bool)$quantity;
         $globalIsManageStock = $this->stockConfiguration->getManageStock();
         $forcedInStock = $this->getConfig()->isInventoryInStockStatusMandatory($websiteId);
 
@@ -279,16 +278,16 @@ class Inventory extends Queue implements ImportableEntity
             $this->sourceItemsProcessor->process(
                 $product,
                 $sourceItemQty,
-                $stockStatus && $forcedInStock ? true : null
+                $forcedInStock ? true : null
             );
-            $this->messages .= $product->getSku() . ': qty changed in Multi Source Inventory';
+            $this->messages .= $product->getSku() . ': qty changed in MSI - ' . print_r($sourceItemQty, true);
 
             return true;
         }
 
         // Magento <= 2.2.x logic
-        if ($stockStatus && $forcedInStock) {
-            $stockItem->setIsInStock($stockStatus);
+        if ($forcedInStock) {
+            $stockItem->setIsInStock((bool)$quantity);
         }
         $stockItem->setQty($quantity);
         $stockItem->save();

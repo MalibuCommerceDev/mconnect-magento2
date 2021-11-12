@@ -101,12 +101,14 @@ class SourceItemsProcessor
             ];
         }
         foreach ($sourceItems as $key => $sourceItem) {
-            if (empty($sourceItemQty[$sourceItem[SourceItemInterface::SOURCE_CODE]])) {
+            if (!isset($sourceItemQty[$sourceItem[SourceItemInterface::SOURCE_CODE]])) {
                 continue;
             }
-            $sourceItem[SourceItemInterface::QUANTITY]
-                = (int)$sourceItemQty[$sourceItem[SourceItemInterface::SOURCE_CODE]];
-            $sourceItem[SourceItemInterface::STATUS] = (int)$isInStock ?? $sourceItem[SourceItemInterface::STATUS];
+            $qty = (int)$sourceItemQty[$sourceItem[SourceItemInterface::SOURCE_CODE]];
+            $sourceItem[SourceItemInterface::QUANTITY] = $qty;
+            $sourceItem[SourceItemInterface::STATUS] = $isInStock == null
+                ? $sourceItem[SourceItemInterface::STATUS]
+                : (int)(bool)$qty;
             $sourceItems[$key] = $sourceItem;
         }
         $this->sourceItemsProcessor->execute($product->getSku(), $sourceItems);
