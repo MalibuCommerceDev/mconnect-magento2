@@ -6,6 +6,7 @@ namespace MalibuCommerce\MConnect\Model\Queue;
 
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Helper\Data;
 use Magento\CatalogInventory\Api\Data\StockItemInterface;
 use Magento\CatalogInventory\Api\StockConfigurationInterface;
 use Magento\Framework\App\ProductMetadataInterface;
@@ -21,7 +22,9 @@ use Magento\InventoryApi\Api\Data\SourceItemInterfaceFactory;
 use Magento\InventoryCatalogApi\Api\DefaultSourceProviderInterface;
 use Magento\InventoryCatalogApi\Model\IsSingleSourceModeInterface;
 use Magento\InventorySalesApi\Api\Data\SalesChannelInterface;
-use MalibuCommerce\MConnect\Model\Config;
+use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\ResourceModel\StoreWebsiteRelation;
+use Magento\Store\Model\StoreManagerInterface;
 use MalibuCommerce\MConnect\Model\Navision\Inventory as NavisionInventory;
 use MalibuCommerce\MConnect\Model\Queue;
 use MalibuCommerce\MConnect\Model\Queue\Inventory\SourceItemsProcessor;
@@ -30,11 +33,6 @@ class Inventory extends Queue implements ImportableEntity
 {
     const CODE = 'inventory';
     const NAV_XML_NODE_ITEM_NAME = 'item_inventory';
-
-    /**
-     * @var Config
-     */
-    protected $config;
 
     /**
      * @var StockConfigurationInterface
@@ -82,7 +80,16 @@ class Inventory extends Queue implements ImportableEntity
     protected $sourceItemsProcessor;
 
     /**
-     * @param Config $config
+     * @var StoreManagerInterface
+     */
+    protected $storeManager;
+
+    /**
+     * @var StoreWebsiteRelation
+     */
+    protected $storeWebsiteRelation;
+
+    /**
      * @param DefaultSourceProviderInterface $defaultSourceProvider
      * @param FlagFactory $queueFlagFactory
      * @param NavisionInventory $navisionInventory
@@ -92,9 +99,10 @@ class Inventory extends Queue implements ImportableEntity
      * @param SourceCollectionFactory $sourceCollectionFactory
      * @param SourceItemsProcessor $sourceItemsProcessor
      * @param StockConfigurationInterface $stockConfiguration
+     * @param StoreManagerInterface $storeManager
+     * @param StoreWebsiteRelation $storeWebsiteRelation
      */
     public function __construct(
-        Config $config,
         DefaultSourceProviderInterface $defaultSourceProvider,
         FlagFactory $queueFlagFactory,
         NavisionInventory $navisionInventory,
@@ -103,9 +111,10 @@ class Inventory extends Queue implements ImportableEntity
         ProductRepositoryInterface $productRepository,
         SourceCollectionFactory $sourceCollectionFactory,
         SourceItemsProcessor $sourceItemsProcessor,
-        StockConfigurationInterface $stockConfiguration
+        StockConfigurationInterface $stockConfiguration,
+        StoreManagerInterface $storeManager,
+        StoreWebsiteRelation $storeWebsiteRelation
     ) {
-        $this->config = $config;
         $this->defaultSourceProvider = $defaultSourceProvider;
         $this->isSingleSourceMode = $isSingleSourceMode;
         $this->navisionInventory = $navisionInventory;
@@ -115,6 +124,8 @@ class Inventory extends Queue implements ImportableEntity
         $this->sourceCollectionFactory = $sourceCollectionFactory;
         $this->sourceItemsProcessor = $sourceItemsProcessor;
         $this->stockConfiguration = $stockConfiguration;
+        $this->storeManager = $storeManager;
+        $this->storeWebsiteRelation = $storeWebsiteRelation;
     }
 
     /**
@@ -180,17 +191,16 @@ class Inventory extends Queue implements ImportableEntity
      *
      * @param ProductInterface $product
      * @param \SimpleXMLElement $data
-     * @param int $website
+     * @param int $websiteId
      *
      * @return bool
      *
      * @throws CouldNotSaveException
-     * @throws InputException
-     * @throws StateException
+     * @throws \Exception
      */
-    protected function updateProductPrice(ProductInterface $product, \SimpleXMLElement $data, int $website): bool
+    protected function updateProductPrice(ProductInterface $product, \SimpleXMLElement $data, int $websiteId): bool
     {
-        if (!$this->config->isInventoryUpdatePrice($website)) {
+        if (!$this->getConfig()->isInventoryUpdatePrice($websiteId)) {
             return true;
         }
         if (!isset($data->unit_price)) {
@@ -204,11 +214,60 @@ class Inventory extends Queue implements ImportableEntity
 
             return true;
         }
+
         $product->setPrice($price);
-        $this->productRepository->save($product);
         $this->messages .= $product->getSku() . ': price changed to ' . $price . PHP_EOL;
+        if ($this->getConfig()->getConfigValue(Data::XML_PATH_PRICE_SCOPE)) {
+            $this->updateProductWebsitePrices($product, $websiteId, $data);
+        }
+        $this->productRepository->save($product);
 
         return true;
+    }
+
+    /**
+     * Update product prices if price scope is website
+     *
+     * @param ProductInterface $product
+     * @param int $websiteId
+     * @param \SimpleXMLElement $data
+     *
+     * @return Inventory
+     *
+     * @throws CouldNotSaveException
+     * @throws InputException
+     * @throws StateException
+     */
+    protected function updateProductWebsitePrices(
+        ProductInterface $product,
+        int $websiteId,
+        \SimpleXMLElement $data
+    ): Inventory {
+        $stores = empty($websiteId)
+            ? $this->storeManager->getStores()
+            : $this->storeWebsiteRelation->getStoreByWebsiteId($websiteId);
+        foreach ($stores as $store) {
+            if ($store instanceof StoreInterface) {
+                $storeId = $store->getId();
+            } else if (is_string($store) || is_int($store)) {
+                $storeId = $store;
+            } else {
+                throw new \Exception('Error getting store IDs by website ID');
+            }
+            $storeUnitPriceKey = 'unit_price_' . $storeId;
+            $price = (float)isset($data->$storeUnitPriceKey) ? $data->$storeUnitPriceKey : $data->unit_price;
+            $product->addAttributeUpdate(ProductInterface::PRICE, $price, $storeId);
+            $this->productRepository->save($product);
+
+            $this->messages .= sprintf(
+                '%s : price changed to %s for store #%s' . PHP_EOL,
+                $product->getSku(),
+                $price,
+                $storeId
+            );
+        }
+
+        return $this;
     }
 
     /**
