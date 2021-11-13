@@ -9,12 +9,15 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Helper\Data;
 use Magento\CatalogInventory\Api\Data\StockItemInterface;
 use Magento\CatalogInventory\Api\StockConfigurationInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\DataObject;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\StateException;
+use Magento\Framework\Model\Context;
+use Magento\Framework\Registry;
 use Magento\Inventory\Model\ResourceModel\Source\Collection as SourceCollection;
 use Magento\Inventory\Model\ResourceModel\Source\CollectionFactory as SourceCollectionFactory;
 use Magento\InventoryApi\Api\Data\SourceInterface;
@@ -25,9 +28,11 @@ use Magento\InventorySalesApi\Api\Data\SalesChannelInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\ResourceModel\StoreWebsiteRelation;
 use Magento\Store\Model\StoreManagerInterface;
+use MalibuCommerce\MConnect\Model\Config;
 use MalibuCommerce\MConnect\Model\Navision\Inventory as NavisionInventory;
 use MalibuCommerce\MConnect\Model\Queue;
 use MalibuCommerce\MConnect\Model\Queue\Inventory\SourceItemsProcessor;
+use MalibuCommerce\MConnect\Model\QueueFactory;
 
 class Inventory extends Queue implements ImportableEntity
 {
@@ -90,30 +95,42 @@ class Inventory extends Queue implements ImportableEntity
     protected $storeWebsiteRelation;
 
     /**
+     * @param Config $config
+     * @param Context $context
      * @param DefaultSourceProviderInterface $defaultSourceProvider
      * @param FlagFactory $queueFlagFactory
      * @param NavisionInventory $navisionInventory
      * @param IsSingleSourceModeInterface $isSingleSourceMode
      * @param ProductMetadataInterface $productMetadata
      * @param ProductRepositoryInterface $productRepository
+     * @param QueueFactory $queueFactory
+     * @param Registry $registry
      * @param SourceCollectionFactory $sourceCollectionFactory
      * @param SourceItemsProcessor $sourceItemsProcessor
      * @param StockConfigurationInterface $stockConfiguration
      * @param StoreManagerInterface $storeManager
      * @param StoreWebsiteRelation $storeWebsiteRelation
+     * @param ScopeConfigInterface $scopeConfig
+     * @param array $data
      */
     public function __construct(
+        Config $config,
+        Context $context,
         DefaultSourceProviderInterface $defaultSourceProvider,
         FlagFactory $queueFlagFactory,
         NavisionInventory $navisionInventory,
         IsSingleSourceModeInterface $isSingleSourceMode,
         ProductMetadataInterface $productMetadata,
         ProductRepositoryInterface $productRepository,
+        QueueFactory $queueFactory,
+        Registry $registry,
         SourceCollectionFactory $sourceCollectionFactory,
         SourceItemsProcessor $sourceItemsProcessor,
         StockConfigurationInterface $stockConfiguration,
         StoreManagerInterface $storeManager,
-        StoreWebsiteRelation $storeWebsiteRelation
+        StoreWebsiteRelation $storeWebsiteRelation,
+        ScopeConfigInterface $scopeConfig,
+        array $data = []
     ) {
         $this->defaultSourceProvider = $defaultSourceProvider;
         $this->isSingleSourceMode = $isSingleSourceMode;
@@ -126,6 +143,16 @@ class Inventory extends Queue implements ImportableEntity
         $this->stockConfiguration = $stockConfiguration;
         $this->storeManager = $storeManager;
         $this->storeWebsiteRelation = $storeWebsiteRelation;
+
+        parent::__construct(
+            $context,
+            $registry,
+            $config,
+            $scopeConfig,
+            $queueFlagFactory,
+            $queueFactory,
+            $data
+        );
     }
 
     /**
