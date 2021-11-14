@@ -5,6 +5,7 @@ namespace MalibuCommerce\MConnect\Helper;
 use \Magento\Framework\App\Filesystem\DirectoryList;
 use \Magento\Framework\App\ObjectManager;
 use \Magento\Framework\Serialize\Serializer\Json;
+use MalibuCommerce\MConnect\Model\Logger;
 use MalibuCommerce\MConnect\Model\Queue;
 
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
@@ -33,6 +34,11 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     protected $registry;
 
     /**
+     * @var Logger
+     */
+    protected $logger;
+
+    /**
      * Serializer interface instance.
      *
      * @var \Magento\Framework\Serialize\Serializer\Json
@@ -53,6 +59,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Sales\Model\OrderFactory $salesOrderFactory,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\App\Helper\Context $context,
+        Logger $logger,
         \Magento\Framework\Serialize\Serializer\Json $serializer = null
     ) {
         $this->mConnectConfig = $mConnectConfig;
@@ -60,6 +67,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $this->mConnectMailer = $mConnectMailer;
         $this->salesOrderFactory = $salesOrderFactory;
         $this->registry = $registry;
+        $this->logger = $logger;
         $this->serializer = $serializer ? : ObjectManager::getInstance()->get(Json::class);
 
         parent::__construct($context);
@@ -391,11 +399,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         if ($this->isLogDataToDb()) {
             $this->queueResourceModel->saveLog($queueItem->getId(), $this->serializer->serialize($logData));
         } else {
-            $logFile = $this->getLogFile($queueItem->getId(), true, true);
-            $writer = new \Zend\Log\Writer\Stream($logFile);
-            $logger = new \Zend\Log\Logger();
-            $logger->addWriter($writer);
-            $logger->debug('Debug Data', $logData);
+            $this->logger
+                ->setQueueItemId($queueItem->getId())
+                ->info('Debug Data', $logData);
         }
 
         return true;
