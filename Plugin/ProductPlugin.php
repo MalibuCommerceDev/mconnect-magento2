@@ -47,7 +47,7 @@ class ProductPlugin
      * Plugin to apply MConnect Price Rules for Product
      *
      * @param Product $product
-     * @param float $originalFinalPrice
+     * @param float $originalSpecialPrice
      *
      * @return float|null
      */
@@ -58,7 +58,6 @@ class ProductPlugin
             return $originalFinalPrice;
         }
 
-        $finalPrice = null;
         try {
             $websiteId = $product->getStore()->getWebsiteId();
             $qty = $product->getQty();
@@ -74,21 +73,21 @@ class ProductPlugin
 
                 return $originalFinalPrice;
             }
+            if (!empty($product->hasData('final_price')) && $mconnectPrice >= $product->getData('final_price')) {
 
-            if (!$product->hasData('final_price') || $mconnectPrice < $product->getData('final_price')) {
-                $finalPrice = $mconnectPrice;
+                return $originalFinalPrice;
             }
+            if ($this->promotion->getConfig()->isDisplayRegularPrice()) {
+                $product->setSpecialPrice($mconnectPrice);
+
+                return $originalFinalPrice;
+            }
+
+            return $mconnectPrice;
         } catch (\Throwable $e) {
             $this->logger->critical($e);
 
             return $originalFinalPrice;
         }
-
-        if ($finalPrice === null) {
-
-            return $originalFinalPrice;
-        }
-
-        return $finalPrice;
     }
 }

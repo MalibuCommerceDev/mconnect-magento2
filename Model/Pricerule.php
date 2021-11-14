@@ -74,7 +74,7 @@ class Pricerule extends AbstractModel
         $collection = $this->getResourceCollection();
 
         $customerGroupId = $this->customerHelper->getCurrentCustomerGroupId();
-        if (in_array($customerGroupId, $this->config->getPriceRuleDisallowedCustomerGroups($websiteId))) {
+        if (in_array((string)$customerGroupId, $this->config->getPriceRuleDisallowedCustomerGroups($websiteId), true)) {
 
             return false;
         }

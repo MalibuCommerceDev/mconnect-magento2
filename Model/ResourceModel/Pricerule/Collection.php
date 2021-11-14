@@ -62,6 +62,7 @@ class Collection extends AbstractCollection
         $select = clone $this->getSelect();
         $select->reset(Select::COLUMNS);
         $select->columns('price', 'main_table');
+        $select->order(new \Zend_Db_Expr('main_table.price ' . self::SORT_ORDER_ASC));
 
         return $this->getConnection()->fetchOne($select);
     }
@@ -145,13 +146,33 @@ class Collection extends AbstractCollection
     {
         $customer = $this->customerHelper->getCurrentCustomer();
         if ($customer) {
-            $this->addFieldToFilter(
-                ['navision_customer_id', 'customer_price_group'],
-                [
-                    ['eq' => $customer->getNavId()],
-                    ['eq' => $customer->getNavPriceGroup()]
-                ]
-            );
+            $this->getSelect()->where(sprintf(
+                '(%s) OR (%s)',
+                sprintf(
+                    '(%s) OR (%s)',
+                    $this->getConnection()->quoteInto(
+                        'main_table.navision_customer_id = ?',
+                        $customer->getNavId()
+                    ),
+                    $this->getConnection()->quoteInto(
+                        'main_table.customer_price_group = ?',
+                        $customer->getNavPriceGroup()
+                    )
+                ),
+                sprintf(
+                    '(%s) AND (%s)',
+                    sprintf(
+                        '(%s) OR (%s)',
+                        'main_table.navision_customer_id IS NULL',
+                        'main_table.navision_customer_id = ""'
+                    ),
+                    sprintf(
+                        '(%s) OR (%s)',
+                        'main_table.customer_price_group IS NULL',
+                        'main_table.customer_price_group = ""'
+                    )
+                )
+            ));
         } else {
             $this->addFieldToFilter(
                 'navision_customer_id',
