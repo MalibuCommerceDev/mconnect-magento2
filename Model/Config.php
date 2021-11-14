@@ -446,6 +446,18 @@ class Config
     }
 
     /**
+     * Display regular price
+     *
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return bool
+     */
+    public function isDisplayRegularPrice($websiteId = null)
+    {
+        return (bool)$this->getWebsiteData('price_rule/display_regular_price', $websiteId);
+    }
+
+    /**
      * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return bool

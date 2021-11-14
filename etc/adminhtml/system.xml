@@ -830,6 +830,12 @@
                 <field id="disallowed_customer_groups" sortOrder="40" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Customer Groups Disallowed for Price Rules</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Source\CustomerGroups</source_model>
+                    <can_be_empty>1</can_be_empty>
+                </field>
+                <field id="display_regular_price" sortOrder="50" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Show Regular Price</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Apply new price like a special price instead of the regular price, followed by a notation that shows the regular price.]]></comment>
                 </field>
             </group>
 
