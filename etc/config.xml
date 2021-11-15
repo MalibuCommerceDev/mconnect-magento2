@@ -146,7 +146,7 @@
                 <ignore_magento_errors>1</ignore_magento_errors>
                 <cron_expr>0 * * * *</cron_expr>
                 <max_rows>50</max_rows>
-                <display_regular_price>1</display_regular_price>
+                <display_regular_price>0</display_regular_price>
             </price_rule>
             <promotion>
                 <import_enabled>0</import_enabled>
