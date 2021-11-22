@@ -352,13 +352,13 @@ class Inventory extends Queue implements ImportableEntity
                 $sourceItemQty[$this->defaultSourceProvider->getCode()] = $quantity;
             }
             foreach ($sourceCodes as $sourceCode) {
-                $sourceCode = strtoupper($sourceCode);
-                if (isset($data->$sourceCode)) {
-                    $sourceItemQty[$sourceCode] = (int)$data->$sourceCode;
+                $sourceCodeNode = strtoupper($sourceCode);
+                if (isset($data->$sourceCodeNode)) {
+                    $sourceItemQty[$sourceCode] = (int)$data->$sourceCodeNode;
                 }
-                $sourceCode = strtolower($sourceCode);
-                if (isset($data->$sourceCode)) {
-                    $sourceItemQty[$sourceCode] = (int)$data->$sourceCode;
+                $sourceCodeNode = strtolower($sourceCode);
+                if (isset($data->$sourceCodeNode)) {
+                    $sourceItemQty[$sourceCode] = (int)$data->$sourceCodeNode;
                 }
             }
             $this->sourceItemsProcessor->process(
