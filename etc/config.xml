@@ -32,6 +32,7 @@
                 <import_enabled>1</import_enabled>
                 <export_enabled>1</export_enabled>
                 <ignore_magento_errors>1</ignore_magento_errors>
+                <ignore_customer_address_validation>0</ignore_customer_address_validation>
                 <cron_expr>0 * * * *</cron_expr>
                 <enable_scheduled_customer_import>0</enable_scheduled_customer_import>
                 <scheduled_customer_import_week_days>0,1,2,3,4,5,6</scheduled_customer_import_week_days>
