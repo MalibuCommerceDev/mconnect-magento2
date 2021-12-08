@@ -298,6 +298,9 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         $id = 'Customer: "' . $id . '"';
         try {
             if ($customer->hasDataChanges() || !empty($this->customAttributesMap)) {
+                foreach ($customer->getAddresses() as $address) {
+                    $address->setShouldIgnoreValidation(true);
+                }
                 $customer->save();
                 $this->saveCustomCustomerAttributes($customer, $data);
 
@@ -411,7 +414,9 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             ->setFax((string)$addressData->addr_fax)
             ->setNavId((string)$addressData->addr_nav_id)
             ->setSkipMconnect(true)
-            ->setShouldIgnoreValidation(true);
+            ->setShouldIgnoreValidation(
+                $this->config->getFlag($this->getQueueCode() . '/ignore_customer_address_validation')
+            );
 
         if ((string)$addressData->addr_nav_id == 'DEFAULT') {
             $address->setIsDefaultBilling(true);
