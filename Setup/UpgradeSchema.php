@@ -2,6 +2,7 @@
 
 namespace MalibuCommerce\MConnect\Setup;
 
+use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
@@ -60,6 +61,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
         if (version_compare($context->getVersion(), '2.9.9', '<=')) {
             $this->upgrade2_9_9($setup);
+        }
+
+        if (version_compare($context->getVersion(), '2.10.9', '<=')) {
+            $this->upgrade2_10_9($setup);
         }
 
         $setup->endSetup();
@@ -419,4 +424,40 @@ class UpgradeSchema implements UpgradeSchemaInterface
         );
     }
 
+    protected function upgrade2_10_9(SchemaSetupInterface $setup)
+    {
+        $mainTableName = 'malibucommerce_mconnect_price_rule';
+        $productEntityTableName = 'catalog_product_entity';
+        $setup->getConnection()->addForeignKey(
+            $setup->getFkName(
+                $mainTableName,
+                'sku',
+                $productEntityTableName,
+                'sku'
+            ),
+            $setup->getTable($mainTableName),
+            'sku',
+            $setup->getTable($productEntityTableName),
+            'sku'
+        );
+        $setup->getConnection()->addIndex(
+            $setup->getTable($mainTableName),
+            $setup->getIdxName(
+                $mainTableName,
+                ['sku', 'navision_customer_id', 'website_id', 'qty_min', 'customer_price_group']
+            ),
+            ['sku', 'navision_customer_id', 'website_id', 'qty_min', 'customer_price_group'],
+            AdapterInterface::INDEX_TYPE_UNIQUE
+        );
+        $setup->getConnection()->addIndex(
+            $setup->getTable($mainTableName),
+            $setup->getIdxName($mainTableName, ['date_start']),
+            ['date_start']
+        );
+        $setup->getConnection()->addIndex(
+            $setup->getTable($mainTableName),
+            $setup->getIdxName($mainTableName, ['date_end']),
+            ['date_end']
+        );
+    }
 }
