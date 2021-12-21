@@ -93,16 +93,7 @@ class Pricerule extends AbstractModel
             return $this->matchedPrices[$cacheId];
         }
 
-        $price = $collection->matchDiscountPrice($sku, $qty, $websiteId);
-
-        // If current website is a default website, then attempt to get price match for default scope (Website ID = 0)
-        if ($price === false && $websiteId == $this->websiteRepository->getDefault()->getId()) {
-            $collection->getSelect()->reset(Select::WHERE);
-            $collection->getSelect()->reset(Select::COLUMNS);
-            $price = $collection->matchDiscountPrice($sku, $qty, 0);
-        }
-
-        $this->matchedPrices[$cacheId] = $price;
+        $this->matchedPrices[$cacheId] = $collection->matchDiscountPrice($sku, $qty, (int)$websiteId);
 
         return $this->matchedPrices[$cacheId];
     }

@@ -178,7 +178,7 @@ class Inventory extends Queue implements ImportableEntity
      *
      * @return void
      */
-    public function updateInventory($data, $websiteId = 0): void
+    public function updateInventory($data, $websiteId = 0)
     {
         $this->importEntity($data, $websiteId);
     }
@@ -191,7 +191,7 @@ class Inventory extends Queue implements ImportableEntity
      *
      * @return bool
      */
-    public function importEntity(\SimpleXMLElement $data, $websiteId): bool
+    public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
         $sku = (string)$data->nav_item_id;
         $sku = trim($sku);
@@ -390,7 +390,7 @@ class Inventory extends Queue implements ImportableEntity
      *
      * @return array
      */
-    protected function getInventorySourceCodes(int $websiteId)
+    protected function getInventorySourceCodes($websiteId)
     {
         /** @var SourceCollection $sourceCollection */
         $sourceCollection = $this->sourceCollectionFactory->create();

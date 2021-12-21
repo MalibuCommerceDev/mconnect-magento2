@@ -62,6 +62,12 @@ class Collection extends AbstractCollection
         $select = clone $this->getSelect();
         $select->reset(Select::COLUMNS);
         $select->columns('price', 'main_table');
+        if ($websiteId != 0) {
+            $select->order(new \Zend_Db_Expr(sprintf(
+                'FIELD(main_table.website_id,%s)',
+                implode(',', [$websiteId, 0])
+            )));
+        }
         $select->order(new \Zend_Db_Expr('main_table.price ' . self::SORT_ORDER_ASC));
 
         return $this->getConnection()->fetchOne($select);
@@ -93,13 +99,18 @@ class Collection extends AbstractCollection
     /**
      * Apply product SKU filter
      *
-     * @param string $value
+     * @param int $value
      *
      * @return $this
      */
     public function applyWebsiteFilter($value)
     {
-        $this->addFieldToFilter('website_id', ['eq' => $value]);
+        $this->addFieldToFilter(
+            'website_id',
+            $value != 0
+                ? ['in' => [0, $value]]
+                : ['eq' => $value]
+        );
 
         return $this;
     }
