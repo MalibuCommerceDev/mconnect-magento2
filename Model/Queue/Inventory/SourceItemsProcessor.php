@@ -2,13 +2,11 @@
 
 namespace MalibuCommerce\MConnect\Model\Queue\Inventory;
 
-use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Api\SearchCriteriaBuilderFactory;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\InventoryApi\Api\Data\SourceItemInterface;
-use Magento\InventoryApi\Api\Data\SourceItemInterfaceFactory;
 
 /**
  * Save source product relations during inventory sync from NAV to Magento
@@ -17,14 +15,13 @@ use Magento\InventoryApi\Api\Data\SourceItemInterfaceFactory;
  */
 class SourceItemsProcessor
 {
-
+    /** @var \Magento\InventoryConfigurationApi\Model\IsSourceItemManagementAllowedForProductTypeInterface */
     protected $isSourceItemManagementAllowedForProductType;
 
-    /**
-     * @var \Magento\InventoryCatalogAdminUi\Observer\SourceItemsProcessor
-     */
+    /** @var \Magento\InventoryCatalogApi\Model\SourceItemsProcessorInterface */
     protected $sourceItemsProcessor;
 
+    /** @var \Magento\InventoryCatalogApi\Api\DefaultSourceProviderInterface */
     protected $defaultSourceProvider;
 
     /**
@@ -32,30 +29,17 @@ class SourceItemsProcessor
      */
     protected $searchCriteriaBuilderFactory;
 
+    /** @var  \Magento\InventoryApi\Api\SourceItemRepositoryInterface */
     protected $sourceItemRepository;
 
-    /**
-     * @var SourceItemInterfaceFactory
-     */
-    protected $sourceItemFactory;
-
-    /**
-     * @var \Magento\Catalog\Api\ProductRepositoryInterface|ProductRepositoryInterface
-     */
+    /** @var ProductRepositoryInterface */
     protected $productRepository;
 
-    /**
-     * @param SearchCriteriaBuilderFactory $searchCriteriaBuilderFactory
-     * @param SourceItemInterfaceFactory $sourceItemInterfaceFactory
-     * @param ProductRepositoryInterface $productRepository
-     */
     public function __construct(
         SearchCriteriaBuilderFactory $searchCriteriaBuilderFactory,
-        SourceItemInterfaceFactory  $sourceItemFactory,
         ProductRepositoryInterface $productRepository
     ) {
         $this->searchCriteriaBuilderFactory = $searchCriteriaBuilderFactory;
-        $this->sourceItemFactory = $sourceItemFactory;
         $this->productRepository = $productRepository;
     }
 
@@ -64,14 +48,13 @@ class SourceItemsProcessor
      *
      * @param ProductInterface $product
      * @param array $sourceItemQty
-     * @param bool $isInStock
+     * @param null|bool $isInStock
      *
-     * @return ProductInterface|void
-     * @throws NoSuchEntityException
+     * @return void
      */
     public function process($product, $sourceItemQty, $isInStock = null)
     {
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $objectManager = ObjectManager::getInstance();
         $this->isSourceItemManagementAllowedForProductType = $objectManager->create(
             \Magento\InventoryConfigurationApi\Model\IsSourceItemManagementAllowedForProductTypeInterface::class
         );
@@ -112,8 +95,6 @@ class SourceItemsProcessor
             $sourceItems[$key] = $sourceItem;
         }
         $this->sourceItemsProcessor->execute($product->getSku(), $sourceItems);
-
-        return $this;
     }
 
     /**
@@ -125,13 +106,12 @@ class SourceItemsProcessor
      */
     protected function getSourceItems($sku)
     {
-        /** @var SearchCriteriaBuilder $searchCriteriaBuilder */
         $searchCriteriaBuilder = $this->searchCriteriaBuilderFactory->create();
         $searchCriteriaBuilder->addFilter(SourceItemInterface::SKU, $sku);
 
         $searchCriteria = $searchCriteriaBuilder->create();
 
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $objectManager = ObjectManager::getInstance();
         $this->sourceItemRepository = $objectManager->create(
             \Magento\InventoryApi\Api\SourceItemRepositoryInterface::class
         );
