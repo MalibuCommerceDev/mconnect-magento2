@@ -10,7 +10,6 @@ use Magento\Catalog\Helper\Data;
 use Magento\CatalogInventory\Api\Data\StockItemInterface;
 use Magento\CatalogInventory\Api\StockConfigurationInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\DataObject;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\InputException;
@@ -18,13 +17,6 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\StateException;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Registry;
-use Magento\Inventory\Model\ResourceModel\Source\Collection as SourceCollection;
-use Magento\Inventory\Model\ResourceModel\Source\CollectionFactory as SourceCollectionFactory;
-use Magento\InventoryApi\Api\Data\SourceInterface;
-use Magento\InventoryApi\Api\Data\SourceItemInterfaceFactory;
-use Magento\InventoryCatalogApi\Api\DefaultSourceProviderInterface;
-use Magento\InventoryCatalogApi\Model\IsSingleSourceModeInterface;
-use Magento\InventorySalesApi\Api\Data\SalesChannelInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\ResourceModel\StoreWebsiteRelation;
 use Magento\Store\Model\StoreManagerInterface;
@@ -45,24 +37,9 @@ class Inventory extends Queue implements ImportableEntity
     protected $stockConfiguration;
 
     /**
-     * @var DefaultSourceProviderInterface
-     */
-    protected $defaultSourceProvider;
-
-    /**
-     * @var IsSingleSourceModeInterface
-     */
-    protected $isSingleSourceMode;
-
-    /**
      * @var NavisionInventory
      */
     protected $navisionInventory;
-
-    /**
-     * @var ProductMetadataInterface
-     */
-    protected $productMetadata;
 
     /**
      * @var ProductRepositoryInterface
@@ -73,11 +50,6 @@ class Inventory extends Queue implements ImportableEntity
      * @var FlagFactory
      */
     protected $queueFlagFactory;
-
-    /**
-     * @var SourceCollectionFactory
-     */
-    protected $sourceCollectionFactory;
 
     /**
      * @var SourceItemsProcessor
@@ -97,15 +69,11 @@ class Inventory extends Queue implements ImportableEntity
     /**
      * @param Config $config
      * @param Context $context
-     * @param DefaultSourceProviderInterface $defaultSourceProvider
      * @param FlagFactory $queueFlagFactory
      * @param NavisionInventory $navisionInventory
-     * @param IsSingleSourceModeInterface $isSingleSourceMode
-     * @param ProductMetadataInterface $productMetadata
      * @param ProductRepositoryInterface $productRepository
      * @param QueueFactory $queueFactory
      * @param Registry $registry
-     * @param SourceCollectionFactory $sourceCollectionFactory
      * @param SourceItemsProcessor $sourceItemsProcessor
      * @param StockConfigurationInterface $stockConfiguration
      * @param StoreManagerInterface $storeManager
@@ -116,15 +84,11 @@ class Inventory extends Queue implements ImportableEntity
     public function __construct(
         Config $config,
         Context $context,
-        DefaultSourceProviderInterface $defaultSourceProvider,
         FlagFactory $queueFlagFactory,
         NavisionInventory $navisionInventory,
-        IsSingleSourceModeInterface $isSingleSourceMode,
-        ProductMetadataInterface $productMetadata,
         ProductRepositoryInterface $productRepository,
         QueueFactory $queueFactory,
         Registry $registry,
-        SourceCollectionFactory $sourceCollectionFactory,
         SourceItemsProcessor $sourceItemsProcessor,
         StockConfigurationInterface $stockConfiguration,
         StoreManagerInterface $storeManager,
@@ -132,13 +96,9 @@ class Inventory extends Queue implements ImportableEntity
         ScopeConfigInterface $scopeConfig,
         array $data = []
     ) {
-        $this->defaultSourceProvider = $defaultSourceProvider;
-        $this->isSingleSourceMode = $isSingleSourceMode;
         $this->navisionInventory = $navisionInventory;
-        $this->productMetadata = $productMetadata;
         $this->productRepository = $productRepository;
         $this->queueFlagFactory = $queueFlagFactory;
-        $this->sourceCollectionFactory = $sourceCollectionFactory;
         $this->sourceItemsProcessor = $sourceItemsProcessor;
         $this->stockConfiguration = $stockConfiguration;
         $this->storeManager = $storeManager;
@@ -334,39 +294,22 @@ class Inventory extends Queue implements ImportableEntity
         }
 
         // Magento >= 2.3.x logic
-        if (version_compare($this->productMetadata->getVersion(), '2.3.0', '>=')
-            && !$this->isSingleSourceMode->execute()
-        ) {
-            $sourceCodes = $this->getInventorySourceCodes($websiteId);
-            if (empty($sourceCodes)) {
-                $this->messages .= sprintf(
-                    '%s: skipped - inventory sources not found for website id #%s' . PHP_EOL,
-                    $product->getSku(),
-                    $websiteId
-                );
-
-                return false;
-            }
-            $sourceItemQty = [];
-            if (in_array($this->defaultSourceProvider->getCode(), $sourceCodes)) {
-                $sourceItemQty[$this->defaultSourceProvider->getCode()] = $quantity;
-            }
-            foreach ($sourceCodes as $sourceCode) {
-                $sourceCodeNode = strtoupper($sourceCode);
-                if (isset($data->$sourceCodeNode)) {
-                    $sourceItemQty[$sourceCode] = (int)$data->$sourceCodeNode;
-                }
-                $sourceCodeNode = strtolower($sourceCode);
-                if (isset($data->$sourceCodeNode)) {
-                    $sourceItemQty[$sourceCode] = (int)$data->$sourceCodeNode;
-                }
-            }
-            $this->sourceItemsProcessor->process(
+        if ($this->sourceItemsProcessor->isSupportMSI()) {
+            $result = $this->sourceItemsProcessor->process(
                 $product,
-                $sourceItemQty,
+                $data,
+                $websiteId,
+                $quantity,
                 $forcedInStock ? true : null
             );
-            $this->messages .= $product->getSku() . ': qty changed in MSI - ' . print_r($sourceItemQty, true);
+            if (is_string($result)) {
+                $this->messages .= $result;
+
+                return true;
+            }
+            $this->messages .= $product->getSku() . !empty($result)
+                ? ': qty changed in MSI - ' . print_r($result, true)
+                : ': qty is not changed in MSI';
 
             return true;
         }
@@ -381,41 +324,5 @@ class Inventory extends Queue implements ImportableEntity
         $this->messages .= $product->getSku() . ': qty changed to ' . $quantity;
 
         return true;
-    }
-
-    /**
-     * Get inventory source codes except default
-     *
-     * @param int $websiteId
-     *
-     * @return array
-     */
-    protected function getInventorySourceCodes($websiteId)
-    {
-        /** @var SourceCollection $sourceCollection */
-        $sourceCollection = $this->sourceCollectionFactory->create();
-        if (!empty($websiteId)) {
-            $sourceCollection
-                ->join(
-                    ['issl' => 'inventory_source_stock_link'],
-                    'main_table.source_code = issl.source_code',
-                    ''
-                )
-                ->join(
-                    ['issc' => 'inventory_stock_sales_channel'],
-                    'issl.stock_id = issc.stock_id',
-                    ''
-                )
-                ->join(
-                    ['sw' => 'store_website'],
-                    sprintf('issc.code = sw.code && issc.type = "%s"', SalesChannelInterface::TYPE_WEBSITE),
-                    ''
-                )
-                ->addFieldToFilter('website_id', $websiteId);
-        }
-        $sourceCollection
-            ->addFieldToFilter(SourceInterface::ENABLED, true);
-
-        return $sourceCollection->getColumnValues(SourceInterface::SOURCE_CODE);
     }
 }
