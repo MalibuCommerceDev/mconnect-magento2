@@ -272,11 +272,11 @@
                     <comment><![CDATA[Leave blank to disable]]></comment>
                 </field>
                 <field id="default_group_taxable" sortOrder="170" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                    <label>Default group for new customers (taxable)</label>
+                    <label>Default group for customers (taxable)</label>
                     <source_model>\Magento\Customer\Model\Config\Source\Group</source_model>
                 </field>
                 <field id="default_group_nontaxable" sortOrder="180" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                    <label>Default group for new customers (non-taxable)</label>
+                    <label>Default group for customers (non-taxable)</label>
                     <source_model>\Magento\Customer\Model\Config\Source\Group</source_model>
                 </field>
                 <field id="default_website" sortOrder="190" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">

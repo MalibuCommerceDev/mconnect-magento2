@@ -229,15 +229,18 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         }
 
         if (!$customerExists) {
-            $taxable = (string)$data->cust_taxable;
-            $customer->setEmail($email)
-                ->setGroupId(
-                    empty($taxable) || $taxable == 'false'
-                        ? $this->config->get('customer/default_group_nontaxable')
-                        : $this->config->get('customer/default_group_taxable')
-                )
-                ->setWebsiteId($websiteId);
+            $customer->setEmail($email)->setWebsiteId($websiteId);
         }
+        $taxable = (string)$data->cust_taxable;
+        $taxable = !empty($taxable) && $taxable != 'false';
+        if ($taxable != (bool)$customer->getNavTaxable()) {
+            $customer->setGroupId(
+                $taxable
+                    ? $this->config->get('customer/default_group_taxable')
+                    : $this->config->get('customer/default_group_nontaxable')
+            );
+        }
+        $customer->setNavTaxable($taxable);
 
         $firstname = (string)$data->cust_first_name;
         $lastname = (string)$data->cust_last_name;

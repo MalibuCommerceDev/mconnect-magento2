@@ -3,6 +3,7 @@
 namespace MalibuCommerce\MConnect\Setup;
 
 use Magento\Customer\Setup\CustomerSetupFactory;
+use Magento\Eav\Model\Entity\Attribute\Source\Boolean;
 use Magento\Framework\Setup\UpgradeDataInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
@@ -83,6 +84,10 @@ class UpgradeData implements UpgradeDataInterface
 
         if (version_compare($context->getVersion(), '2.9.2', '<')) {
             $this->upgrade2_9_2($setup);
+        }
+
+        if (version_compare($context->getVersion(), '2.10.13', '<')) {
+            $this->upgrade2_10_13($setup);
         }
 
         $setup->endSetup();
@@ -341,5 +346,62 @@ class UpgradeData implements UpgradeDataInterface
         foreach (SyncSchedule::CRON_PATH_CONFIG as $key => $config) {
             $this->configWriter->save($config['cron_expr_path'], $this->scopeConfig->getValue($config['default_cron']));
         }
+    }
+
+    protected function upgrade2_10_13(ModuleDataSetupInterface $setup)
+    {
+        $customerSetup = $this->customerSetupFactory->create(['setup' => $setup]);
+        /** @var EavSetup $eavSetup */
+        $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+
+        $entityTypeId = $eavSetup->getEntityTypeId(Customer::ENTITY);
+        $attributeSetId = $eavSetup->getDefaultAttributeSetId($entityTypeId);
+        $attributeGroupId = $eavSetup->getDefaultAttributeGroupId($entityTypeId, $attributeSetId);
+
+        $customerSetup->removeAttribute(Customer::ENTITY, 'nav_taxable');
+        $setup->getConnection()->dropColumn($setup->getTable('customer_entity'), 'nav_taxable');
+        $customerSetup->addAttribute(
+            Customer::ENTITY,
+            'nav_taxable',
+            [
+                'label'                 => 'Navision Taxable',
+                'type'                  => 'int',
+                'input'                 => 'boolean',
+                'global'                => ScopedAttributeInterface::SCOPE_GLOBAL,
+                'source'                => Boolean::class,
+                'visible'               => true,
+                'required'              => false,
+                'user_defined'          => false,
+                'system'                => false,
+                'position'              => 1003,
+                'is_used_in_grid'       => false,
+                'is_visible_in_grid'    => false,
+                'is_filterable_in_grid' => false,
+                'is_searchable_in_grid' => false,
+            ]
+        );
+
+        $attribute = $eavSetup->getAttribute($entityTypeId, 'nav_taxable');
+        if ($attribute) {
+            $eavSetup->addAttributeToGroup(
+                $entityTypeId,
+                $attributeSetId,
+                $attributeGroupId,
+                $attribute['attribute_id'],
+                1000
+            );
+        }
+
+        /**
+         * Add required static columns to customer entity DB table
+         */
+        $setup->getConnection()->addColumn(
+            $setup->getTable('customer_entity'),
+            'nav_taxable',
+            [
+                'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_BOOLEAN,
+                'comment' => 'NAV Taxable'
+            ]
+        );
     }
 }
