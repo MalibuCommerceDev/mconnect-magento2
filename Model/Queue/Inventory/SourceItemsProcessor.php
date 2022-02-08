@@ -203,7 +203,9 @@ class SourceItemsProcessor
      */
     public function isSupportMSI()
     {
-        if (version_compare($this->productMetadata->getVersion(), '2.3.0', '<')) {
+        if (version_compare($this->productMetadata->getVersion(), '2.3.0', '<')
+            || !interface_exists(IsSingleSourceModeInterface::class)
+        ) {
             return false;
         }
         if (empty($this->isSingleSourceMode)) {
