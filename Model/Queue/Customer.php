@@ -233,7 +233,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         }
         $taxable = (string)$data->cust_taxable;
         $taxable = !empty($taxable) && $taxable != 'false';
-        if ($taxable != (bool)$customer->getNavTaxable()) {
+        if ($customer->getNavTaxable() === null || $taxable != (bool)$customer->getNavTaxable()) {
             $customer->setGroupId(
                 $taxable
                     ? $this->config->get('customer/default_group_taxable')
