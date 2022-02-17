@@ -117,6 +117,9 @@ class Order extends AbstractModel
         if ($tracksCollection->getTrackNumber()) {
             $orderObject->tracking_no = $tracksCollection->getTrackNumber();
         }
+        if (!empty($orderEntity->getCouponCode())) {
+            $orderObject->promo_code = $orderEntity->getCouponCode();
+        }
         $this->addGiftOptions($orderEntity, $orderObject, $websiteId);
         $this->addRewardPoints($orderEntity, $orderObject, $websiteId);
         $this->addShipping($orderEntity, $orderObject);
