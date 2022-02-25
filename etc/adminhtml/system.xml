@@ -617,6 +617,13 @@
                     <label>GiftWrapping Functionality Forcefully Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="export_order_price_currency" sortOrder="200" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Use Order Price Currency Instead Base Currency</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="export_enabled">1</field>
+                    </depends>
+                </field>
             </group>
 
             <group id="invoice" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">

@@ -4,6 +4,7 @@ namespace MalibuCommerce\MConnect\Model\Navision;
 
 use Magento\Catalog\Model\Product\Type as ProductType;
 use Magento\Framework\Module\Manager;
+use Magento\Store\Model\StoreManagerInterface;
 
 class Order extends AbstractModel
 {
@@ -43,6 +44,11 @@ class Order extends AbstractModel
     protected $moduleManager;
 
     /**
+     * @var StoreManagerInterface
+     */
+    protected $storeManager;
+
+    /**
      * Order constructor.
      *
      * @param \Magento\Directory\Model\Region                 $directoryRegion
@@ -55,6 +61,7 @@ class Order extends AbstractModel
      * @param \Magento\Framework\Serialize\Serializer\Json    $serializer
      * @param Manager                                         $moduleManager
      * @param \Psr\Log\LoggerInterface                        $logger
+     * @param StoreManagerInterface                           $storeManager
      * @param array                                           $data
      */
     public function __construct(
@@ -68,6 +75,7 @@ class Order extends AbstractModel
         \Magento\Framework\Serialize\Serializer\Json $serializer,
         \Magento\Framework\Module\Manager $moduleManager,
         \Psr\Log\LoggerInterface $logger,
+        StoreManagerInterface $storeManager,
         array $data = []
     ) {
         $this->directoryRegion = $directoryRegion;
@@ -77,6 +85,7 @@ class Order extends AbstractModel
         $this->giftMessage = $giftMessage;
         $this->serializer = $serializer;
         $this->moduleManager = $moduleManager;
+        $this->storeManager = $storeManager;
 
         parent::__construct($config, $mConnectNavisionConnection, $logger, $data);
     }
@@ -347,14 +356,21 @@ class Order extends AbstractModel
             )
             || $item->getProductType() == ProductType::TYPE_VIRTUAL
         ) {
+            $websiteId = $this->storeManager->getStore($item->getStoreId())->getWebsiteId();
             $child = $root->addChild('order_item');
 
             $child->mag_item_id = $item->getSku();
             $child->name = $item->getName();
             $child->quantity = $item->getQtyOrdered();
-            $child->unit_price = ($item->getParentItem() && ($item->getParentItem()->getProductType() != \Magento\Catalog\Model\Product\Type::TYPE_BUNDLE))
-                ? $item->getParentItem()->getBasePrice()
-                : $item->getBasePrice();
+            if ($item->getParentItem() && ($item->getParentItem()->getProductType() != ProductType::TYPE_BUNDLE)) {
+                $child->unit_price = $this->config->isExportOrderPriceCurrency($websiteId)
+                    ? $item->getParentItem()->getPrice()
+                    : $item->getParentItem()->getBasePrice();
+            } else {
+                $child->unit_price = $this->config->isExportOrderPriceCurrency($websiteId)
+                    ? $item->getPrice()
+                    : $item->getBasePrice();
+            }
             $child->line_discount_amount = $item->getParentItem()
                 ? $item->getParentItem()->getBaseDiscountAmount()
                 : $item->getBaseDiscountAmount();
