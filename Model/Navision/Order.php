@@ -4,7 +4,6 @@ namespace MalibuCommerce\MConnect\Model\Navision;
 
 use Magento\Catalog\Model\Product\Type as ProductType;
 use Magento\Framework\Module\Manager;
-use Magento\Store\Model\StoreManagerInterface;
 
 class Order extends AbstractModel
 {
