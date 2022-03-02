@@ -44,11 +44,6 @@ class Order extends AbstractModel
     protected $moduleManager;
 
     /**
-     * @var StoreManagerInterface
-     */
-    protected $storeManager;
-
-    /**
      * Order constructor.
      *
      * @param \Magento\Directory\Model\Region                 $directoryRegion
@@ -61,7 +56,6 @@ class Order extends AbstractModel
      * @param \Magento\Framework\Serialize\Serializer\Json    $serializer
      * @param Manager                                         $moduleManager
      * @param \Psr\Log\LoggerInterface                        $logger
-     * @param StoreManagerInterface                           $storeManager
      * @param array                                           $data
      */
     public function __construct(
@@ -75,7 +69,6 @@ class Order extends AbstractModel
         \Magento\Framework\Serialize\Serializer\Json $serializer,
         \Magento\Framework\Module\Manager $moduleManager,
         \Psr\Log\LoggerInterface $logger,
-        StoreManagerInterface $storeManager,
         array $data = []
     ) {
         $this->directoryRegion = $directoryRegion;
@@ -85,7 +78,6 @@ class Order extends AbstractModel
         $this->giftMessage = $giftMessage;
         $this->serializer = $serializer;
         $this->moduleManager = $moduleManager;
-        $this->storeManager = $storeManager;
 
         parent::__construct($config, $mConnectNavisionConnection, $logger, $data);
     }
@@ -334,13 +326,14 @@ class Order extends AbstractModel
     protected function addItems(\Magento\Sales\Api\Data\OrderInterface $orderEntity, &$root)
     {
         foreach ($orderEntity->getItems() as $item) {
-            $this->addItem($item, $root);
+            $this->addItem($orderEntity, $item, $root);
         }
     }
 
     /**
      * Construct NAV item XML and set item data
      *
+     * @param \Magento\Sales\Api\Data\OrderInterface     $orderEntity
      * @param \Magento\Sales\Api\Data\OrderItemInterface $item
      * @param \simpleXMLElement                          $root
      *
@@ -348,32 +341,41 @@ class Order extends AbstractModel
      * @todo currently only simple, virtual and giftcard products are supported
      *
      */
-    protected function addItem(\Magento\Sales\Api\Data\OrderItemInterface $item, &$root)
-    {
+    protected function addItem(
+        \Magento\Sales\Api\Data\OrderInterface $orderEntity,
+        \Magento\Sales\Api\Data\OrderItemInterface $item,
+        &$root
+    ) {
         if ($item->getProductType() == ProductType::TYPE_SIMPLE
             || ($this->moduleManager->isEnabled('Magento_GiftCard')
                 && $item->getProductType() == \Magento\GiftCard\Model\Catalog\Product\Type\Giftcard::TYPE_GIFTCARD
             )
             || $item->getProductType() == ProductType::TYPE_VIRTUAL
         ) {
-            $websiteId = $this->storeManager->getStore($item->getStoreId())->getWebsiteId();
             $child = $root->addChild('order_item');
 
             $child->mag_item_id = $item->getSku();
             $child->name = $item->getName();
             $child->quantity = $item->getQtyOrdered();
+            $currencyIsEqual = $orderEntity->getOrderCurrencyCode() == $orderEntity->getStoreCurrencyCode();
             if ($item->getParentItem() && ($item->getParentItem()->getProductType() != ProductType::TYPE_BUNDLE)) {
-                $child->unit_price = $this->config->isExportOrderPriceCurrency($websiteId)
-                    ? $item->getParentItem()->getPrice()
-                    : $item->getParentItem()->getBasePrice();
+                $child->unit_price = $currencyIsEqual
+                    ? $item->getParentItem()->getBasePrice()
+                    : $item->getParentItem()->getPrice();
             } else {
-                $child->unit_price = $this->config->isExportOrderPriceCurrency($websiteId)
-                    ? $item->getPrice()
-                    : $item->getBasePrice();
+                $child->unit_price = $currencyIsEqual
+                    ? $item->getBasePrice()
+                    : $item->getPrice();
             }
-            $child->line_discount_amount = $item->getParentItem()
-                ? $item->getParentItem()->getBaseDiscountAmount()
-                : $item->getBaseDiscountAmount();
+            if (!empty($item->getParentItem())) {
+                $child->line_discount_amount = $currencyIsEqual
+                    ? $item->getParentItem()->getBaseDiscountAmount()
+                    : $item->getParentItem()->getDiscountAmount();
+            } else {
+                $child->line_discount_amount = $currencyIsEqual
+                    ? $item->getBaseDiscountAmount()
+                    : $item->getDiscountAmount();
+            }
         }
 
         return $this;

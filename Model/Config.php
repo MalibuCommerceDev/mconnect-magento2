@@ -259,16 +259,6 @@ class Config
     }
 
     /**
-     * @param null|int|string|\Magento\Store\Model\Website $websiteId
-     *
-     * @return bool
-     */
-    public function isExportOrderPriceCurrency($websiteId = null)
-    {
-        return (bool)$this->getWebsiteData('order/export_order_price_currency', $websiteId);
-    }
-
-    /**
      * @return bool
      */
     public function isScheduledOrdersExportEnabled()
