@@ -200,6 +200,9 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                 $urlKey = $product->formatUrlKey($data->item_name);
                 $product->setUrlKey($urlKey);
                 $product->setData('save_rewrites_history', true);
+                if ($this->getAlwaysSetProductNameFromNAV($websiteId)) {
+                    $product->setName((string)$data->item_name);
+                }
             }
         } else {
             $product->setAttributeSetId($this->getDefaultAttributeSetId())
@@ -482,6 +485,22 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         }
 
         return true;
+    }
+
+    /**
+     * Get always set product name from NAV
+     *
+     * @param $websiteId
+     *
+     * @return boolean
+     */
+    public function getAlwaysSetProductNameFromNAV($websiteId = null)
+    {
+        if (!$this->hasAlwaysSetProductNameFromNAV()) {
+            $this->setAlwaysSetProductNameFromNAV($this->config->isAlwaysSetProductNameFromNAV($websiteId));
+        }
+
+        return (bool)parent::getAlwaysSetProductNameFromNAV();
     }
 
     public function getDefaultAttributeSetId()

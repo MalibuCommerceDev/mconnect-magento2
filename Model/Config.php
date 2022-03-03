@@ -550,6 +550,18 @@ class Config
     }
 
     /**
+     * Is always set product name from NAV
+     *
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return bool
+     */
+    public function isAlwaysSetProductNameFromNAV($websiteId = null)
+    {
+        return (bool)$this->getWebsiteData('product/set_name_always', $websiteId);
+    }
+
+    /**
      * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return bool
