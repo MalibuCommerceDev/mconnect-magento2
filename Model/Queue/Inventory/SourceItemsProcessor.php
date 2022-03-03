@@ -14,7 +14,6 @@ use Magento\InventoryApi\Api\Data\SourceInterface;
 use Magento\InventoryApi\Api\Data\SourceItemInterface;
 use Magento\InventoryApi\Api\SourceItemRepositoryInterface;
 use Magento\InventoryCatalogApi\Api\DefaultSourceProviderInterface;
-use Magento\InventoryCatalogApi\Model\IsSingleSourceModeInterface;
 use Magento\InventoryCatalogApi\Model\SourceItemsProcessorInterface;
 use Magento\InventoryConfigurationApi\Model\IsSourceItemManagementAllowedForProductTypeInterface;
 use Magento\InventorySalesApi\Api\Data\SalesChannelInterface;
@@ -36,7 +35,7 @@ class SourceItemsProcessor
     protected $defaultSourceProvider;
 
     /**
-     * @var IsSingleSourceModeInterface
+     * @var \Magento\InventoryCatalogApi\Model\IsSingleSourceModeInterface
      */
     protected $isSingleSourceMode;
 
@@ -197,11 +196,9 @@ class SourceItemsProcessor
     }
 
     /**
-     * Check support and enable MSI
-     *
      * @return bool
      */
-    public function isSupportMSI()
+    public function isMSIEnabled()
     {
         if (version_compare($this->productMetadata->getVersion(), '2.3.0', '<')
             || !interface_exists(IsSingleSourceModeInterface::class)
@@ -209,7 +206,9 @@ class SourceItemsProcessor
             return false;
         }
         if (empty($this->isSingleSourceMode)) {
-            $this->isSingleSourceMode = $this->objectManager->create(IsSingleSourceModeInterface::class);
+            $this->isSingleSourceMode = $this->objectManager->create(
+                \Magento\InventoryCatalogApi\Model\IsSingleSourceModeInterface::class
+            );
         }
 
         return !$this->isSingleSourceMode->execute();

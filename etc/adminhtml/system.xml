@@ -385,6 +385,10 @@
                     <source_model>\Magento\Tax\Model\TaxClass\Source\Product</source_model>
                     <backend_model>\Magento\Tax\Model\Config\TaxClass</backend_model>
                 </field>
+                <field id="set_name_always" sortOrder="115" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Always Set Product Name from NAV</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
                 <field id="set_in_stock" sortOrder="120" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Set Product Stock Status to "In Stock" if QTY > "0"</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
