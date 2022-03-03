@@ -325,13 +325,14 @@ class Order extends AbstractModel
     protected function addItems(\Magento\Sales\Api\Data\OrderInterface $orderEntity, &$root)
     {
         foreach ($orderEntity->getItems() as $item) {
-            $this->addItem($item, $root);
+            $this->addItem($orderEntity, $item, $root);
         }
     }
 
     /**
      * Construct NAV item XML and set item data
      *
+     * @param \Magento\Sales\Api\Data\OrderInterface     $orderEntity
      * @param \Magento\Sales\Api\Data\OrderItemInterface $item
      * @param \simpleXMLElement                          $root
      *
@@ -339,8 +340,11 @@ class Order extends AbstractModel
      * @todo currently only simple, virtual and giftcard products are supported
      *
      */
-    protected function addItem(\Magento\Sales\Api\Data\OrderItemInterface $item, &$root)
-    {
+    protected function addItem(
+        \Magento\Sales\Api\Data\OrderInterface $orderEntity,
+        \Magento\Sales\Api\Data\OrderItemInterface $item,
+        &$root
+    ) {
         if ($item->getProductType() == ProductType::TYPE_SIMPLE
             || ($this->moduleManager->isEnabled('Magento_GiftCard')
                 && $item->getProductType() == \Magento\GiftCard\Model\Catalog\Product\Type\Giftcard::TYPE_GIFTCARD
@@ -352,12 +356,25 @@ class Order extends AbstractModel
             $child->mag_item_id = $item->getSku();
             $child->name = $item->getName();
             $child->quantity = $item->getQtyOrdered();
-            $child->unit_price = ($item->getParentItem() && ($item->getParentItem()->getProductType() != \Magento\Catalog\Model\Product\Type::TYPE_BUNDLE))
-                ? $item->getParentItem()->getBasePrice()
-                : $item->getBasePrice();
-            $child->line_discount_amount = $item->getParentItem()
-                ? $item->getParentItem()->getBaseDiscountAmount()
-                : $item->getBaseDiscountAmount();
+            $currencyIsEqual = $orderEntity->getOrderCurrencyCode() == $orderEntity->getStoreCurrencyCode();
+            if ($item->getParentItem() && ($item->getParentItem()->getProductType() != ProductType::TYPE_BUNDLE)) {
+                $child->unit_price = $currencyIsEqual
+                    ? $item->getParentItem()->getBasePrice()
+                    : $item->getParentItem()->getPrice();
+            } else {
+                $child->unit_price = $currencyIsEqual
+                    ? $item->getBasePrice()
+                    : $item->getPrice();
+            }
+            if (!empty($item->getParentItem())) {
+                $child->line_discount_amount = $currencyIsEqual
+                    ? $item->getParentItem()->getBaseDiscountAmount()
+                    : $item->getParentItem()->getDiscountAmount();
+            } else {
+                $child->line_discount_amount = $currencyIsEqual
+                    ? $item->getBaseDiscountAmount()
+                    : $item->getDiscountAmount();
+            }
         }
 
         return $this;
