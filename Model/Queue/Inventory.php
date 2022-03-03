@@ -294,7 +294,7 @@ class Inventory extends Queue implements ImportableEntity
         }
 
         // Magento >= 2.3.x logic
-        if ($this->sourceItemsProcessor->isSupportMSI()) {
+        if ($this->sourceItemsProcessor->isMSIEnabled()) {
             $result = $this->sourceItemsProcessor->process(
                 $product,
                 $data,
@@ -314,7 +314,7 @@ class Inventory extends Queue implements ImportableEntity
             return true;
         }
 
-        // Magento <= 2.2.x logic
+        // Magento < 2.3.x logic
         if ($forcedInStock) {
             $stockItem->setIsInStock((bool)$quantity);
         }
