@@ -4,9 +4,15 @@ namespace MalibuCommerce\MConnect\Model\Navision;
 
 use Magento\Catalog\Model\Product\Type as ProductType;
 use Magento\Framework\Module\Manager;
+use Magento\Sales\Api\Data\OrderInterface;
 
 class Order extends AbstractModel
 {
+    const PAYPAL_PAYMENT_METHODS = [
+        'braintree_paypal',
+        'braintree_paypal_vault',
+    ];
+
     /**
      * @var \Magento\Directory\Model\Region
      */
@@ -123,10 +129,7 @@ class Order extends AbstractModel
         $this->addGiftOptions($orderEntity, $orderObject, $websiteId);
         $this->addRewardPoints($orderEntity, $orderObject, $websiteId);
         $this->addShipping($orderEntity, $orderObject);
-
-        $payment = $orderEntity->getPayment();
-        $orderObject->payment_method = $payment !== false ? $payment->getMethod() : '';
-        $orderObject->po_number = $payment !== false ? $payment->getPoNumber() : '';
+        $this->addPayment($orderEntity, $orderObject);
 
         $orderObject->order_discount_amount = number_format((float)$orderEntity->getBaseDiscountAmount(), 2, '.', '');
         $orderObject->order_tax = number_format((float)$orderEntity->getBaseTaxAmount(), 2, '.', '');
@@ -135,6 +138,29 @@ class Order extends AbstractModel
         $this->addItems($orderEntity, $orderObject);
 
         return $this->_import('order_import', $root, $websiteId);
+    }
+
+    /**
+     * Add order payment data to NAV payload XML
+     *
+     * @param OrderInterface $orderEntity
+     * @param \simpleXMLElement $root
+     *
+     * @return Order
+     */
+    protected function addPayment(OrderInterface $orderEntity, \simpleXMLElement &$root)
+    {
+        $root->web_order_amt = $orderEntity->getOrderCurrencyCode() == $orderEntity->getStoreCurrencyCode()
+            ? $orderEntity->getBaseTotalPaid()
+            : $orderEntity->getTotalPaid();
+        $payment = $orderEntity->getPayment();
+        $root->payment_method = $payment !== false ? $payment->getMethod() : '';
+        $root->po_number = $payment !== false ? $payment->getPoNumber() : '';
+        if (!empty($payment) && in_array($payment->getMethod(), self::PAYPAL_PAYMENT_METHODS)) {
+            $root->paypal_transaction_id = $payment->getLastTransId() ?: $payment->getCcTransId();
+        }
+
+        return $this;
     }
 
     /**
