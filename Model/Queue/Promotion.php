@@ -193,12 +193,28 @@ class Promotion extends Queue implements ImportableEntity
     }
 
     /**
+     * Save no price cache
+     *
      * @param string $sku
      * @param int $websiteId
+     *
+     * @return Promotion
      */
     protected function saveNoPriceCache($sku, $websiteId)
     {
-        $this->savePriceCache([1 => 'NULL'], $sku, $websiteId);
+        $cacheId = $this->getCacheId($sku);
+        if (empty($this->arrayCache[$cacheId])) {
+            $this->savePriceCache([1 => 'NULL'], $sku, $websiteId);
+
+            return $this;
+        }
+        $this->savePriceCache(
+            array_replace($this->arrayCache[$cacheId], [1 => 'NULL']),
+            $sku,
+            $websiteId
+        );
+
+        return $this;
     }
 
     /**
