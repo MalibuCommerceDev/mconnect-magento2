@@ -2,6 +2,7 @@
 
 namespace MalibuCommerce\MConnect\Model\Queue;
 
+use Magento\CatalogInventory\Model\Stock\StockItemRepository;
 use Magento\Framework\DataObject;
 use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\Json;
@@ -38,6 +39,11 @@ class Promotion extends Queue implements ImportableEntity
     /** @var CacheInterface */
     protected $cacheInstance;
 
+    /**
+     * @var StockItemRepository
+     */
+    protected $stockItemRepository;
+
     /** @var array */
     protected $arrayCache = [];
 
@@ -59,6 +65,7 @@ class Promotion extends Queue implements ImportableEntity
      * @param FlagFactory                                       $queueFlagFactory
      * @param QueueFactory                                      $queueFactory
      * @param Customer                                          $customerHelper
+     * @param StockItemRepository                               $stockItemRepository
      */
     public function __construct(
         Registry $registry,
@@ -69,7 +76,8 @@ class Promotion extends Queue implements ImportableEntity
         SessionFactory $customerSessionFactory,
         FlagFactory $queueFlagFactory,
         QueueFactory $queueFactory,
-        Customer $customerHelper
+        Customer $customerHelper,
+        StockItemRepository $stockItemRepository
     ) {
         $this->registry = $registry;
         $this->navPromotion = $navPromotion;
@@ -79,6 +87,7 @@ class Promotion extends Queue implements ImportableEntity
         $this->queueFlagFactory = $queueFlagFactory;
         $this->queueFactory = $queueFactory;
         $this->customerHelper = $customerHelper;
+        $this->stockItemRepository = $stockItemRepository;
     }
 
     /**
@@ -204,6 +213,10 @@ class Promotion extends Queue implements ImportableEntity
         if (!(bool)$this->config->getWebsiteData(self::CODE . '/import_enabled', $websiteId)) {
 
             return false;
+        }
+        if ($this->config->isUseMinimumQtyAllowedInShoppingCartForPromotion($websiteId)) {
+            $stockItem = $this->stockItemRepository->get($product->getEntityId());
+            $qtyToCheck = max(1, $qtyToCheck, $stockItem->getMinSaleQty());
         }
         $requestedQty = $qtyToCheck;
         $qtyToCheck = max(1, $qtyToCheck);
