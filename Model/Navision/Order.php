@@ -9,6 +9,8 @@ use Magento\Sales\Api\Data\OrderInterface;
 class Order extends AbstractModel
 {
     const PAYPAL_PAYMENT_METHODS = [
+        'paypal_express',
+        'paypal_express_bml',
         'braintree_paypal',
         'braintree_paypal_vault',
     ];
@@ -156,8 +158,8 @@ class Order extends AbstractModel
     protected function addPayment(OrderInterface $orderEntity, \simpleXMLElement &$root)
     {
         $root->web_order_amt = $orderEntity->getOrderCurrencyCode() == $orderEntity->getStoreCurrencyCode()
-            ? $orderEntity->getBaseTotalPaid()
-            : $orderEntity->getTotalPaid();
+            ? ($orderEntity->getBaseTotalPaid() ?: 0)
+            : ($orderEntity->getTotalPaid() ?: 0);
         $payment = $orderEntity->getPayment();
         $root->payment_method = $payment !== false ? $payment->getMethod() : '';
         $root->po_number = $payment !== false ? $payment->getPoNumber() : '';

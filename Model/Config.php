@@ -607,6 +607,30 @@ class Config
     }
 
     /**
+     * Is Use Minimum Qty Allowed in Shopping Cart for Price Rule
+     *
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return bool
+     */
+    public function isUseMinimumQtyAllowedInShoppingCartForPriceRule($websiteId = null)
+    {
+        return (bool)$this->getWebsiteData('price_rule/use_min_sale_qty', $websiteId);
+    }
+
+    /**
+     * Is Use Minimum Qty Allowed in Shopping Cart for Promotion
+     *
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return bool
+     */
+    public function isUseMinimumQtyAllowedInShoppingCartForPromotion($websiteId = null)
+    {
+        return (bool)$this->getWebsiteData('promotion/use_min_sale_qty', $websiteId);
+    }
+
+    /**
      * @param null|int|string|\Magento\Store\Model\Website $websiteId
      *
      * @return bool
