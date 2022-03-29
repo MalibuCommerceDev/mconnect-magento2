@@ -201,7 +201,7 @@ class SourceItemsProcessor
     public function isMSIEnabled()
     {
         if (version_compare($this->productMetadata->getVersion(), '2.3.0', '<')
-            || !interface_exists(IsSingleSourceModeInterface::class)
+            || !interface_exists(\Magento\InventoryCatalogApi\Model\IsSingleSourceModeInterface::class)
         ) {
             return false;
         }
