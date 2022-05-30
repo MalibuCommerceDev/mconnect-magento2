@@ -66,6 +66,11 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
     protected $shippingConfig;
 
     /**
+     * @var array|null
+     */
+    protected $carriers = null;
+
+    /**
      * Shipment constructor.
      *
      * @param \MalibuCommerce\MConnect\Model\Navision\Shipment               $navShipment
@@ -244,28 +249,19 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
 
         $tracks = [];
         if (isset($navEntity->package_tracking)) {
-            $systemCarriers = $this->getCarriers();
-
             foreach ($navEntity->package_tracking as $tracking) {
-                $carrier = strtolower((string)$tracking->shipping_carrier);
-                $trackingNumber = (string)$tracking->tracking_number;
-                if (!$trackingNumber && $this->config->canCreateShipmentWithNoTracking()) {
-                    $trackingNumber = '-';
+                $carrierData = $this->getCarrierData($tracking);
+                $trackingNumbers = (array)$tracking->tracking_number;
+                if (empty($trackingNumbers) && $this->config->canCreateShipmentWithNoTracking()) {
+                    $tracks[] = array_merge($carrierData, [
+                        'number' => '-',
+                    ]);
+                    continue;
                 }
-                if (array_key_exists($carrier, $systemCarriers)) {
-                    $tracks[] = [
-                        'number'       => $trackingNumber,
-                        'carrier_code' => $carrier,
-                        'title'        => $systemCarriers[$carrier],
-                    ];
-                } else {
-                    $title = (string)$tracking->shipping_carrier . ' ' . (string)$tracking->shipping_method;
-                    $title = ucwords($title);
-                    $tracks[] = [
-                        'number'       => $trackingNumber,
-                        'carrier_code' => 'custom',
-                        'title'        => $title,
-                    ];
+                foreach ($trackingNumbers as $trackingNumber) {
+                    $tracks[] = array_merge($carrierData, [
+                        'number' => $trackingNumber,
+                    ]);
                 }
             }
         }
@@ -287,6 +283,34 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         $shipment->register();
 
         return $shipment;
+    }
+
+    /**
+     * Get carrier data
+     *
+     * @param \SimpleXMLElement $navTrackingData
+     *
+     * @return array
+     */
+    protected function getCarrierData($navTrackingData)
+    {
+        $carriers = $this->getCarriers();
+        $carrierCode = strtolower((string)$navTrackingData->shipping_carrier);
+        if (!empty($carriers[$carrierCode])) {
+            return [
+                'carrier_code' => $carrierCode,
+                'title'        => $carriers[$carrierCode],
+            ];
+        }
+
+        return [
+            'carrier_code' => 'custom',
+            'title'        => ucwords(sprintf(
+                '%s %s',
+                (string)$navTrackingData->shipping_carrier,
+                (string)$navTrackingData->shipping_method
+            )),
+        ];
     }
 
     /**
@@ -425,6 +449,9 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
 
     protected function getCarriers()
     {
+        if (!empty($this->carriers)) {
+            return $this->carriers;
+        }
         $carriers = [];
         // @todo add store based retrieval $this->shippingConfig->getAllCarriers($this->getShipment()->getStoreId())
         $carrierInstances = $this->shippingConfig->getAllCarriers();
@@ -434,6 +461,8 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 $carriers[$code] = $carrier->getConfigData('title');
             }
         }
+        $this->carriers = $carriers;
+
         return $carriers;
     }
 }
