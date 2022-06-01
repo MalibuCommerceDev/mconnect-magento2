@@ -153,8 +153,8 @@ class Order extends AbstractModel
     protected function addPayment(OrderInterface $orderEntity, \simpleXMLElement &$root)
     {
         $root->web_order_amt = $orderEntity->getOrderCurrencyCode() == $orderEntity->getStoreCurrencyCode()
-            ? ($orderEntity->getBaseTotalPaid() ?: 0)
-            : ($orderEntity->getTotalPaid() ?: 0);
+            ? ($orderEntity->getBaseGrandTotal() ?: 0)
+            : ($orderEntity->getGrandTotal() ?: 0);
         $payment = $orderEntity->getPayment();
         $root->payment_method = $payment !== false ? $payment->getMethod() : '';
         $root->po_number = $payment !== false ? $payment->getPoNumber() : '';
