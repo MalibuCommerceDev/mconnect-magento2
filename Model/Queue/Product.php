@@ -196,13 +196,14 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                     }
                 }
             }
-            if (!empty($data->item_name) && ($product->getName() != $data->item_name)) {
+            if (!empty($data->item_name)
+                && ($product->getName() != $data->item_name)
+                && $this->getAlwaysSetProductNameFromNAV($websiteId)
+            ) {
+                $product->setName((string)$data->item_name);
                 $urlKey = $product->formatUrlKey($data->item_name);
                 $product->setUrlKey($urlKey);
                 $product->setData('save_rewrites_history', true);
-                if ($this->getAlwaysSetProductNameFromNAV($websiteId)) {
-                    $product->setName((string)$data->item_name);
-                }
             }
         } else {
             $product->setAttributeSetId($this->getDefaultAttributeSetId())

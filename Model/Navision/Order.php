@@ -128,6 +128,11 @@ class Order extends AbstractModel
         if (!empty($orderEntity->getCouponCode())) {
             $orderObject->promo_code = $orderEntity->getCouponCode();
         }
+        foreach ($orderEntity->getStatusHistories() as $statusHistory) {
+            if ($statusHistory->getIsVisibleOnFront()) {
+                $orderObject->addChild('sales_order_comment', $statusHistory->getComment());
+            }
+        }
         $this->addGiftOptions($orderEntity, $orderObject, $websiteId);
         $this->addRewardPoints($orderEntity, $orderObject, $websiteId);
         $this->addShipping($orderEntity, $orderObject);

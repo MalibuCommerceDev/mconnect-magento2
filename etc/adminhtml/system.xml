@@ -845,6 +845,11 @@
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Apply new price like a special price instead of the regular price, followed by a notation that shows the regular price.]]></comment>
                 </field>
+                <field id="use_min_sale_qty" sortOrder="60" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Use Minimum Qty Allowed in Shopping Cart</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[By default QTY 1 is used to obtain product price(s). When current setting is enabled, by default the “Minimum Qty Allowed in Shopping Cart” product attribute value will be used instead.]]></comment>
+                </field>
             </group>
 
             <group id="promotion" type="text" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
@@ -876,6 +881,11 @@
                     <depends>
                         <field id="retry_on_failure">1</field>
                     </depends>
+                </field>
+                <field id="use_min_sale_qty" sortOrder="60" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Use Minimum Qty Allowed in Shopping Cart</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[By default QTY 1 is used to obtain product price(s). When current setting is enabled, by default the “Minimum Qty Allowed in Shopping Cart” product attribute value will be used instead.]]></comment>
                 </field>
             </group>
 

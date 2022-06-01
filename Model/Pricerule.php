@@ -3,6 +3,7 @@
 namespace MalibuCommerce\MConnect\Model;
 
 use Magento\Catalog\Model\Product;
+use Magento\CatalogInventory\Model\Stock\StockItemRepository;
 use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\DB\Select;
 use Magento\Framework\Exception\LocalizedException;
@@ -31,10 +32,16 @@ class Pricerule extends AbstractModel
      */
     protected $websiteRepository;
 
+    /**
+     * @var StockItemRepository
+     */
+    protected $stockItemRepository;
+
     public function __construct(
         Customer $customerHelper,
         Config $config,
         WebsiteRepositoryInterface $websiteRepository,
+        StockItemRepository $stockItemRepository,
         Context $context,
         Registry $registry,
         AbstractResource $resource = null,
@@ -44,6 +51,7 @@ class Pricerule extends AbstractModel
         $this->customerHelper = $customerHelper;
         $this->config = $config;
         $this->websiteRepository = $websiteRepository;
+        $this->stockItemRepository = $stockItemRepository;
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
     }
 
@@ -82,6 +90,10 @@ class Pricerule extends AbstractModel
         $sku = $product;
         if ($product instanceof Product) {
             $sku = $product->getSku();
+        }
+        if ($this->config->isUseMinimumQtyAllowedInShoppingCartForPriceRule($websiteId)) {
+            $stockItem = $this->stockItemRepository->get($product->getEntityId());
+            $qty = max($qty, $stockItem->getMinSaleQty());
         }
         $qty = max(1, $qty);
 
