@@ -421,8 +421,10 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 $this->config->getFlag($this->getQueueCode() . '/ignore_customer_address_validation')
             );
 
-        if ((string)$addressData->addr_nav_id == 'DEFAULT') {
+        if ($addressData->is_default_billing) {
             $address->setIsDefaultBilling(true);
+        }
+        if ($addressData->is_default_shipping) {
             $address->setIsDefaultShipping(true);
         }
 
