@@ -1,5 +1,8 @@
 <?php
+
 namespace MalibuCommerce\MConnect\Model\Navision;
+
+use \MalibuCommerce\MConnect\Model\Queue\Customer as CustomerQueue;
 
 class Customer extends AbstractModel
 {
@@ -100,13 +103,16 @@ class Customer extends AbstractModel
 
     public function export($page = 0, $lastUpdated = false, $websiteId = 0)
     {
-        $max = $this->config->get(\MalibuCommerce\MConnect\Model\Queue\Customer::CODE . '/max_rows');
+        $max = $this->config->get(CustomerQueue::CODE . '/max_rows');
         $parameters = [
             'skip'     => $page * $max,
             'max_rows' => $max,
         ];
         if ($lastUpdated) {
             $parameters['last_updated'] = $lastUpdated;
+        }
+        if (!empty($this->config->get(CustomerQueue::CODE . '/import_enabled_only'))) {
+            $parameters['web_enabled'] = true;
         }
 
         return $this->_export('customer_export', $parameters, $websiteId);
