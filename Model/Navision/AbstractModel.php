@@ -178,6 +178,9 @@ abstract class AbstractModel extends \Magento\Framework\DataObject
             $xml = new \simpleXMLElement(sprintf('<%s />', $action));
             $child = $xml->addChild('parameters');
             foreach ($parameters as $node => $value) {
+                if (is_bool($value)) {
+                    $value = $value ? 'true' : 'false';
+                }
                 $child->$node = $value;
             }
         }
