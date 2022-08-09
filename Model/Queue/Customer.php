@@ -328,7 +328,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
          */
         if (!empty($data->address)) {
             foreach ($data->address as $addressData) {
-                $this->importAddress($customer, $addressData);
+                $this->importAddress($customer, $addressData, $websiteId);
             }
         }
 
@@ -358,7 +358,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         }
     }
 
-    protected function importAddress($customer, $addressData)
+    protected function importAddress($customer, $addressData, $websiteId)
     {
         static $email = null, $country = null, $state = null;
         $address = false;
@@ -378,6 +378,16 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         if (!$address || !$address->getId()) {
             $address = $this->addressFactory->create();
             $addressExists = false;
+        } else {
+            if (empty($this->config->getWebsiteData('customer/update_customer_shipping_address', $websiteId))
+                && !empty($addressData->is_default_shipping)
+                && filter_var($addressData->is_default_shipping, FILTER_VALIDATE_BOOLEAN)
+            ) {
+                $this->messages .= PHP_EOL . "\t" . 'Address'
+                    . (!empty($addressData->addr_nav_id) ? ' "' . $addressData->addr_nav_id . '"' : '')
+                    . ': SKIPPED' . PHP_EOL;
+                return;
+            }
         }
 
         if (empty($email) || $email != $customer->getEmail()) {
