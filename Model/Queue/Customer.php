@@ -366,12 +366,8 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         if (!empty($addressData->addr_nav_id)) {
             $collection = $this->addressCollectionFactory->create();
             $collection->addFieldToFilter('parent_id', $customer->getId())
-                ->addFieldToFilter('nav_id', (string)$addressData->addr_nav_id);
-
-            $addresses = $collection->getItems();
-            if ($addresses) {
-                $address = reset($addresses);
-            }
+                ->addFieldToFilter('entity_id', (string)$addressData->addr_mag_id);
+            $address = $collection->getFirstItem();
         }
 
         $addressExists = true;
@@ -431,10 +427,14 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 $this->config->getFlag($this->getQueueCode() . '/ignore_customer_address_validation')
             );
 
-        if ($addressData->is_default_billing) {
+        if (!empty($addressData->is_default_billing)
+            && filter_var($addressData->is_default_billing, FILTER_VALIDATE_BOOLEAN)
+        ) {
             $address->setIsDefaultBilling(true);
         }
-        if ($addressData->is_default_shipping) {
+        if (!empty($addressData->is_default_shipping)
+            && filter_var($addressData->is_default_shipping, FILTER_VALIDATE_BOOLEAN)
+        ) {
             $address->setIsDefaultShipping(true);
         }
 
