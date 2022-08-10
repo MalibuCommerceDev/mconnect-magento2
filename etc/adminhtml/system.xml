@@ -267,38 +267,42 @@
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
-                <field id="default_nav_id_magento_guest" sortOrder="150" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="update_customer_shipping_address" translate="label" type="select" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Update Shipping Address</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="default_nav_id_magento_guest" sortOrder="160" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default NAV ID For Magento Guest Customers</label>
                     <comment><![CDATA[Leave blank to disable]]></comment>
                 </field>
-                <field id="default_nav_id_magento_registered" sortOrder="160" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="default_nav_id_magento_registered" sortOrder="170" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default NAV ID For Magento Newly Registered Customers</label>
                     <comment><![CDATA[Leave blank to disable]]></comment>
                 </field>
-                <field id="default_group_taxable" sortOrder="170" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="default_group_taxable" sortOrder="180" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default group for customers (taxable)</label>
                     <source_model>\Magento\Customer\Model\Config\Source\Group</source_model>
                 </field>
-                <field id="default_group_nontaxable" sortOrder="180" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="default_group_nontaxable" sortOrder="190" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default group for customers (non-taxable)</label>
                     <source_model>\Magento\Customer\Model\Config\Source\Group</source_model>
                 </field>
-                <field id="default_website" sortOrder="190" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="default_website" sortOrder="200" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default website for new customers</label>
                     <source_model>\Magento\Config\Model\Config\Source\Website</source_model>
                 </field>
-                <field id="send_new_customer_emails" translate="label" type="select" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="send_new_customer_emails" translate="label" type="select" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Send Password Reset Email to a New Customers Imported from NAV</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="new_customer_email_sender" translate="label" type="select" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="new_customer_email_sender" translate="label" type="select" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Password Reset Email Sender</label>
                     <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
                     <depends>
                         <field id="send_new_customer_emails">1</field>
                     </depends>
                 </field>
-                <field id="new_customer_email_template" translate="label comment" type="select" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="new_customer_email_template" translate="label comment" type="select" sortOrder="230" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Password Res Email Template</label>
                     <comment>Email template chosen based on theme fallback when "Default" option is selected.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
@@ -306,11 +310,11 @@
                         <field id="send_new_customer_emails">1</field>
                     </depends>
                 </field>
-                <field id="show_reports" sortOrder="230" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="show_reports" sortOrder="240" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Enable NAV Reports In Customer Account</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="nav_reports_allowed_customer_groups" sortOrder="240" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="nav_reports_allowed_customer_groups" sortOrder="250" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>NAV Reports Allowed Customer Groups</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Source\CustomerGroups</source_model>
                     <depends>
