@@ -409,12 +409,19 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         }
         $telephone = (string)$addressData->addr_phone;
         $telephone = empty($telephone) ? 'N/A' : $telephone;
+        $streets = [];
+        if (!empty($addressData->addr_street)) {
+            $streets[] = (string)$addressData->addr_street;
+        }
+        if (!empty($addressData->address_2)) {
+            $streets[] = (string)$addressData->address_2;
+        }
 
         $address
             ->setParentId($customer->getId())
             ->setFirstname($firstname)
             ->setLastname($lastname)
-            ->setStreet([(string)$addressData->addr_street])
+            ->setStreet($streets)
             ->setCity((string)$addressData->addr_city)
             ->setCountryId($country)
             ->setRegionId($region)
