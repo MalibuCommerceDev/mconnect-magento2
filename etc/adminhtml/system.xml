@@ -270,6 +270,7 @@
                 <field id="update_customer_shipping_address" translate="label" type="select" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Update Shipping Address</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Whether to always update default customer shipping address, or skip updating when customer already exists]]></comment>
                 </field>
                 <field id="default_nav_id_magento_guest" sortOrder="160" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default NAV ID For Magento Guest Customers</label>
