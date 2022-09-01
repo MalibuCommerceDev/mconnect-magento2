@@ -358,12 +358,21 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         }
     }
 
+    /**
+     * @param \Magento\Customer\Model\Customer $customer
+     * @param $addressData
+     * @param int|string $websiteId
+     *
+     * @return void
+     */
     protected function importAddress($customer, $addressData, $websiteId)
     {
-        static $email = null, $country = null, $state = null;
-        $address = false;
+        $email = null;
+        $country = null;
+        $state = null;
+        $address = null;
 
-        if (!empty($addressData->addr_nav_id)) {
+        if (!empty($addressData->addr_mag_id)) {
             $collection = $this->addressCollectionFactory->create();
             $collection->addFieldToFilter('parent_id', $customer->getId())
                 ->addFieldToFilter('entity_id', (string)$addressData->addr_mag_id);
@@ -374,16 +383,12 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         if (!$address || !$address->getId()) {
             $address = $this->addressFactory->create();
             $addressExists = false;
-        } else {
-            if (empty($this->config->getWebsiteData('customer/update_customer_shipping_address', $websiteId))
-                && !empty($addressData->is_default_shipping)
-                && filter_var($addressData->is_default_shipping, FILTER_VALIDATE_BOOLEAN)
-            ) {
-                $this->messages .= PHP_EOL . "\t" . 'Address'
-                    . (!empty($addressData->addr_nav_id) ? ' "' . $addressData->addr_nav_id . '"' : '')
-                    . ': SKIPPED' . PHP_EOL;
-                return;
-            }
+        } else if (empty($this->isUpdateShippingAddress($customer, $address, $addressData, $websiteId))) {
+            $this->messages .= PHP_EOL . "\t" . 'Address'
+                . (!empty($addressData->addr_nav_id) ? ' "' . $addressData->addr_nav_id . '"' : '')
+                . ': SKIPPED' . PHP_EOL;
+
+            return;
         }
 
         if (empty($email) || $email != $customer->getEmail()) {
@@ -459,6 +464,34 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         } catch (\Throwable $e) {
             $this->messages .= PHP_EOL . "\t" . 'Address "' . $addressData->addr_nav_id . '": ERROR - ' . $e->getMessage() . PHP_EOL;
         }
+    }
+
+    /**
+     * Is Update Shipping Address
+     *
+     * @param \Magento\Customer\Model\Customer $customer
+     * @param \Magento\Customer\Model\Address $address
+     * @param $addressData
+     * @param $websiteId
+     *
+     * @return bool
+     */
+    protected function isUpdateShippingAddress($customer, $address, $addressData, $websiteId)
+    {
+        $customerShippingAddress = $customer->getDefaultShippingAddress();
+        if (empty($customerShippingAddress)) {
+            return true;
+        }
+        if ($customerShippingAddress->getEntityId() != $address->getEntityId()) {
+            if (empty($addressData->is_default_shipping)) {
+                return true;
+            }
+            if (!filter_var($addressData->is_default_shipping, FILTER_VALIDATE_BOOLEAN)) {
+                return true;
+            }
+        }
+
+        return $this->config->getWebsiteData('customer/update_customer_shipping_address', $websiteId);
     }
 
     protected function getRegion($country, $state)
