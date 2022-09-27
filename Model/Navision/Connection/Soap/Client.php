@@ -72,16 +72,16 @@ class Client extends SoapClient
     }
 
     /**
-     * @param string $request
-     * @param string $location
-     * @param string $action
-     * @param int    $version
-     * @param int    $one_way
+     * @param string   $request
+     * @param string   $location
+     * @param string   $action
+     * @param int      $version
+     * @param bool|int $oneWay
      *
-     * @return string
+     * @return ?string
      * @throws \Throwable
      */
-    public function __doRequest($request, $location, $action, $version, $one_way = 0)
+    public function __doRequest($request, $location, $action, $version, $oneWay = 0)
     {
         $username = $this->mConnectConfig->getNavConnectionUsername($this->getWebsiteId());
         $password = $this->mConnectConfig->getNavConnectionPassword($this->getWebsiteId());
