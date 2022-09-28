@@ -81,7 +81,7 @@ class Client extends SoapClient
      * @return ?string
      * @throws \Throwable
      */
-    public function __doRequest($request, $location, $action, $version, $oneWay = 0)
+    public function __doRequest($request, $location, $action, $version, $oneWay = 0) : ?string
     {
         $username = $this->mConnectConfig->getNavConnectionUsername($this->getWebsiteId());
         $password = $this->mConnectConfig->getNavConnectionPassword($this->getWebsiteId());
