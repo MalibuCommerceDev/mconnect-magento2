@@ -235,7 +235,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                  . ' text-align: center;'
                  . ' padding: 3px;'
                  . ' border-radius: 10px;';
-        $title = htmlentities($message);
+        $title = htmlentities((string)$message);
         $background = false;
         switch ($status) {
             case \MalibuCommerce\MConnect\Model\Queue::STATUS_PENDING:

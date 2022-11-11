@@ -170,9 +170,9 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         $paymentMethod = $order->getPayment()->getMethod();
         $invoiceFlag = false;
         $websiteId = $this->storeManager->getStore($order->getStoreId())->getWebsiteId();
-        $getEnabledPaymentMEthodForDoNoCapture = $this->config->getWebsiteData($this->getQueueCode() . '/invoice_do_not_capture', $websiteId);
-        $getEnabledPaymentMEthodForOfflineCapture = $this->config->getWebsiteData($this->getQueueCode() . '/invoice_offline_capture', $websiteId);
-        $getEnabledPaymentMEthodForOnlineCapture = $this->config->getWebsiteData($this->getQueueCode() . '/invoice_online_capture', $websiteId);
+        $getEnabledPaymentMEthodForDoNoCapture = (string)$this->config->getWebsiteData($this->getQueueCode() . '/invoice_do_not_capture', $websiteId);
+        $getEnabledPaymentMEthodForOfflineCapture = (string)$this->config->getWebsiteData($this->getQueueCode() . '/invoice_offline_capture', $websiteId);
+        $getEnabledPaymentMEthodForOnlineCapture = (string)$this->config->getWebsiteData($this->getQueueCode() . '/invoice_online_capture', $websiteId);
 
         if (is_array(explode(',', $getEnabledPaymentMEthodForDoNoCapture))) {
             if (in_array($paymentMethod, explode(',', $getEnabledPaymentMEthodForDoNoCapture))) {

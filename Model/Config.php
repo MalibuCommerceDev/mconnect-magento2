@@ -224,7 +224,7 @@ class Config
      */
     public function getOrderStatuesAllowedForExportToNav($websiteId = null)
     {
-        return explode(',', $this->getWebsiteData('order/allowed_order_statuses_to_export', $websiteId));
+        return explode(',', (string)$this->getWebsiteData('order/allowed_order_statuses_to_export', $websiteId));
     }
 
     /**
@@ -235,7 +235,8 @@ class Config
     public function getOrderStatuesAllowedForSync($websiteId = null)
     {
         return explode(',',
-            $this->getWebsiteData('order/allowed_order_statuses_to_be_added_to_sync_queue', $websiteId));
+            (string)$this->getWebsiteData('order/allowed_order_statuses_to_be_added_to_sync_queue', $websiteId)
+        );
     }
 
     /**
@@ -255,7 +256,7 @@ class Config
      */
     public function getOrderExportDisallowedCustomerGroups($websiteId = null)
     {
-        return explode(',', $this->getWebsiteData('order/export_disallowed_customer_groups', $websiteId));
+        return explode(',', (string)$this->getWebsiteData('order/export_disallowed_customer_groups', $websiteId));
     }
 
     /**
@@ -291,7 +292,7 @@ class Config
      */
     public function getScheduledEntityExportRunTimes($entityType)
     {
-        $values = $this->getWebsiteData($entityType . '/scheduled_' . $entityType . '_export_start_times');
+        $values = (string)$this->getWebsiteData($entityType . '/scheduled_' . $entityType . '_export_start_times');
         $possiblePhraseValues = [SyncSchedule::CRON_EVERY_MINUTE, SyncSchedule::CRON_EVERY_HOUR];
         if (!in_array($values, $possiblePhraseValues)) {
             return array_map('trim', explode(',', $values));
@@ -307,7 +308,7 @@ class Config
      */
     public function getScheduledEntityImportRunTimes($entityType)
     {
-        $values = $this->getWebsiteData($entityType . '/scheduled_' . $entityType . '_import_start_times');
+        $values = (string)$this->getWebsiteData($entityType . '/scheduled_' . $entityType . '_import_start_times');
         $possiblePhraseValues = [SyncSchedule::CRON_EVERY_MINUTE, SyncSchedule::CRON_EVERY_HOUR];
         if (!in_array($values, $possiblePhraseValues)) {
             return array_map('trim', explode(',', $values));
@@ -422,7 +423,7 @@ class Config
      */
     public function getNAVReportsCustomerGroups($websiteId = null)
     {
-        return explode(',', $this->getWebsiteData('customer/nav_reports_allowed_customer_groups', $websiteId));
+        return explode(',', (string)$this->getWebsiteData('customer/nav_reports_allowed_customer_groups', $websiteId));
     }
 
     /**
@@ -432,7 +433,7 @@ class Config
      */
     public function getDefaultRmaStatus($websiteId = null)
     {
-        return explode(',', $this->getWebsiteData('rma/default_rma_status', $websiteId));
+        return explode(',', (string)$this->getWebsiteData('rma/default_rma_status', $websiteId));
     }
 
     /**
@@ -442,7 +443,7 @@ class Config
      */
     public function getPriceRuleDisallowedCustomerGroups($websiteId = null)
     {
-        return explode(',', $this->getWebsiteData('price_rule/disallowed_customer_groups', $websiteId));
+        return explode(',', (string)$this->getWebsiteData('price_rule/disallowed_customer_groups', $websiteId));
     }
 
     /**
@@ -486,7 +487,7 @@ class Config
     {
         return array_map(
             'trim',
-            explode(',', $this->getWebsiteData('nav_connection/error_email_recipient', $websiteId))
+            explode(',', (string)$this->getWebsiteData('nav_connection/error_email_recipient', $websiteId))
         );
     }
 
