@@ -82,10 +82,9 @@ class Customer extends AbstractModel
         $child  = $exportXml->addChild('customer_address');
         $street = $address->getStreet();
 
-        $navIdAttribute             = $address->getCustomAttribute('nav_id');
-        $child->nav_address_id      = !empty($navIdAttribute) && !empty($navIdAttribute->getValue())
-            ? $navIdAttribute->getValue()
-            : $address->getId();
+        $navId                      = $address->getCustomAttribute('nav_id');
+        $navId                      = $navId ? $navId->getValue() : null;
+        $child->nav_address_id      = empty($navId) ? 'DEFAULT' : $navId;
         $child->mag_address_id      = $address->getId();
         $child->is_default_billing  = $address->isDefaultBilling();
         $child->is_default_shipping = $address->isDefaultShipping();
