@@ -412,6 +412,10 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 $lastname = 'Co.';
             }
         }
+        if (empty($firstname) || empty($lastname)) {
+            $firstname = (string)$addressData->addr_first_name;
+            $lastname = (string)$addressData->addr_last_name;
+        }
         $telephone = (string)$addressData->addr_phone;
         $telephone = empty($telephone) ? 'N/A' : $telephone;
         $streets = [];
