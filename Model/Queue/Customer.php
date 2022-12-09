@@ -323,16 +323,12 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             $this->messages .= $id . ': ERROR - ' . $e->getMessage();
         }
 
-        $isUpdateCustomerAddress = $this->config->getWebsiteData(
-            'customer/update_customer_shipping_address',
-            $websiteId
-        );
         /**
          * Add addresses
          */
         if (!empty($data->address)) {
             foreach ($data->address as $addressData) {
-                $this->importAddress($customer, $addressData, $isUpdateCustomerAddress);
+                $this->importAddress($customer, $addressData, $websiteId);
             }
         }
 
@@ -365,16 +361,21 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
     /**
      * @param \Magento\Customer\Model\Customer $customer
      * @param $addressData
-     * @param bool $isUpdateCustomerAddress
+     * @param int|string $websiteId
      *
      * @return void
      */
-    protected function importAddress($customer, $addressData, $isUpdateCustomerAddress)
+    protected function importAddress($customer, $addressData, $websiteId)
     {
         $email = null;
         $country = null;
         $state = null;
         $address = null;
+
+        $isUpdateCustomerAddress = $this->config->getWebsiteData(
+            'customer/update_customer_shipping_address',
+            $websiteId
+        );
 
         $addressExists = true;
         if (!empty($addressData->addr_mag_id)) {
