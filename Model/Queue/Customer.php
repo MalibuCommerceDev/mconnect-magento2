@@ -440,6 +440,10 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
 
         $firstname = (string)$addressData->addr_name;
         $lastname = (string)$addressData->addr_name2;
+        if (empty($firstname) || empty($lastname)) {
+            $firstname = (string)$addressData->addr_first_name;
+            $lastname = (string)$addressData->addr_last_name;
+        }
         if (empty($lastname)) {
             $parts = explode(' ', $firstname);
             if (count($parts) > 1) {
@@ -450,6 +454,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 $lastname = 'Co.';
             }
         }
+
         $telephone = (string)$addressData->addr_phone;
         $telephone = empty($telephone) ? 'N/A' : $telephone;
         $streets = [];
