@@ -372,23 +372,61 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         $state = null;
         $address = null;
 
+        $isUpdateCustomerAddress = $this->config->getWebsiteData(
+            'customer/update_customer_shipping_address',
+            $websiteId
+        );
+
+        $addressExists = true;
         if (!empty($addressData->addr_mag_id)) {
             $collection = $this->addressCollectionFactory->create();
             $collection->addFieldToFilter('parent_id', $customer->getId())
                 ->addFieldToFilter('entity_id', (string)$addressData->addr_mag_id);
             $address = $collection->getFirstItem();
-        }
-
-        $addressExists = true;
-        if (!$address || !$address->getId()) {
-            $address = $this->addressFactory->create();
-            $addressExists = false;
-        } else if (empty($this->isUpdateShippingAddress($customer, $address, $addressData, $websiteId))) {
+        } else if ($this->isDefaultBilling($addressData)) {
+            $address = $customer->getDefaultBillingAddress();
+        } else if ($isUpdateCustomerAddress && $this->isDefaultShipping($addressData)) {
+            $address = $customer->getDefaultShippingAddress();
+        } else {
             $this->messages .= PHP_EOL . "\t" . 'Address'
                 . (!empty($addressData->addr_nav_id) ? ' "' . $addressData->addr_nav_id . '"' : '')
                 . ': SKIPPED' . PHP_EOL;
 
             return;
+        }
+
+        if (!$address || !$address->getId()) {
+            $address = $this->addressFactory->create();
+            if (!empty($addressData->addr_mag_id)) {
+                $address->setEntityId((string)$addressData->addr_mag_id);
+            }
+            $addressExists = false;
+        }
+
+        // convert string to int data to fix hasDataChanges
+        $address->setRegionId($address->getRegionId());
+        $defaultBillingAddress = $customer->getDefaultBillingAddress();
+        if (!empty($defaultBillingAddress)) {
+            $customer->setDefaultBilling($address->getEntityId());
+            if ($defaultBillingAddress->getEntityId() == $address->getEntityId()) {
+                $address->setIsDefaultBilling(true);
+            }
+        }
+        $defaultShippingAddress = $customer->getDefaultShippingAddress();
+        if (!empty($defaultShippingAddress)) {
+            $customer->setDefaultShipping($address->getEntityId());
+            if ($defaultShippingAddress->getEntityId() == $address->getEntityId()) {
+                $address->setIsDefaultShipping(true);
+            }
+        }
+        $address->setHasDataChanges(false);
+
+        $isSeparateDefaultShippingAddress = empty($isUpdateCustomerAddress)
+            && !empty($defaultBillingAddress) && !empty($defaultShippingAddress)
+            && $defaultBillingAddress->getEntityId() == $defaultShippingAddress->getEntityId();
+        if ($isSeparateDefaultShippingAddress) {
+            $defaultShippingAddress = clone $defaultShippingAddress;
+            $defaultShippingAddress->setIsDefaultBilling(false);
         }
 
         if (empty($email) || $email != $customer->getEmail()) {
@@ -423,41 +461,57 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         }
 
         $address
-            ->setParentId($customer->getId())
+            ->setParentId(is_numeric($customer->getId()) ? (int)$customer->getId() : $customer->getId())
             ->setFirstname($firstname)
             ->setLastname($lastname)
             ->setStreet($streets)
-            ->setCity((string)$addressData->addr_city)
-            ->setCountryId($country)
-            ->setRegionId($region)
-            ->setPostcode((string)$addressData->addr_post_code)
+            ->setCity(!empty($addressData->addr_city) ? (string)$addressData->addr_city : null)
+            ->setCountryId(is_numeric($country) ? (int)$country : (string)$country)
+            ->setRegionId(is_numeric($region) ? (int)$region : (string)$region)
+            ->setPostcode(!empty($addressData->addr_post_code) ? (string)$addressData->addr_post_code : null)
             ->setTelephone($telephone)
-            ->setFax((string)$addressData->addr_fax)
-            ->setNavId((string)$addressData->addr_nav_id)
-            ->setSkipMconnect(true)
-            ->setShouldIgnoreValidation(
-                $this->config->getFlag($this->getQueueCode() . '/ignore_customer_address_validation')
-            );
+            ->setFax(!empty($addressData->addr_fax) ? (string)$addressData->addr_fax : null)
+            ->setNavId(!empty($addressData->addr_nav_id) ? (string)$addressData->addr_nav_id : null);
 
-        if (!empty($addressData->is_default_billing)
-            && filter_var($addressData->is_default_billing, FILTER_VALIDATE_BOOLEAN)
-        ) {
-            $address->setIsDefaultBilling(true);
-        }
-        if (!empty($addressData->is_default_shipping)
-            && filter_var($addressData->is_default_shipping, FILTER_VALIDATE_BOOLEAN)
-        ) {
-            $address->setIsDefaultShipping(true);
-        }
+        $isSeparateDefaultShippingAddress = $isSeparateDefaultShippingAddress && $address->hasDataChanges();
+
+        $address->setIsDefaultBilling($this->isDefaultBilling($addressData));
+        $address->setIsDefaultShipping(
+            empty($isSeparateDefaultShippingAddress)
+                ? $this->isDefaultShipping($addressData)
+                : false
+        );
 
         try {
             if ($address->hasDataChanges()) {
+                $address
+                    ->setSkipMconnect(true)
+                    ->setShouldIgnoreValidation(
+                        $this->config->getFlag($this->getQueueCode() . '/ignore_customer_address_validation')
+                    );
                 $address->save();
                 if ($addressExists) {
                     $this->messages .= PHP_EOL . "\t" . 'Address "' . $addressData->addr_nav_id . '": UPDATED' . PHP_EOL;
                 } else {
                     $this->messages .= PHP_EOL . "\t" . 'Address "' . $addressData->addr_nav_id . '": CREATED' . PHP_EOL;
                 }
+                if ($address->getIsDefaultBilling()) {
+                    $customer->setDefaultBilling($address->getEntityId());
+                }
+                if ($address->setIsDefaultShipping()) {
+                    $customer->setDefaultShipping($address->getEntityId());
+                }
+                if ($isSeparateDefaultShippingAddress) {
+                    $defaultShippingAddress
+                        ->setSkipMconnect(true)
+                        ->setShouldIgnoreValidation(
+                            $this->config->getFlag($this->getQueueCode() . '/ignore_customer_address_validation')
+                        )
+                        ->save();
+                    $customer->setDefaultShipping($defaultShippingAddress->getEntityId());
+                    $this->messages .= PHP_EOL . "\t" . 'Address "' . $addressData->addr_nav_id . '": SEPARATED' . PHP_EOL;
+                }
+                $customer->save();
             } else {
                 $this->messages .= PHP_EOL . "\t" . 'Address "' . $addressData->addr_nav_id . '": SKIPPED' . PHP_EOL;
             }
@@ -467,31 +521,29 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
     }
 
     /**
-     * Is Update Shipping Address
+     * Check address data if is default billion
      *
-     * @param \Magento\Customer\Model\Customer $customer
-     * @param \Magento\Customer\Model\Address $address
      * @param $addressData
-     * @param $websiteId
      *
      * @return bool
      */
-    protected function isUpdateShippingAddress($customer, $address, $addressData, $websiteId)
+    protected function isDefaultBilling($addressData)
     {
-        $customerShippingAddress = $customer->getDefaultShippingAddress();
-        if (empty($customerShippingAddress)) {
-            return true;
-        }
-        if ($customerShippingAddress->getEntityId() != $address->getEntityId()) {
-            if (empty($addressData->is_default_shipping)) {
-                return true;
-            }
-            if (!filter_var($addressData->is_default_shipping, FILTER_VALIDATE_BOOLEAN)) {
-                return true;
-            }
-        }
+        return !empty($addressData->is_default_billing)
+            && filter_var($addressData->is_default_billing, FILTER_VALIDATE_BOOLEAN);
+    }
 
-        return $this->config->getWebsiteData('customer/update_customer_shipping_address', $websiteId);
+    /**
+     * Check address data if is default shipping
+     *
+     * @param $addressData
+     *
+     * @return bool
+     */
+    protected function isDefaultShipping($addressData)
+    {
+        return !empty($addressData->is_default_shipping)
+            && filter_var($addressData->is_default_shipping, FILTER_VALIDATE_BOOLEAN);
     }
 
     protected function getRegion($country, $state)
