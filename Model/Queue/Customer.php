@@ -403,18 +403,16 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             $addressExists = false;
         }
 
-        // convert string to int data to fix hasDataChanges
+        // prepare data to fix hasDataChanges
         $address->setRegionId($address->getRegionId());
         $defaultBillingAddress = $customer->getDefaultBillingAddress();
         if (!empty($defaultBillingAddress)) {
-            $customer->setDefaultBilling($address->getEntityId());
             if ($defaultBillingAddress->getEntityId() == $address->getEntityId()) {
                 $address->setIsDefaultBilling(true);
             }
         }
         $defaultShippingAddress = $customer->getDefaultShippingAddress();
         if (!empty($defaultShippingAddress)) {
-            $customer->setDefaultShipping($address->getEntityId());
             if ($defaultShippingAddress->getEntityId() == $address->getEntityId()) {
                 $address->setIsDefaultShipping(true);
             }
@@ -482,7 +480,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
 
         $address->setIsDefaultBilling($this->isDefaultBilling($addressData));
         $address->setIsDefaultShipping(
-            empty($isSeparateDefaultShippingAddress)
+            $isUpdateCustomerAddress || empty($customer->getDefaultShipping())
                 ? $this->isDefaultShipping($addressData)
                 : false
         );
@@ -500,10 +498,10 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 } else {
                     $this->messages .= PHP_EOL . "\t" . 'Address "' . $addressData->addr_nav_id . '": CREATED' . PHP_EOL;
                 }
-                if ($address->getIsDefaultBilling()) {
+                if ($address->getIsDefaultBilling() || empty($customer->getDefaultBilling())) {
                     $customer->setDefaultBilling($address->getEntityId());
                 }
-                if ($address->setIsDefaultShipping()) {
+                if ($address->getIsDefaultShipping() || empty($customer->getDefaultShipping())) {
                     $customer->setDefaultShipping($address->getEntityId());
                 }
                 if ($isSeparateDefaultShippingAddress) {
