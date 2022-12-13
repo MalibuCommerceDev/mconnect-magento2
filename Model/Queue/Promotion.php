@@ -2,7 +2,7 @@
 
 namespace MalibuCommerce\MConnect\Model\Queue;
 
-use Magento\CatalogInventory\Model\Stock\StockItemRepository;
+use Magento\CatalogInventory\Model\Spi\StockRegistryProviderInterface;
 use Magento\Framework\DataObject;
 use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\Json;
@@ -40,9 +40,9 @@ class Promotion extends Queue implements ImportableEntity
     protected $cacheInstance;
 
     /**
-     * @var StockItemRepository
+     * @var StockRegistryProviderInterface
      */
-    protected $stockItemRepository;
+    protected $stockRegistryProvider;
 
     /** @var array */
     protected $arrayCache = [];
@@ -77,7 +77,7 @@ class Promotion extends Queue implements ImportableEntity
         FlagFactory $queueFlagFactory,
         QueueFactory $queueFactory,
         Customer $customerHelper,
-        StockItemRepository $stockItemRepository
+        StockRegistryProviderInterface $stockRegistryProvider
     ) {
         $this->registry = $registry;
         $this->navPromotion = $navPromotion;
@@ -87,7 +87,7 @@ class Promotion extends Queue implements ImportableEntity
         $this->queueFlagFactory = $queueFlagFactory;
         $this->queueFactory = $queueFactory;
         $this->customerHelper = $customerHelper;
-        $this->stockItemRepository = $stockItemRepository;
+        $this->stockRegistryProvider = $stockRegistryProvider;
     }
 
     /**
@@ -231,7 +231,7 @@ class Promotion extends Queue implements ImportableEntity
             return false;
         }
         if ($this->config->isUseMinimumQtyAllowedInShoppingCartForPromotion($websiteId)) {
-            $stockItem = $this->stockItemRepository->get($product->getEntityId());
+            $stockItem = $this->stockRegistryProvider->getStockItem($product->getEntityId(), $websiteId);
             $qtyToCheck = max(1, $qtyToCheck, $stockItem->getMinSaleQty());
         }
         $requestedQty = $qtyToCheck;
