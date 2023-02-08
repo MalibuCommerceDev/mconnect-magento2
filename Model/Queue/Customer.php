@@ -345,9 +345,14 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             }
 
             $value = (string)$data->$navAttributeCode;
-            $attribute = $customerDataModel->getResource()->getAttribute($eavAttributeCode);
-            if ($attribute->usesSource()) {
-                $value = $attribute->getSource()->getOptionId($value);
+            $possibleBoolValue = strtolower($value);
+            if ($possibleBoolValue == 'true' || $possibleBoolValue == 'false') {
+                $value = $possibleBoolValue == 'true' ? 1 : 0;
+            } else {
+                $attribute = $customerDataModel->getResource()->getAttribute($eavAttributeCode);
+                if ($attribute->usesSource()) {
+                    $value = $attribute->getSource()->getOptionId($value);
+                }
             }
 
             $customerData = $customerDataModel->getDataModel();
@@ -373,7 +378,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         $state = null;
         $address = null;
 
-        $isUpdateCustomerAddress = $customerExists 
+        $isUpdateCustomerAddress = $customerExists
             ? $this->config->getWebsiteData('customer/update_customer_shipping_address', $websiteId)
             : true;
 
