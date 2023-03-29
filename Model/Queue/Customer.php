@@ -340,19 +340,38 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         \simpleXMLElement $data
     ) {
         foreach ($this->customAttributesMap as $eavAttributeCode => $navAttributeCode) {
-            if (!isset($data->$navAttributeCode)) {
-                continue;
-            }
+            if (is_array($navAttributeCode)) {
+                $canFormTheValue = false;
+                $values = [];
+                foreach ($navAttributeCode as $navCode) {
+                    if (!isset($data->$navCode)) {
+                        continue;
+                    }
 
-            $value = (string)$data->$navAttributeCode;
-            $possibleBoolValue = strtolower($value);
-            if ($possibleBoolValue == 'true' || $possibleBoolValue == 'false') {
-                $value = $possibleBoolValue == 'true' ? 1 : 0;
-            } else {
-                $attribute = $customerDataModel->getResource()->getAttribute($eavAttributeCode);
-                if ($attribute->usesSource()) {
-                    $value = $attribute->getSource()->getOptionId($value);
+                    $values[] = $this->getCustomerEavAttributeValue(
+                        $customerDataModel,
+                        $data,
+                        $navCode,
+                        $eavAttributeCode
+                    );
+
+                    $canFormTheValue = true;
                 }
+                if (!$canFormTheValue) {
+                    continue;
+                }
+                $value = implode(' ', $values);
+            } else {
+                if (!isset($data->$navAttributeCode)) {
+                    continue;
+                }
+
+                $value = $this->getCustomerEavAttributeValue(
+                    $customerDataModel,
+                    $data,
+                    $navAttributeCode,
+                    $eavAttributeCode
+                );
             }
 
             $customerData = $customerDataModel->getDataModel();
@@ -361,6 +380,35 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             $customerDataModel->updateData($customerData);
             $customerDataModel->getResource()->saveAttribute($customerDataModel, $eavAttributeCode);
         }
+    }
+
+    /**
+     * @param \Magento\Customer\Model\Customer $customerDataModel
+     * @param \simpleXMLElement                $data
+     * @param                                  $navAttributeCode
+     * @param                                  $eavAttributeCode
+     *
+     * @return int|string
+     */
+    public function getCustomerEavAttributeValue(
+        \Magento\Customer\Model\Customer $customerDataModel,
+        \simpleXMLElement $data,
+        $navAttributeCode,
+        $eavAttributeCode
+    ) {
+
+        $value = (string)$data->$navAttributeCode;
+        $possibleBoolValue = strtolower($value);
+        if ($possibleBoolValue == 'true' || $possibleBoolValue == 'false') {
+            $value = $possibleBoolValue == 'true' ? 1 : 0;
+        } else {
+            $attribute = $customerDataModel->getResource()->getAttribute($eavAttributeCode);
+            if ($attribute->usesSource()) {
+                $value = $attribute->getSource()->getOptionId($value);
+            }
+        }
+
+        return $value;
     }
 
     /**

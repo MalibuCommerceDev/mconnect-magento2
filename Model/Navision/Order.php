@@ -137,6 +137,7 @@ class Order extends AbstractModel
         $this->addRewardPoints($orderEntity, $orderObject, $websiteId);
         $this->addShipping($orderEntity, $orderObject);
         $this->addPayment($orderEntity, $orderObject);
+        $this->addCustomAttributes($orderEntity, $orderObject);
 
         $orderObject->order_discount_amount = number_format((float)$orderEntity->getBaseDiscountAmount(), 2, '.', '');
         $orderObject->order_tax = number_format((float)$orderEntity->getBaseTaxAmount(), 2, '.', '');
@@ -145,6 +146,19 @@ class Order extends AbstractModel
         $this->addItems($orderEntity, $orderObject);
 
         return $this->_import('order_import', $root, $websiteId);
+    }
+
+    /**
+     * Add order custom attributes to NAV payload XML
+     *
+     * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
+     * @param \simpleXMLElement                      $root
+     *
+     * @return $this
+     */
+    public function addCustomAttributes(\Magento\Sales\Api\Data\OrderInterface $orderEntity, \simpleXMLElement &$root)
+    {
+        return $this;
     }
 
     /**
