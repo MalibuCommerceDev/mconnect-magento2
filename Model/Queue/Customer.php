@@ -360,7 +360,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 if (!$canFormTheValue) {
                     continue;
                 }
-                $value = implode(' ', $values);
+                $value = implode('', $values);
             } else {
                 if (!isset($data->$navAttributeCode)) {
                     continue;
