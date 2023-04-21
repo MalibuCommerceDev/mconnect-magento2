@@ -76,11 +76,13 @@ class AggregateCatalogProductTierPriceObserver implements ObserverInterface
 
             if ($collection->getSize() > 0) {
                 foreach ($collection as $item) {
+                    $price = $item->getData('price');
                     $tierPrices[] = [
-                        'website_id' => $websiteId,
-                        'cust_group' => Group::CUST_GROUP_ALL,
-                        'price_qty'  => $item->getData('qty_min'),
-                        'price'      => $item->getData('price')
+                        'website_id'    => $websiteId,
+                        'cust_group'    => Group::CUST_GROUP_ALL,
+                        'price_qty'     => $item->getData('qty_min'),
+                        'price'         => $price,
+                        'website_price' => $price,
                     ];
                 }
             }
