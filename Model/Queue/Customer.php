@@ -259,6 +259,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             ->setSkipMconnect(true)
             ->setNavId((string)$data->cust_nav_id)
             ->setNavPaymentTerms((string)$data->cust_payment_terms)
+            ->setNavCurrencyCode((string)$data->currency_code)
             ->setNavPriceGroup((string)$data->cust_price_group);
 
         $password = (string)$data->cust_pswd;
