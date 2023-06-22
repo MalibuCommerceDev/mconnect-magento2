@@ -12,12 +12,11 @@ use Magento\Eav\Setup\EavSetup;
 use Magento\Eav\Setup\EavSetupFactory;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
-use Magento\Framework\Setup\Patch\PatchVersionInterface;
 
 /**
  * Class add customer updated attribute to customer
  */
-class AddCustomerUpdatedAtAttribute implements DataPatchInterface, PatchVersionInterface
+class AddCustomerNAVCurrencyCodeAttribute implements DataPatchInterface
 {
     /**
      * @var ModuleDataSetupInterface
@@ -123,14 +122,6 @@ class AddCustomerUpdatedAtAttribute implements DataPatchInterface, PatchVersionI
     public static function getDependencies()
     {
         return [];
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public static function getVersion()
-    {
-        return '2.12.1';
     }
 
     /**
