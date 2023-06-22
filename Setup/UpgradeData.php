@@ -90,6 +90,10 @@ class UpgradeData implements UpgradeDataInterface
             $this->upgrade2_10_13($setup);
         }
 
+        if (version_compare($context->getVersion(), '2.12.2', '<')) {
+            $this->upgrade2_12_2($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -401,6 +405,69 @@ class UpgradeData implements UpgradeDataInterface
             [
                 'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_BOOLEAN,
                 'comment' => 'NAV Taxable'
+            ]
+        );
+    }
+
+    protected function upgrade2_12_2(ModuleDataSetupInterface $setup)
+    {
+        /** @var \Magento\Customer\Setup\CustomerSetup $customerSetup */
+        $customerSetup = $this->customerSetupFactory->create(['setup' => $setup]);
+
+        /** @var EavSetup $eavSetup */
+        $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+
+        $entityTypeId = $eavSetup->getEntityTypeId(Customer::ENTITY);
+        $attributeSetId = $eavSetup->getDefaultAttributeSetId($entityTypeId);
+        $attributeGroupId = $eavSetup->getDefaultAttributeGroupId($entityTypeId, $attributeSetId);
+
+        $customerSetup->removeAttribute(Customer::ENTITY, 'nav_currency_code');
+        $setup->getConnection()->dropColumn(
+            $setup->getTable('customer_entity'),
+            'nav_currency_code'
+        );
+
+        $customerSetup->addAttribute(
+            Customer::ENTITY,
+            'nav_currency_code',
+            [
+                'label'                 => 'NAV Currency Code',
+                'type'                  => 'static',
+                'input'                 => 'text',
+                'global'                => ScopedAttributeInterface::SCOPE_GLOBAL,
+                'visible'               => true,
+                'required'              => false,
+                'user_defined'          => false,
+                'system'                => false,
+                'position'              => 1005,
+                'is_used_in_grid'       => false,
+                'is_visible_in_grid'    => false,
+                'is_filterable_in_grid' => false,
+                'is_searchable_in_grid' => false,
+            ]
+        );
+
+        $attribute = $eavSetup->getAttribute($entityTypeId, 'nav_currency_code');
+        if ($attribute) {
+            $eavSetup->addAttributeToGroup(
+                $entityTypeId,
+                $attributeSetId,
+                $attributeGroupId,
+                $attribute['attribute_id'],
+                1002
+            );
+        }
+
+        /**
+         * Add required static columns to customer entity DB table
+         */
+        $setup->getConnection()->addColumn(
+            $setup->getTable('customer_entity'),
+            'nav_currency_code',
+            [
+                'type'    => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                'length'  => 255,
+                'comment' => 'NAV Currency Code'
             ]
         );
     }
