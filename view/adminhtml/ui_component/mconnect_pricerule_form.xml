@@ -150,28 +150,6 @@
                 </select>
             </formElements>
         </field>
-        <!--<field name="customer_group_ids" formElement="multiselect">-->
-            <!--<argument name="data" xsi:type="array">-->
-                <!--<item name="config" xsi:type="array">-->
-                    <!--<item name="source" xsi:type="string">catalog_rule</item>-->
-                <!--</item>-->
-            <!--</argument>-->
-            <!--<settings>-->
-                <!--<validation>-->
-                    <!--<rule name="required-entry" xsi:type="boolean">true</rule>-->
-                <!--</validation>-->
-                <!--<dataType>number</dataType>-->
-                <!--<label translate="true">Customer Groups</label>-->
-                <!--<dataScope>customer_group_ids</dataScope>-->
-            <!--</settings>-->
-            <!--<formElements>-->
-                <!--<multiselect>-->
-                    <!--<settings>-->
-                        <!--<options class="Magento\CatalogRule\Model\Rule\CustomerGroupsOptionsProvider"/>-->
-                    <!--</settings>-->
-                <!--</multiselect>-->
-            <!--</formElements>-->
-        <!--</field>-->
         <field name="nav_id">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -202,6 +180,17 @@
                     <item name="formElement" xsi:type="string">input</item>
                     <item name="source" xsi:type="string">pricerule</item>
                     <item name="dataScope" xsi:type="string">customer_price_group</item>
+                </item>
+            </argument>
+        </field>
+        <field name="currency_code">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="label" xsi:type="string">Navision Customer Currency Code</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="source" xsi:type="string">pricerule</item>
+                    <item name="dataScope" xsi:type="string">currency_code</item>
                 </item>
             </argument>
         </field>
