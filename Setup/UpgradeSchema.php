@@ -478,15 +478,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ]
         );
 
-        $setup->getConnection()->dropIndex(
-            $mainTableName,
-            $setup->getIdxName(
-                $mainTableName,
-                ['sku', 'navision_customer_id', 'website_id', 'qty_min', 'customer_price_group']
-            ),
-        );
-        $setup->getConnection()->dropIndex($mainTableName, 'IDX_E1BF23561286F298A6284CCBA4F73855');
-
         $setup->getConnection()->addIndex(
             $setup->getTable($mainTableName),
             $setup->getIdxName(
@@ -496,5 +487,14 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ['sku', 'qty_min', 'website_id', 'currency_code', 'navision_customer_id', 'customer_price_group'],
             AdapterInterface::INDEX_TYPE_UNIQUE
         );
+
+        $setup->getConnection()->dropIndex(
+            $mainTableName,
+            $setup->getIdxName(
+                $mainTableName,
+                ['sku', 'navision_customer_id', 'website_id', 'qty_min', 'customer_price_group']
+            ),
+        );
+        $setup->getConnection()->dropIndex($mainTableName, 'IDX_E1BF23561286F298A6284CCBA4F73855');
     }
 }
