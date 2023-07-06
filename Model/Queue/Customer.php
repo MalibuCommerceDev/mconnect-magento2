@@ -240,7 +240,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                     : $this->config->get('customer/default_group_nontaxable')
             );
         }
-        $customer->setNavTaxable($taxable);
+        $customer->setNavTaxable((int)$taxable);
 
         $firstname = (string)$data->cust_first_name;
         $lastname = (string)$data->cust_last_name;
@@ -253,7 +253,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 $lastname = 'Co.';
             }
         }
-
+        
         $customer->setFirstname($firstname)
             ->setLastname($lastname)
             ->setSkipMconnect(true)

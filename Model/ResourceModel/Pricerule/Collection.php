@@ -21,13 +21,13 @@ class Collection extends AbstractCollection
     /**
      * Collection constructor.
      *
-     * @param Customer                     $customerHelper
-     * @param EntityFactoryInterface    $entityFactory
-     * @param \Psr\Log\LoggerInterface                                     $logger
-     * @param FetchStrategyInterface $fetchStrategy
-     * @param ManagerInterface                    $eventManager
-     * @param AdapterInterface|null          $connection
-     * @param AbstractDb|null    $resource
+     * @param Customer                 $customerHelper
+     * @param EntityFactoryInterface   $entityFactory
+     * @param \Psr\Log\LoggerInterface $logger
+     * @param FetchStrategyInterface   $fetchStrategy
+     * @param ManagerInterface         $eventManager
+     * @param AdapterInterface|null    $connection
+     * @param AbstractDb|null          $resource
      */
     public function __construct(
         Customer $customerHelper,
@@ -51,8 +51,8 @@ class Collection extends AbstractCollection
      * Match and retrieve discount price by specified product and QTY
      *
      * @param string $sku
-     * @param int $qty
-     * @param int $websiteId
+     * @param int    $qty
+     * @param int    $websiteId
      *
      * @return string|bool
      */
@@ -77,8 +77,8 @@ class Collection extends AbstractCollection
      * Apply all filters to match "cheapest" discounted price for given product SKU and QTY
      *
      * @param string $sku
-     * @param int $qty
-     * @param int $websiteId
+     * @param int    $qty
+     * @param int    $websiteId
      *
      * @return $this
      */
@@ -87,6 +87,7 @@ class Collection extends AbstractCollection
         $this->applySkuFilter($sku)
             ->applyQtyFilter($qty)
             ->applyWebsiteFilter($websiteId)
+            ->applyCustomerCurrencyFilter()
             ->applyCustomerFilter()
             ->applyFromToDateFilter()
             ->setOrder('price', self::SORT_ORDER_ASC)
@@ -144,6 +145,41 @@ class Collection extends AbstractCollection
                 ['null' => true],
             ]);
         }
+
+        return $this;
+    }
+
+    /**
+     * Apply customer price currency filter
+     *
+     * @param int $value
+     *
+     * @return $this
+     */
+    public function applyCustomerCurrencyFilter()
+    {
+        $customer = $this->customerHelper->getCurrentCustomer();
+        if ($customer) {
+            $currencyCode = !empty($customer->getNavCurrencyCode())
+                ? $customer->getNavCurrencyCode()
+                : \MalibuCommerce\MConnect\Model\Queue\Pricerule::DEFAULT_CUSTOMER_CURRENCY_CODE;
+            $this->addFieldToFilter('currency_code',
+                [
+                    ['eq' => $currencyCode],
+                    ['null' => true],
+                    ['eq' => ''],
+                ]
+            );
+
+            return $this;
+        }
+
+        $this->addFieldToFilter('currency_code',
+            [
+                ['null' => true],
+                ['eq' => ''],
+            ]
+        );
 
         return $this;
     }
@@ -220,9 +256,9 @@ class Collection extends AbstractCollection
     /**
      * Apply price rule date filter
      *
-     * @param string $field
+     * @param string      $field
      * @param string|null $value
-     * @param string $direction
+     * @param string      $direction
      *
      * @return $this
      * @throws LocalizedException

@@ -67,6 +67,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->upgrade2_10_9($setup);
         }
 
+        if (version_compare($context->getVersion(), '2.12.3', '<=')) {
+            $this->upgrade2_12_3($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -458,6 +462,39 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $setup->getTable($mainTableName),
             $setup->getIdxName($mainTableName, ['date_end']),
             ['date_end']
+        );
+    }
+
+    protected function upgrade2_12_3(SchemaSetupInterface $setup)
+    {
+        $mainTableName = 'malibucommerce_mconnect_price_rule';
+        $setup->getConnection()->addColumn(
+            $setup->getTable($mainTableName),
+            'currency_code',
+            [
+                'type'    => Table::TYPE_TEXT,
+                'length'  => 255,
+                'comment' => 'Currency Code'
+            ]
+        );
+
+        $setup->getConnection()->dropIndex(
+            $mainTableName,
+            $setup->getIdxName(
+                $mainTableName,
+                ['sku', 'navision_customer_id', 'website_id', 'qty_min', 'customer_price_group']
+            ),
+        );
+        $setup->getConnection()->dropIndex($mainTableName, 'IDX_E1BF23561286F298A6284CCBA4F73855');
+
+        $setup->getConnection()->addIndex(
+            $setup->getTable($mainTableName),
+            $setup->getIdxName(
+                $mainTableName,
+                ['sku', 'qty_min', 'website_id', 'currency_code', 'navision_customer_id', 'customer_price_group']
+            ),
+            ['sku', 'qty_min', 'website_id', 'currency_code', 'navision_customer_id', 'customer_price_group'],
+            AdapterInterface::INDEX_TYPE_UNIQUE
         );
     }
 }

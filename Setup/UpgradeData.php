@@ -369,8 +369,8 @@ class UpgradeData implements UpgradeDataInterface
             'nav_taxable',
             [
                 'label'                 => 'Navision Taxable',
-                'type'                  => 'int',
-                'input'                 => 'boolean',
+                'type'                  => 'static',
+                'input'                 => 'int',
                 'global'                => ScopedAttributeInterface::SCOPE_GLOBAL,
                 'source'                => Boolean::class,
                 'visible'               => true,
@@ -470,5 +470,20 @@ class UpgradeData implements UpgradeDataInterface
                 'comment' => 'NAV Currency Code'
             ]
         );
+    }
+
+    protected function upgrade2_12_3(ModuleDataSetupInterface $setup)
+    {
+        /** @var \Magento\Customer\Setup\CustomerSetup $customerSetup */
+        $customerSetup = $this->customerSetupFactory->create(['setup' => $setup]);
+
+        $this->upgrade2_10_13($setup);
+
+        $attributes = ['nav_currency_code', 'nav_taxable'];
+        foreach ($attributes as $attributeCode) {
+            $attribute = $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, $attributeCode);
+            $attribute->setData('used_in_forms', ['adminhtml_customer']);
+            $attribute->save();
+        }
     }
 }

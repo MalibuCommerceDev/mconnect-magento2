@@ -7,8 +7,9 @@ use MalibuCommerce\MConnect\Model\QueueFactory;
 
 class Pricerule extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
 {
-    const CODE                   = 'price_rule';
-    const NAV_XML_NODE_ITEM_NAME = 'sales_price';
+    const CODE                           = 'price_rule';
+    const NAV_XML_NODE_ITEM_NAME         = 'sales_price';
+    const DEFAULT_CUSTOMER_CURRENCY_CODE = 'USD';
 
     /**
      * @var \MalibuCommerce\MConnect\Model\Navision\Pricerule
@@ -74,16 +75,21 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue implements Importab
 
     public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
+        $currencyCode = (string)$data->currency_code;
+
         $modelData = [
             'nav_id'               => (int)$data->unique_id,
             'website_id'           => (int)$websiteId,
             'sku'                  => (string)$data->nav_item_id,
+            'currency_code'        => !empty($currencyCode) ? $currencyCode : self::DEFAULT_CUSTOMER_CURRENCY_CODE,
             'navision_customer_id' => (string)$data->nav_customer_id,
             'qty_min'              => (int)$data->min_quantity,
             'price'                => (float)$data->unit_price,
             'customer_price_group' => (string)$data->cust_price_group,
-            'date_start'           => ((string)$data->start_date) ? date('Y:m:d H:i:s', strtotime((string)$data->start_date)) : null,
-            'date_end'             => ((string)$data->end_date) ? date('Y:m:d H:i:s', strtotime((string)$data->end_date)) : null,
+            'date_start'           => ((string)$data->start_date) ? date('Y:m:d H:i:s',
+                strtotime((string)$data->start_date)) : null,
+            'date_end'             => ((string)$data->end_date) ? date('Y:m:d H:i:s',
+                strtotime((string)$data->end_date)) : null,
         ];
 
         /** @var \MalibuCommerce\MConnect\Model\ResourceModel\Pricerule\Collection $collection */
