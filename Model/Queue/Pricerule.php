@@ -81,7 +81,7 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue implements Importab
             'nav_id'               => (int)$data->unique_id,
             'website_id'           => (int)$websiteId,
             'sku'                  => (string)$data->nav_item_id,
-            'currency_code'        => !empty($currencyCode) ? $currencyCode : self::DEFAULT_CUSTOMER_CURRENCY_CODE,
+            'currency_code'        => !empty($currencyCode) ? $currencyCode : static::DEFAULT_CUSTOMER_CURRENCY_CODE,
             'navision_customer_id' => (string)$data->nav_customer_id,
             'qty_min'              => (int)$data->min_quantity,
             'price'                => (float)$data->unit_price,
