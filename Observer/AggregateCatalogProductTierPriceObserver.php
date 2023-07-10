@@ -68,11 +68,12 @@ class AggregateCatalogProductTierPriceObserver implements ObserverInterface
             $collection = $this->rule->getResourceCollection();
             $collection
                 ->applySkuFilter($product->getSku())
+                ->addFieldToFilter('qty_min', [['from' => self::MIN_QTY_TO_SHOW_TIER_PRICE]])
                 ->applyWebsiteFilter($websiteId)
+                ->applyCustomerCurrencyFilter()
                 ->applyCustomerFilter()
                 ->applyFromToDateFilter()
-                ->setOrder('price', \Zend_Db_Select::SQL_ASC)
-                ->addFieldToFilter('qty_min', [['from' => self::MIN_QTY_TO_SHOW_TIER_PRICE]]);
+                ->setOrder('price', \Zend_Db_Select::SQL_ASC);
 
             if ($collection->getSize() > 0) {
                 foreach ($collection as $item) {
