@@ -68,7 +68,7 @@ class AggregateCatalogProductTierPriceObserver implements ObserverInterface
             $collection = $this->rule->getResourceCollection();
             $collection
                 ->applySkuFilter($product->getSku())
-                ->addFieldToFilter('qty_min', [['from' => self::MIN_QTY_TO_SHOW_TIER_PRICE]])
+                ->addFieldToFilter('qty_min', [['from' => static::MIN_QTY_TO_SHOW_TIER_PRICE]])
                 ->applyWebsiteFilter($websiteId)
                 ->applyCustomerCurrencyFilter()
                 ->applyCustomerFilter()
