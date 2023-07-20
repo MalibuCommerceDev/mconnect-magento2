@@ -71,6 +71,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->upgrade2_12_3($setup);
         }
 
+        if (version_compare($context->getVersion(), '2.12.5', '<=')) {
+            $this->upgrade2_12_5($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -496,5 +500,19 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ),
         );
         $setup->getConnection()->dropIndex($mainTableName, 'IDX_E1BF23561286F298A6284CCBA4F73855');
+    }
+
+    protected function upgrade2_12_5(SchemaSetupInterface $setup)
+    {
+        $mainTableName = 'malibucommerce_mconnect_price_rule';
+        $setup->getConnection()->dropForeignKey(
+            $mainTableName,
+            $setup->getFkName(
+                $mainTableName,
+                'sku',
+                'catalog_product_entity',
+                'sku'
+            )
+        );
     }
 }

@@ -86,10 +86,8 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue implements Importab
             'qty_min'              => (int)$data->min_quantity,
             'price'                => (float)$data->unit_price,
             'customer_price_group' => (string)$data->cust_price_group,
-            'date_start'           => ((string)$data->start_date) ? date('Y:m:d H:i:s',
-                strtotime((string)$data->start_date)) : null,
-            'date_end'             => ((string)$data->end_date) ? date('Y:m:d H:i:s',
-                strtotime((string)$data->end_date)) : null,
+            'date_start'           => ((string)$data->start_date) ? date('Y:m:d H:i:s', strtotime((string)$data->start_date)) : null,
+            'date_end'             => ((string)$data->end_date) ? date('Y:m:d H:i:s', strtotime((string)$data->end_date)) : null,
         ];
 
         /** @var \MalibuCommerce\MConnect\Model\ResourceModel\Pricerule\Collection $collection */
@@ -105,9 +103,18 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue implements Importab
         $model->addData($modelData);
         try {
             $model->save();
-            $this->messages .= 'Price Rule ' . ($isUpdate ? 'UPDATED' : 'CREATED') . ': NAV ID ' . $model->getNavId();
+            $this->messages .= sprintf(
+                'Price Rule Nav ID %s: %s',
+                $model->getNavId(),
+                ($isUpdate ? 'UPDATED' : 'CREATED')
+            );
         } catch (\Throwable $e) {
-            $this->messages .= $e->getMessage();
+            $this->messages .= sprintf(
+                'Price Rule Nav ID %s (SKU %s): ERROR - %s',
+                $model->getNavId(),
+                $model->getSku(),
+                $e->getMessage()
+            );
         }
         $this->rule->unsetData();
 
