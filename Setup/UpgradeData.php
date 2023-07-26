@@ -3,7 +3,6 @@
 namespace MalibuCommerce\MConnect\Setup;
 
 use Magento\Customer\Setup\CustomerSetupFactory;
-use Magento\Eav\Model\Entity\Attribute\Source\Boolean;
 use Magento\Framework\Setup\UpgradeDataInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
@@ -377,7 +376,7 @@ class UpgradeData implements UpgradeDataInterface
                 'type'                  => 'static',
                 'input'                 => 'boolean',
                 'global'                => ScopedAttributeInterface::SCOPE_GLOBAL,
-                'backend'               => Boolean::class,
+                'backend'               => \Magento\Customer\Model\Attribute\Backend\Data\Boolean::class,
                 'visible'               => true,
                 'required'              => false,
                 'user_defined'          => false,
