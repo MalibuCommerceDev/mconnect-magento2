@@ -68,4 +68,7 @@
             </argument>
         </arguments>
     </virtualType>
+    <type name="Magento\Customer\Model\Address">
+        <plugin name="mconnect_customer_address_model_plugin" type="MalibuCommerce\MConnect\Plugin\Customer\Model\AddressPlugin" />
+    </type>
 </config>

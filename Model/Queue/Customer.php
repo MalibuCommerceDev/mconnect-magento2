@@ -2,13 +2,21 @@
 
 namespace MalibuCommerce\MConnect\Model\Queue;
 
+use Magento\Customer\Api\AddressRepositoryInterface;
+use Magento\Customer\Api\Data\AddressInterfaceFactory;
+use Magento\Customer\Model\AddressRegistry;
+use Magento\Customer\Api\Data\RegionInterfaceFactory;
+use Magento\Directory\Model\RegionFactory;
+use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\LocalizedException;
 
 class Customer extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
 {
-    const CODE = 'customer';
+    const CODE                   = 'customer';
     const NAV_XML_NODE_ITEM_NAME = 'customer';
+
+    const CUSTOMER_ADDRESS_SPECIAL_MARKER = 'MCONNECT';
 
     /**
      * @var \Magento\Customer\Api\CustomerRepositoryInterface
@@ -20,15 +28,20 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
      */
     protected $customerFactory;
 
-    /**
-     * @var \Magento\Customer\Model\AddressFactory
-     */
+    /** @var AddressRepositoryInterface */
+    protected $addressRepository;
+
+    /** @var AddressInterfaceFactory */
     protected $addressFactory;
 
-    /**
-     * @var \Magento\Directory\Model\RegionFactory
-     */
-    protected $regionFactory;
+    /** @var AddressRegistry */
+    protected $addressRegistry;
+
+    /** @var RegionInterfaceFactory */
+    protected $addressRegionFactory;
+
+    /** @var RegionFactory */
+    protected $directoryRegionFactory;
 
     /**
      * @var \MalibuCommerce\MConnect\Model\Navision\Customer
@@ -50,19 +63,6 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
      */
     protected $queueFlagFactory;
 
-    /** @var \Magento\Customer\Model\CustomerFactory */
-    protected $customer;
-
-    /**
-     * @var \Magento\Customer\Model\AddressFactory
-     */
-    protected $address;
-
-    /**
-     * @var \Magento\Customer\Model\ResourceModel\Address\CollectionFactory
-     */
-    protected $addressCollectionFactory;
-
     /**
      * @var \Magento\Framework\Api\SearchCriteriaBuilder
      */
@@ -80,26 +80,30 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
 
     public function __construct(
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
-        \Magento\Directory\Model\RegionFactory $regionFactory,
+        \Magento\Customer\Model\CustomerFactory $customerFactory,
+        AddressRepositoryInterface $addressRepository,
+        AddressInterfaceFactory $addressFactory,
+        AddressRegistry $addressRegistry,
+        RegionInterfaceFactory $addressRegionFactory,
+        RegionFactory $directoryRegionFactory,
         \MalibuCommerce\MConnect\Model\Navision\Customer $navCustomer,
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Helper\Mail $mailer,
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
-        \Magento\Customer\Model\CustomerFactory $customerFactory,
-        \Magento\Customer\Model\AddressFactory $addressFactory,
-        \Magento\Customer\Model\ResourceModel\Address\CollectionFactory $addressCollectionFactory,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Eav\Model\AttributeRepository $attributeRepository
     ) {
         $this->customerRepository = $customerRepository;
-        $this->regionFactory = $regionFactory;
+        $this->customerFactory = $customerFactory;
+        $this->addressRepository = $addressRepository;
+        $this->addressFactory = $addressFactory;
+        $this->addressRegistry = $addressRegistry;
+        $this->addressRegionFactory = $addressRegionFactory;
+        $this->directoryRegionFactory = $directoryRegionFactory;
         $this->navCustomer = $navCustomer;
         $this->config = $config;
         $this->mailer = $mailer;
         $this->queueFlagFactory = $queueFlagFactory;
-        $this->customerFactory = $customerFactory;
-        $this->addressFactory = $addressFactory;
-        $this->addressCollectionFactory = $addressCollectionFactory;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->attributeRepository = $attributeRepository;
     }
@@ -196,7 +200,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
      * Backward compatibility method
      *
      * @param \SimpleXMLElement $data
-     * @param int $websiteId
+     * @param int               $websiteId
      */
     public function importCustomer($data, $websiteId = 0)
     {
@@ -215,7 +219,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         /**
          * Persist customer entity
          */
-        $websiteId = $websiteId ?: $this->config->get('customer/default_website');
+        $websiteId = $websiteId ? : $this->config->get('customer/default_website');
         $customerExists = false;
         try {
             $customer = $this->customerFactory->create()->setWebsiteId($websiteId)->loadByEmail($email);
@@ -253,7 +257,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 $lastname = 'Co.';
             }
         }
-        
+
         $customer->setFirstname($firstname)
             ->setLastname($lastname)
             ->setSkipMconnect(true)
@@ -328,9 +332,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
          * Add addresses
          */
         if (!empty($data->address)) {
-            foreach ($data->address as $addressData) {
-                $this->importAddress($customer, $customerExists, $addressData, $websiteId);
-            }
+            $this->importCustomerAddresses($customer, $data->address, $websiteId);
         }
 
         return true;
@@ -414,202 +416,309 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
 
     /**
      * @param \Magento\Customer\Model\Customer $customer
-     * @param bool $customerExists
-     * @param $addressData
-     * @param int|string $websiteId
+     * @param \SimpleXMLElement                $addresses
+     * @param int|string|null                  $websiteId
      *
-     * @return void
+     * @return array
      */
-    protected function importAddress($customer, $customerExists, $addressData, $websiteId)
+    public function importCustomerAddresses($customer, $addresses, $websiteId): bool
     {
-        $email = null;
-        $country = null;
-        $state = null;
-        $address = null;
-
-        $isUpdateCustomerAddress = $customerExists
-            ? $this->config->getWebsiteData('customer/update_customer_shipping_address', $websiteId)
-            : true;
-
-        $addressExists = true;
-        if (!empty($addressData->addr_mag_id)) {
-            $collection = $this->addressCollectionFactory->create();
-            $collection->addFieldToFilter('parent_id', $customer->getId())
-                ->addFieldToFilter('entity_id', (string)$addressData->addr_mag_id);
-            $address = $collection->getFirstItem();
-        } else if ($this->isDefaultBilling($addressData)) {
-            $address = $customer->getDefaultBillingAddress();
-        } else if ($isUpdateCustomerAddress && $this->isDefaultShipping($addressData)) {
-            $address = $customer->getDefaultShippingAddress();
-        } else {
-            $this->messages .= PHP_EOL . "\t" . 'Address'
-                . (!empty($addressData->addr_nav_id) ? ' "' . $addressData->addr_nav_id . '"' : '')
-                . ': SKIPPED' . PHP_EOL;
-
-            return;
-        }
-
-        if (!$address || !$address->getId()) {
-            $address = $this->addressFactory->create();
-            if (!empty($addressData->addr_mag_id)) {
-                $address->setEntityId((string)$addressData->addr_mag_id);
-            }
-            $addressExists = false;
-        }
-
-        // prepare data to fix hasDataChanges
-        $address->setRegionId($address->getRegionId());
-        $defaultBillingAddress = $customer->getDefaultBillingAddress();
-        if (!empty($defaultBillingAddress)) {
-            if ($defaultBillingAddress->getEntityId() == $address->getEntityId()) {
-                $address->setIsDefaultBilling(true);
-            }
-        }
-        $defaultShippingAddress = $customer->getDefaultShippingAddress();
-        if (!empty($defaultShippingAddress)) {
-            if ($defaultShippingAddress->getEntityId() == $address->getEntityId()) {
-                $address->setIsDefaultShipping(true);
-            }
-        }
-        $address->setHasDataChanges(false);
-
-        $isSeparateDefaultShippingAddress = empty($isUpdateCustomerAddress)
-            && !empty($defaultBillingAddress) && !empty($defaultShippingAddress)
-            && $defaultBillingAddress->getEntityId() == $defaultShippingAddress->getEntityId();
-        if ($isSeparateDefaultShippingAddress) {
-            $defaultShippingAddress = clone $defaultShippingAddress;
-            $defaultShippingAddress->setIsDefaultBilling(false);
-        }
-
-        if (empty($email) || $email != $customer->getEmail()) {
-            $country = (string)$addressData->addr_country;
-            $state = (string)$addressData->addr_state;
-            $email = $customer->getEmail();
-        }
-        $country = !empty((string)$addressData->addr_country) ? (string)$addressData->addr_country : $country;
-        $state = !empty((string)$addressData->addr_state) ? (string)$addressData->addr_state : $state;
-        $region = $this->getRegion($country, $state);
-
-        $firstname = (string)$addressData->addr_name;
-        $lastname = (string)$addressData->addr_name2;
-        if (empty($firstname) || empty($lastname)) {
-            $firstname = (string)$addressData->addr_first_name;
-            $lastname = (string)$addressData->addr_last_name;
-        }
-        if (empty($lastname)) {
-            $parts = explode(' ', $firstname);
-            if (count($parts) > 1) {
-                $firstname = $parts[0];
-                unset($parts[0]);
-                $lastname = implode(' ', $parts);
-            } else {
-                $lastname = 'Co.';
-            }
-        }
-
-        $telephone = (string)$addressData->addr_phone;
-        $telephone = empty($telephone) ? 'N/A' : $telephone;
-        $streets = [];
-        if (!empty($addressData->addr_street)) {
-            $streets[] = (string)$addressData->addr_street;
-        }
-        if (!empty($addressData->address_2)) {
-            $streets[] = (string)$addressData->address_2;
-        }
-
-        $address
-            ->setParentId(is_numeric($customer->getId()) ? (int)$customer->getId() : $customer->getId())
-            ->setFirstname($firstname)
-            ->setLastname($lastname)
-            ->setStreet($streets)
-            ->setCity(!empty($addressData->addr_city) ? (string)$addressData->addr_city : null)
-            ->setCountryId(is_numeric($country) ? (int)$country : (string)$country)
-            ->setRegionId(is_numeric($region) ? (int)$region : (string)$region)
-            ->setPostcode(!empty($addressData->addr_post_code) ? (string)$addressData->addr_post_code : null)
-            ->setTelephone($telephone)
-            ->setFax(!empty($addressData->addr_fax) ? (string)$addressData->addr_fax : null)
-            ->setNavId(!empty($addressData->addr_nav_id) ? (string)$addressData->addr_nav_id : null);
-
-        $isSeparateDefaultShippingAddress = $isSeparateDefaultShippingAddress && $address->hasDataChanges();
-
-        $address->setIsDefaultBilling($this->isDefaultBilling($addressData));
-        $address->setIsDefaultShipping(
-            $isUpdateCustomerAddress || empty($customer->getDefaultShipping())
-                ? $this->isDefaultShipping($addressData)
-                : false
+        $isShippingAddressUpdateAllowed = $this->config->getWebsiteData(
+            'customer/update_customer_shipping_address',
+            $websiteId
         );
+        $importedNewAddresses = $importedExistingAddresses = [];
 
-        try {
-            if ($address->hasDataChanges()) {
-                $address
-                    ->setSkipMconnect(true)
-                    ->setShouldIgnoreValidation(
-                        $this->config->getFlag($this->getQueueCode() . '/ignore_customer_address_validation')
-                    );
-                $address->save();
-                if ($addressExists) {
-                    $this->messages .= PHP_EOL . "\t" . 'Address "' . $addressData->addr_nav_id . '": UPDATED' . PHP_EOL;
-                } else {
-                    $this->messages .= PHP_EOL . "\t" . 'Address "' . $addressData->addr_nav_id . '": CREATED' . PHP_EOL;
+        foreach ($addresses as $navAddressData) {
+            // By Magento Address ID
+            $addressId = filter_var($navAddressData->addr_mag_id, FILTER_VALIDATE_INT);
+            if ($addressId) {
+                $updatedAddress = $this->updateExistingAddress($addressId, $navAddressData, $websiteId);
+                if ($updatedAddress) {
+                    $importedExistingAddresses[$updatedAddress->getId()] = $navAddressData;
+                    continue;
                 }
-                if ($address->getIsDefaultBilling() || empty($customer->getDefaultBilling())) {
-                    $customer->setDefaultBilling($address->getEntityId());
-                }
-                if ($address->getIsDefaultShipping() || empty($customer->getDefaultShipping())) {
-                    $customer->setDefaultShipping($address->getEntityId());
-                }
-                if ($isSeparateDefaultShippingAddress) {
-                    $defaultShippingAddress
-                        ->setSkipMconnect(true)
-                        ->setShouldIgnoreValidation(
-                            $this->config->getFlag($this->getQueueCode() . '/ignore_customer_address_validation')
-                        )
-                        ->save();
-                    $customer->setDefaultShipping($defaultShippingAddress->getEntityId());
-                    $this->messages .= PHP_EOL . "\t" . 'Address "' . $addressData->addr_nav_id . '": SEPARATED' . PHP_EOL;
-                }
-                $customer->save();
-            } else {
-                $this->messages .= PHP_EOL . "\t" . 'Address "' . $addressData->addr_nav_id . '": SKIPPED' . PHP_EOL;
             }
-        } catch (\Throwable $e) {
-            $this->messages .= PHP_EOL . "\t" . 'Address "' . $addressData->addr_nav_id . '": ERROR - ' . $e->getMessage() . PHP_EOL;
+
+            // By Street and Postcode
+            $searchCriteria = $this->searchCriteriaBuilder
+                ->addFilter('street',  '%' . ((string)$navAddressData->addr_street) . '%', 'like')
+                ->addFilter('postcode', (string)$navAddressData->addr_post_code)
+                ->create();
+            $searchResult = $this->addressRepository->getList($searchCriteria)->getItems();
+            /** @var \Magento\Customer\Api\Data\AddressInterface $addressByStreet */
+            $address = current($searchResult);
+            if ($address) {
+                $updatedAddress = $this->updateExistingAddress($address->getId(), $navAddressData, $websiteId);
+                if ($updatedAddress) {
+                    $importedExistingAddresses[$updatedAddress->getId()] = $navAddressData;
+                    continue;
+                }
+            }
+
+            // Add new address
+            $createdAddress = $this->createAddress($customer, $navAddressData, $websiteId);
+            $importedNewAddresses[] = $createdAddress;
         }
+
+
+        return [$importedExistingAddresses, $importedNewAddresses];
+    }
+
+    /**
+     * @param int               $addressId
+     * @param \SimpleXMLElement $navAddressData
+     * @param int               $websiteId
+     *
+     * @return \Magento\Customer\Api\Data\AddressInterface|null
+     */
+    protected function updateExistingAddress($addressId, $navAddressData, $websiteId)
+    {
+        try {
+            try {
+                /** @var \Magento\Customer\Api\Data\AddressInterface $address */
+                $address = $this->addressRepository->getById($addressId);
+            } catch (\NoSuchEntityException $e) {
+                $this->messages .= sprintf(
+                    "\n\t" . 'Address "%s": IGNORED - not found by Magento ID' . "\n",
+                    (string)$navAddressData->addr_street,
+                );
+
+                return null;
+            }
+
+            if ($address->isDefaultShipping()
+                && !$this->config->getWebsiteData('customer/update_customer_shipping_address', $websiteId)
+            ) {
+                $this->messages .= sprintf(
+                    "\n\t" . 'Address "%s": IGNORED - shipping address update is disabled' . "\n",
+                    (string)$navAddressData->addr_street,
+                );
+
+                return null;
+            }
+
+            $region = $address->getRegion();
+            $country = (string)$navAddressData->addr_country;
+            $state = (string)$navAddressData->addr_state;
+            $searchRegion = $this->directoryRegionFactory->create()->loadByCode($state, $country);
+            if ($searchRegion && $searchRegion->getId()) {
+                /** @var \Magento\Customer\Api\Data\RegionInterface $region */
+                $region = $this->addressRegionFactory->create();
+                $region->setRegionCode($searchRegion->getCode())
+                    ->setRegion($searchRegion->getName())
+                    ->setRegionId($searchRegion->getRegionId());
+            }
+
+            $firstname = (string)$navAddressData->addr_name;
+            $lastname = (string)$navAddressData->addr_name2;
+            if (empty($firstname) || empty($lastname)) {
+                $firstname = (string)$navAddressData->addr_first_name;
+                $lastname = (string)$navAddressData->addr_last_name;
+            }
+            if (empty($lastname)) {
+                $parts = explode(' ', $firstname);
+                if (count($parts) > 1) {
+                    $firstname = $parts[0];
+                    unset($parts[0]);
+                    $lastname = implode(' ', $parts);
+                } else {
+                    $lastname = 'Co.';
+                }
+            }
+
+            $telephone = (string)$navAddressData->addr_phone;
+            $telephone = empty($telephone) ? 'N/A' : $telephone;
+            $streetData = [];
+            if (!empty($navAddressData->addr_street)) {
+                $streetData[] = (string)$navAddressData->addr_street;
+            }
+            if (!empty($navAddressData->address_2)) {
+                $streetData[] = (string)$navAddressData->address_2;
+            }
+
+            $address
+                ->setCountryId($country)
+                ->setPostcode((string)$navAddressData->addr_post_code)
+                ->setRegion($region)
+                ->setStreet($streetData)
+                ->setTelephone($telephone)
+                ->setCity((string)$navAddressData->addr_city)
+                ->setFirstname($firstname)
+                ->setLastname($lastname)
+                ->setIsDefaultBilling($this->isAddressDefaultBilling($navAddressData))
+                ->setIsDefaultShipping($this->isAddressDefaultShipping($navAddressData))
+                ->setFax((string)$navAddressData->addr_fax)
+                ->setRegionId($region->getRegionId())
+                ->setCustomAttribute(
+                    'nav_id',
+                    $this->getSpeciallyMarkedAddressNavId($websiteId, (string)$navAddressData->addr_nav_id)
+                );
+
+            $result = $this->addressRepository->save($address);
+            $this->messages .= sprintf("\n\t" . 'Address "%s": UPDATED' . "\n", (string)$navAddressData->addr_street);
+
+            return $result;
+        } catch (\Throwable $e) {
+            $this->messages .= sprintf(
+                "\n\t" . 'Address "%s": ERROR - %s' . "\n",
+                (string)$navAddressData->addr_street,
+                $e->getMessage()
+            );
+        }
+
+        return null;
+    }
+
+    /**
+     * @param \Magento\Customer\Model\Customer $customer
+     * @param \SimpleXMLElement                $navAddressData
+     * @param int                              $websiteId
+     *
+     * @return \Magento\Customer\Api\Data\AddressInterface|null
+     */
+    protected function createAddress($customer, $navAddressData, $websiteId)
+    {
+        try {
+            if ($this->isAddressDefaultShipping($navAddressData)
+                && !$this->config->getWebsiteData('customer/update_customer_shipping_address', $websiteId)
+            ) {
+                $this->messages .= sprintf(
+                    "\n\t" . 'Address "%s": IGNORED - shipping address update is disabled' . "\n",
+                    (string)$navAddressData->addr_street,
+                );
+
+                return null;
+            }
+
+            /** @var \Magento\Customer\Api\Data\AddressInterface $address */
+            $address = $this->addressFactory->create();
+
+            $country = (string)$navAddressData->addr_country;
+            $state = (string)$navAddressData->addr_state;
+            $region = $this->addressRegionFactory->create();
+            $region->setRegionCode($state)
+                ->setRegion(null)
+                ->setRegionId(null);
+
+            $searchRegion = $this->directoryRegionFactory->create()->loadByCode($state, $country);
+            if ($searchRegion && $searchRegion->getId()) {
+                /** @var \Magento\Customer\Api\Data\RegionInterface $region */
+                $region->setRegionCode($searchRegion->getCode())
+                    ->setRegion($searchRegion->getName())
+                    ->setRegionId($searchRegion->getRegionId());
+            }
+
+            $firstname = (string)$navAddressData->addr_name;
+            $lastname = (string)$navAddressData->addr_name2;
+            if (empty($firstname) || empty($lastname)) {
+                $firstname = (string)$navAddressData->addr_first_name;
+                $lastname = (string)$navAddressData->addr_last_name;
+            }
+            if (empty($lastname)) {
+                $parts = explode(' ', $firstname);
+                if (count($parts) > 1) {
+                    $firstname = $parts[0];
+                    unset($parts[0]);
+                    $lastname = implode(' ', $parts);
+                } else {
+                    $lastname = 'Co.';
+                }
+            }
+
+            $telephone = (string)$navAddressData->addr_phone;
+            $telephone = empty($telephone) ? 'N/A' : $telephone;
+            $streetData = [];
+            if (!empty($navAddressData->addr_street)) {
+                $streetData[] = (string)$navAddressData->addr_street;
+            }
+            if (!empty($navAddressData->address_2)) {
+                $streetData[] = (string)$navAddressData->address_2;
+            }
+
+            $address
+                ->setId(null)
+                ->setCustomerId($customer->getId())
+                ->setCountryId($country)
+                ->setPostcode((string)$navAddressData->addr_post_code)
+                ->setRegion($region)
+                ->setStreet($streetData)
+                ->setTelephone($telephone)
+                ->setCity((string)$navAddressData->addr_city)
+                ->setFirstname($firstname)
+                ->setLastname($lastname)
+                ->setIsDefaultBilling($this->isAddressDefaultBilling($navAddressData))
+                ->setIsDefaultShipping($this->isAddressDefaultShipping($navAddressData))
+                ->setFax((string)$navAddressData->addr_fax)
+                ->setRegionId($region->getRegionId())
+                ->setCustomAttribute(
+                    'nav_id',
+                    $this->getSpeciallyMarkedAddressNavId($websiteId, (string)$navAddressData->addr_nav_id)
+                );
+
+            $result = $this->addressRepository->save($address);
+            $this->messages .= sprintf("\n\t" . 'Address "%s": CREATED' . "\n", (string)$navAddressData->addr_street);
+
+            return $result;
+        } catch (\Throwable $e) {
+            $this->messages .= sprintf(
+                "\n\t" . 'Address "%s": ERROR - %s' . "\n",
+                (string)$navAddressData->addr_street,
+                $e->getMessage()
+            );
+        }
+
+        return null;
+    }
+
+    /**
+     * @param int $websiteId
+     * @param string $navIdValue
+     *
+     * @return string
+     */
+    protected function getSpeciallyMarkedAddressNavId($websiteId, $navIdValue)
+    {
+        return implode('|', [
+            self::CUSTOMER_ADDRESS_SPECIAL_MARKER,
+            $websiteId,
+            $navIdValue
+        ]);
     }
 
     /**
      * Check address data if is default billion
      *
-     * @param $addressData
+     * @param \SimpleXMLElement $addressData
      *
      * @return bool
      */
-    protected function isDefaultBilling($addressData)
+    protected function isAddressDefaultBilling($addressData)
     {
-        return !empty($addressData->is_default_billing)
-            && filter_var($addressData->is_default_billing, FILTER_VALIDATE_BOOLEAN);
+        if (isset($addressData->is_default_billing)) {
+
+            return filter_var($addressData->is_default_billing, FILTER_VALIDATE_BOOLEAN)
+                   || filter_var($addressData->is_default_billing, FILTER_VALIDATE_INT) == 1;
+        }
+
+        return false;
     }
 
     /**
      * Check address data if is default shipping
      *
-     * @param $addressData
+     * @param \SimpleXMLElement $addressData
      *
      * @return bool
      */
-    protected function isDefaultShipping($addressData)
+    protected function isAddressDefaultShipping($addressData)
     {
-        return !empty($addressData->is_default_shipping)
-            && filter_var($addressData->is_default_shipping, FILTER_VALIDATE_BOOLEAN);
-    }
+        if (isset($addressData->is_default_shipping)) {
 
-    protected function getRegion($country, $state)
-    {
-        $region = $this->regionFactory->create()->loadByCode($state, $country);
-        if (!$region || !$region->getId()) {
-            return $state;
+            return filter_var($addressData->is_default_shipping, FILTER_VALIDATE_BOOLEAN)
+                   || filter_var($addressData->is_default_shipping, FILTER_VALIDATE_INT) == 1;
         }
 
-        return $region->getRegionId();
+        return false;
     }
 }
