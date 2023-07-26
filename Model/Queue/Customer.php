@@ -421,7 +421,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
      *
      * @return array
      */
-    public function importCustomerAddresses($customer, $addresses, $websiteId): bool
+    public function importCustomerAddresses($customer, $addresses, $websiteId): array
     {
         $isShippingAddressUpdateAllowed = $this->config->getWebsiteData(
             'customer/update_customer_shipping_address',

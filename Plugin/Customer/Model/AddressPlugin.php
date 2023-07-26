@@ -29,6 +29,10 @@ class AddressPlugin
      */
     public function afterUpdateData(Subject $subject, $resultAddressModel, AddressInterface $address)
     {
+        if (!$address->getCustomAttribute('nav_id')) {
+
+            return $resultAddressModel;
+        }
         $specialNavId = explode('|', $address->getCustomAttribute('nav_id')->getValue());
         $specialMarker = \MalibuCommerce\MConnect\Model\Queue\Customer::CUSTOMER_ADDRESS_SPECIAL_MARKER;
         $isAddressSavedByMconnectLogic = isset($specialNavId[0]) && $specialNavId[0] == $specialMarker;
@@ -38,7 +42,7 @@ class AddressPlugin
                 $specialNavId[1] ?? null
             );
             $resultAddressModel
-                ->setCustomAttribute('nav_id', $specialNavId[2] ?? 'DEFAULT')
+                ->setNavId($specialNavId[2] ?? 'DEFAULT')
                 ->setShouldIgnoreValidation($ignoreValidation)
                 ->setSkipMconnect(true);
         }

@@ -271,7 +271,8 @@ class Queue extends \Magento\Framework\Model\AbstractModel
             $affectedEntitiesCount = $model->getAffectedEntitiesCount();
         } catch (\Throwable $e) {
             $this->_logger->critical($e);
-            $messages = 'Processing interrupted!' . "\n" . 'Error: ' . $e->getMessage() . "\n\nProcessing Messages: " . $model->getMessages();
+            $messages = 'Processing interrupted!' . "\n" . 'Error: ' . $e->getMessage()
+                        . ($model->getMessages() ? "\n\nProcessing Messages: " . $model->getMessages() : '');
             $resultedStatus = self::STATUS_ERROR;
         }
 
