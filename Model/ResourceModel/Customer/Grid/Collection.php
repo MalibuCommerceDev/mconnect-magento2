@@ -12,13 +12,16 @@ class Collection extends OriginalCollection
     {
         $table = $this->getTable('malibucommerce_mconnect_queue');
         $subSelect = $this->getConnection()->select()
-            ->from(['mc_q1' => $table], ['mc_status' => 'status', 'mc_message' => 'message', 'mc_entity_id' => 'entity_id'])
+            ->from(['mc_q1' => $table], ['mc_status' => 'status', 'mc_message' => 'message', 'mc_entity_id' => 'entity_id', 'mc_code' => 'code'])
             ->group('mc_q1.entity_id')
             ->order('mc_q1.finished_at ' .  \Magento\Framework\DB\Select::SQL_DESC);
 
         $this->getSelect()->joinLeft(
             ['mc_queue' => new \Zend_Db_Expr('(' . $subSelect . ')')],
-            'main_table.entity_id = mc_queue.mc_entity_id',
+            $this->getConnection()->quoteInto(
+                'main_table.entity_id = mc_queue.mc_entity_id AND mc_queue.mc_code = ?',
+                \MalibuCommerce\MConnect\Model\Queue\Customer::CODE
+            ),
             ['mc_queue.*']
         );
 

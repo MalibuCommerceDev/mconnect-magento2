@@ -94,6 +94,10 @@ class UpgradeData implements UpgradeDataInterface
             $this->upgrade2_12_2($setup);
         }
 
+        if (version_compare($context->getVersion(), '2.13.0', '<')) {
+            $this->upgrade2_12_3($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -354,6 +358,7 @@ class UpgradeData implements UpgradeDataInterface
 
     protected function upgrade2_10_13(ModuleDataSetupInterface $setup)
     {
+        /** @var \Magento\Customer\Setup\CustomerSetup $customerSetup */
         $customerSetup = $this->customerSetupFactory->create(['setup' => $setup]);
         /** @var EavSetup $eavSetup */
         $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
@@ -370,9 +375,9 @@ class UpgradeData implements UpgradeDataInterface
             [
                 'label'                 => 'Navision Taxable',
                 'type'                  => 'static',
-                'input'                 => 'int',
+                'input'                 => 'boolean',
                 'global'                => ScopedAttributeInterface::SCOPE_GLOBAL,
-                'source'                => Boolean::class,
+                'backend'               => Boolean::class,
                 'visible'               => true,
                 'required'              => false,
                 'user_defined'          => false,
