@@ -207,6 +207,13 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         $this->importEntity($data, $websiteId);
     }
 
+    /**
+     * @param \SimpleXMLElement $data
+     * @param int               $websiteId
+     *
+     * @return bool
+     * @throws \Magento\Framework\Exception\InputException
+     */
     public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
         $email = (string)$data->cust_email;
@@ -222,6 +229,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         $websiteId = $websiteId ? : $this->config->get('customer/default_website');
         $customerExists = false;
         try {
+            /** @var \Magento\Customer\Model\Customer $customer */
             $customer = $this->customerFactory->create()->setWebsiteId($websiteId)->loadByEmail($email);
             if ($customer->getId()) {
                 $customerExists = true;
@@ -423,10 +431,6 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
      */
     public function importCustomerAddresses($customer, $addresses, $websiteId): array
     {
-        $isShippingAddressUpdateAllowed = $this->config->getWebsiteData(
-            'customer/update_customer_shipping_address',
-            $websiteId
-        );
         $importedNewAddresses = $importedExistingAddresses = [];
 
         foreach ($addresses as $navAddressData) {
@@ -442,7 +446,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
 
             // By Street and Postcode
             $searchCriteria = $this->searchCriteriaBuilder
-                ->addFilter('street',  '%' . ((string)$navAddressData->addr_street) . '%', 'like')
+                ->addFilter('street', '%' . ((string)$navAddressData->addr_street) . '%', 'like')
                 ->addFilter('postcode', (string)$navAddressData->addr_post_code)
                 ->create();
             $searchResult = $this->addressRepository->getList($searchCriteria)->getItems();
@@ -460,7 +464,6 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             $createdAddress = $this->createAddress($customer, $navAddressData, $websiteId);
             $importedNewAddresses[] = $createdAddress;
         }
-
 
         return [$importedExistingAddresses, $importedNewAddresses];
     }
@@ -582,17 +585,6 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
     protected function createAddress($customer, $navAddressData, $websiteId)
     {
         try {
-            if ($this->isAddressDefaultShipping($navAddressData)
-                && !$this->config->getWebsiteData('customer/update_customer_shipping_address', $websiteId)
-            ) {
-                $this->messages .= sprintf(
-                    "\n\t" . 'Address "%s": IGNORED - shipping address update is disabled' . "\n",
-                    (string)$navAddressData->addr_street,
-                );
-
-                return null;
-            }
-
             /** @var \Magento\Customer\Api\Data\AddressInterface $address */
             $address = $this->addressFactory->create();
 
@@ -674,7 +666,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
     }
 
     /**
-     * @param int $websiteId
+     * @param int    $websiteId
      * @param string $navIdValue
      *
      * @return string
