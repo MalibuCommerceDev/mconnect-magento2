@@ -317,10 +317,10 @@ class Order extends AbstractModel
     protected function addAddress(\Magento\Sales\Api\Data\OrderAddressInterface $address, $orderEntity, &$root)
     {
         $child = $root->addChild('order_address');
-        $navId = $address->getNavId();
+        $specialNavId = explode('|', $address->getNavId());
         $customerAddressId = $address->getCustomerAddressId();
         $child->mag_address_id = !empty($customerAddressId) ? $customerAddressId : $address->getEntityId();
-        $child->nav_address_id = empty($navId) ? 'DEFAULT' : $navId;
+        $child->nav_address_id = $specialNavId[2] ?? 'DEFAULT';
         $child->address_type = $address->getAddressType();
         $child->first_name = $address->getFirstname();
         $child->last_name = $address->getLastname();
