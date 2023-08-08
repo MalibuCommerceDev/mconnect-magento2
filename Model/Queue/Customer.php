@@ -448,6 +448,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             $searchCriteria = $this->searchCriteriaBuilder
                 ->addFilter('street', '%' . ((string)$navAddressData->addr_street) . '%', 'like')
                 ->addFilter('postcode', (string)$navAddressData->addr_post_code)
+                ->addFilter('parent_id', (int)$customer->getId())
                 ->create();
             $searchResult = $this->addressRepository->getList($searchCriteria)->getItems();
             /** @var \Magento\Customer\Api\Data\AddressInterface $addressByStreet */
@@ -456,8 +457,9 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 $updatedAddress = $this->updateExistingAddress($address->getId(), $navAddressData, $websiteId);
                 if ($updatedAddress) {
                     $importedExistingAddresses[$updatedAddress->getId()] = $navAddressData;
-                    continue;
                 }
+                // If address was found, but could not be updated prevent it's duplicate creation
+                continue;
             }
 
             // Add new address
@@ -494,7 +496,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 && !$this->config->getWebsiteData('customer/update_customer_shipping_address', $websiteId)
             ) {
                 $this->messages .= sprintf(
-                    "\n\t" . 'Address "%s": IGNORED - shipping address update is disabled' . "\n",
+                    "\n\t" . 'Address "%s": UPDATE IGNORED - address marked as default shipping, but shipping address update is disabled' . "\n",
                     (string)$navAddressData->addr_street,
                 );
 
@@ -585,6 +587,18 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
     protected function createAddress($customer, $navAddressData, $websiteId)
     {
         try {
+            if ($this->isAddressDefaultShipping($navAddressData)
+                && !$this->config->getWebsiteData('customer/update_customer_shipping_address', $websiteId)
+                && $customer->getDefaultShippingAddress() && $customer->getDefaultShippingAddress()->getId()
+            ) {
+                $this->messages .= sprintf(
+                    "\n\t" . 'Address "%s": CREATE IGNORED - address marked as default shipping, but shipping address update is disabled' . "\n",
+                    (string)$navAddressData->addr_street,
+                );
+
+                return null;
+            }
+
             /** @var \Magento\Customer\Api\Data\AddressInterface $address */
             $address = $this->addressFactory->create();
 

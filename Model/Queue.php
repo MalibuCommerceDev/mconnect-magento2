@@ -340,7 +340,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
             $navPageNumber++;
             if ($processedPages >= $maxPagesPerRun && $this->hasRecords($result)) {
                 if ($affectedEntitiesCount > 0) {
-                    $magentoImporter->addMessage('Successfully processed ' . $affectedEntitiesCount . ' NAV records(s).');
+                    $magentoImporter->addMessage('Successfully processed ' . $affectedEntitiesCount . ' NAV record(s).');
                 } else {
                     $magentoImporter->addMessage('Nothing to import.');
                 }
@@ -364,7 +364,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
 
         if ($affectedEntitiesCount > 0) {
             $magentoImporter->addAffectedEntitiesCount($affectedEntitiesCount);
-            $magentoImporter->addMessage('Successfully processed ' . $affectedEntitiesCount . ' NAV records(s).');
+            $magentoImporter->addMessage('Successfully processed ' . $affectedEntitiesCount . ' NAV record(s).');
         } else {
             $magentoImporter->addMessage('Nothing to import.');
         }
