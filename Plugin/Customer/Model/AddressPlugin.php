@@ -33,7 +33,7 @@ class AddressPlugin
 
             return $resultAddressModel;
         }
-        $specialNavId = explode('|', $address->getCustomAttribute('nav_id')->getValue());
+        $specialNavId = explode('|', (string)$address->getCustomAttribute('nav_id')->getValue());
         $specialMarker = \MalibuCommerce\MConnect\Model\Queue\Customer::CUSTOMER_ADDRESS_SPECIAL_MARKER;
         $isAddressSavedByMconnectLogic = isset($specialNavId[0]) && $specialNavId[0] == $specialMarker;
         if ($isAddressSavedByMconnectLogic) {

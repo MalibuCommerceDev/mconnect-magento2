@@ -11,8 +11,8 @@ class Collection extends OriginalCollection
         $table = $this->getTable('malibucommerce_mconnect_queue');
         $subSelect = $this->getConnection()->select()
             ->from(['mc_q1' => $table], ['mc_status' => 'status', 'mc_message' => 'message', 'mc_entity_id' => 'entity_id', 'mc_code' => 'code'])
-            ->group('mc_q1.entity_id')
-            ->order('mc_q1.finished_at ' .  \Magento\Framework\DB\Select::SQL_DESC);
+            ->order('mc_q1.finished_at ' .  \Magento\Framework\DB\Select::SQL_DESC)
+            ->limit(1);
 
         $this->getSelect()->joinLeft(
             ['mc_queue' => new \Zend_Db_Expr('(' . $subSelect . ')')],
@@ -24,5 +24,22 @@ class Collection extends OriginalCollection
         );
 
         parent::_renderFiltersBefore();
+    }
+
+    /**
+     * Add field filter to collection
+     *
+     * @param string|array $field
+     * @param null|string|array $condition
+     *
+     * @return $this
+     */
+    public function addFieldToFilter($field, $condition = null): Collection
+    {
+        if ($field == 'mc_status') {
+            $field = 'mc_queue.mc_status';
+        }
+
+        return parent::addFieldToFilter($field, $condition);
     }
 }

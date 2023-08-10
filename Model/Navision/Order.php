@@ -317,7 +317,7 @@ class Order extends AbstractModel
     protected function addAddress(\Magento\Sales\Api\Data\OrderAddressInterface $address, $orderEntity, &$root)
     {
         $child = $root->addChild('order_address');
-        $specialNavId = explode('|', $address->getNavId());
+        $specialNavId = explode('|', (string)$address->getNavId());
         $customerAddressId = $address->getCustomerAddressId();
         $child->mag_address_id = !empty($customerAddressId) ? $customerAddressId : $address->getEntityId();
         $child->nav_address_id = $specialNavId[2] ?? 'DEFAULT';
@@ -452,7 +452,7 @@ class Order extends AbstractModel
             return $this;
         }
 
-        $bits = explode('_', $method);
+        $bits = explode('_', (string)$method);
         $root->shipping_carrier = $bits[0];
         $root->shipping_method = implode('_', array_slice($bits, 1));
         $root->shipping_amount = $orderEntity->getBaseShippingAmount();
