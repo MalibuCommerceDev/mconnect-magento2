@@ -220,10 +220,11 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @param string $status
      * @param string $message
+     * @param string $finishedAt
      *
      * @return string
      */
-    public function getQueueItemStatusHtml($status, $message)
+    public function getQueueItemStatusHtml($status, $message, $finishedAt)
     {
         $result = '';
         $style = 'text-transform: uppercase;'
@@ -235,7 +236,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                  . ' text-align: center;'
                  . ' padding: 3px;'
                  . ' border-radius: 10px;';
-        $title = htmlentities((string)$message);
+        $title = 'Finished At: ' . $finishedAt . "\n" . htmlentities((string)$message);
         $background = false;
         switch ($status) {
             case \MalibuCommerce\MConnect\Model\Queue::STATUS_PENDING:

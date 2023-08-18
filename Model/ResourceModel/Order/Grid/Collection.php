@@ -9,18 +9,31 @@ class Collection extends OriginalCollection
     protected function _renderFiltersBefore()
     {
         $table = $this->getTable('malibucommerce_mconnect_queue');
+        $subSelect2 = $this->getConnection()->select()
+            ->from($table, ['entity_id', 'finished_at' => new \Zend_Db_Expr('MAX(finished_at)')])
+            ->where('code = ?', \MalibuCommerce\MConnect\Model\Queue\Order::CODE)
+            ->where('action = \'export\'')
+            ->group('entity_id');
+
+
         $subSelect = $this->getConnection()->select()
-            ->from(['mc_q1' => $table], ['mc_status' => 'status', 'mc_message' => 'message', 'mc_entity_id' => 'entity_id', 'mc_code' => 'code'])
-            ->order('mc_q1.finished_at ' .  \Magento\Framework\DB\Select::SQL_DESC)
-            ->limit(1);
+            ->from(
+                ['mc_q2' => new \Zend_Db_Expr('(' . $subSelect2 . ')')],
+                ['mc_status' => 'mc_q3.status', 'mc_message' => 'mc_q3.message', 'mc_entity_id' => 'mc_q3.entity_id', 'mc_finished_at' => 'mc_q3.finished_at']
+            )
+            ->join(
+                ['mc_q3'=> $table],
+                $this->getConnection()->quoteInto(
+                    "mc_q2.entity_id = mc_q3.entity_id AND mc_q3.finished_at = mc_q2.finished_at AND mc_q3.code = ? AND mc_q3.action = 'export'",
+                    \MalibuCommerce\MConnect\Model\Queue\Order::CODE
+                ),
+                []
+            );
 
         $this->getSelect()->joinLeft(
-            ['mc_queue' => new \Zend_Db_Expr('(' . $subSelect . ')')],
-            $this->getConnection()->quoteInto(
-                'main_table.entity_id = mc_queue.mc_entity_id AND mc_queue.mc_code = ?',
-                \MalibuCommerce\MConnect\Model\Queue\Order::CODE
-            ),
-            ['mc_queue.*']
+            ['mc_q1' => new \Zend_Db_Expr('(' . $subSelect . ')')],
+            'mc_q1.mc_entity_id = main_table.entity_id',
+            ['mc_q1.*']
         );
 
         parent::_renderFiltersBefore();
