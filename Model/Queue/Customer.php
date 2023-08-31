@@ -54,6 +54,11 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
     protected $config;
 
     /**
+     * @var \MalibuCommerce\MConnect\Model\QueueFactory
+     */
+    protected $queueFactory;
+
+    /**
      * @var \MalibuCommerce\MConnect\Helper\Mail
      */
     protected $mailer;
@@ -77,7 +82,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
      * @var array
      */
     protected $customAttributesMap = [];
-
+    
     public function __construct(
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
         \Magento\Customer\Model\CustomerFactory $customerFactory,
@@ -91,7 +96,8 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         \MalibuCommerce\MConnect\Helper\Mail $mailer,
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
-        \Magento\Eav\Model\AttributeRepository $attributeRepository
+        \Magento\Eav\Model\AttributeRepository $attributeRepository,
+        \MalibuCommerce\MConnect\Model\QueueFactory $queueFactory
     ) {
         $this->customerRepository = $customerRepository;
         $this->customerFactory = $customerFactory;
@@ -106,6 +112,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         $this->queueFlagFactory = $queueFlagFactory;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->attributeRepository = $attributeRepository;
+        $this->queueFactory = $queueFactory;
     }
 
     public function initImport()

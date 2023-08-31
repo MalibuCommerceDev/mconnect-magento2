@@ -9,6 +9,16 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
         $this->_init(\MalibuCommerce\MConnect\Model\Queue::class, \MalibuCommerce\MConnect\Model\ResourceModel\Queue::class);
     }
 
+    /**
+     * @param string        $code
+     * @param string        $action
+     * @param int           $websiteId
+     * @param int           $navPageNumber
+     * @param int|null      $id
+     * @param string        $details
+     *
+     * @return $this
+     */
     public function findMatchingPending($code, $action, $websiteId = 0, $navPageNumber = 0, $id = null, $details = '')
     {
         $this
@@ -20,8 +30,11 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
                     \MalibuCommerce\Mconnect\Model\Queue::STATUS_PENDING,
                     \MalibuCommerce\Mconnect\Model\Queue::STATUS_RUNNING
                 ]
-            ])
-            ->addFieldToFilter('nav_page_num', $navPageNumber);
+            ]);
+        
+        if ($navPageNumber > 0) {
+            $this->addFieldToFilter('nav_page_num', $navPageNumber);
+        }
 
         if ($id === null) {
             $this->addFieldToFilter('entity_id', ['null' => true]);

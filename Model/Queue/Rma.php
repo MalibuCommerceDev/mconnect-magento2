@@ -25,6 +25,11 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
     protected $queueFlagFactory;
 
     /**
+     * @var \MalibuCommerce\MConnect\Model\QueueFactory
+     */
+    protected $queueFactory;
+
+    /**
      * @var \MalibuCommerce\MConnect\Model\Config
      */
     protected $config;
@@ -57,7 +62,7 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
      * @var \Magento\Framework\Module\Manager
      */
     protected $moduleManager;
-
+    
     public function __construct(
         \Magento\Sales\Api\Data\OrderInterfaceFactory $orderFactory,
         \MalibuCommerce\MConnect\Model\Navision\Rma $navRma,
@@ -67,7 +72,8 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         \Magento\Eav\Api\AttributeRepositoryInterface $eavAttributeRepositoryInterface,
         \Magento\Framework\Escaper $escaper,
         Json $serializer,
-        \Magento\Framework\Module\Manager $moduleManager
+        \Magento\Framework\Module\Manager $moduleManager,
+        \MalibuCommerce\MConnect\Model\QueueFactory $queueFactory
     ) {
         $this->orderFactory = $orderFactory;
         $this->navRma = $navRma;
@@ -78,6 +84,7 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         $this->escaper = $escaper;
         $this->serializer = $serializer;
         $this->moduleManager = $moduleManager;
+        $this->queueFactory = $queueFactory;
     }
 
     /**
@@ -323,7 +330,7 @@ class Rma extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEnti
         }
 
         if (!empty($errors)) {
-            
+
             return [$errors, $errorKeys];
         }
 

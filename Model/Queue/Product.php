@@ -40,6 +40,11 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
     protected $queueFlagFactory;
 
     /**
+     * @var \MalibuCommerce\MConnect\Model\QueueFactory
+     */
+    protected $queueFactory;
+
+    /**
      * @var \Magento\Store\Model\StoreManagerInterface
      */
     protected $storeManager;
@@ -63,17 +68,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
      * @var array
      */
     protected $customAttributesMap = [];
-
-    /**
-     * Product constructor.
-     *
-     * @param \Magento\Catalog\Api\ProductRepositoryInterface $productRepository
-     * @param \Magento\Catalog\Model\ProductFactory           $productFactory
-     * @param \MalibuCommerce\MConnect\Model\Navision\Product $navProduct
-     * @param \MalibuCommerce\MConnect\Model\Config           $config
-     * @param FlagFactory                                     $queueFlagFactory
-     * @param \Magento\Store\Model\StoreManagerInterface      $storeManager
-     */
+    
     public function __construct(
         \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
         \Magento\Catalog\Model\ProductFactory $productFactory,
@@ -83,7 +78,8 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Catalog\Api\ProductAttributeRepositoryInterface $attributeRepository,
-        \Magento\Framework\App\ResourceConnection $resource
+        \Magento\Framework\App\ResourceConnection $resource,
+        \MalibuCommerce\MConnect\Model\QueueFactory $queueFactory
     ) {
         $this->productRepository = $productRepository;
         $this->productFactory = $productFactory;
@@ -94,6 +90,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->attributeRepository = $attributeRepository;
         $this->resource = $resource;
+        $this->queueFactory = $queueFactory;
     }
 
     public function initImport()
@@ -147,12 +144,12 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
     protected function getFormattedExceptionString(\Throwable $e, $code, $sku)
     {
         $shortTrace = explode("\n", $e->getTraceAsString());
-        $shortTrace = count($shortTrace) > 3
-            ? $shortTrace[0] . "\n" . $shortTrace[1]
+        $shortTrace = count($shortTrace) > 10
+            ? $shortTrace[0] . "\n" . $shortTrace[1] . "\n" . $shortTrace[2] . "\n" . $shortTrace[3]
             : implode("\n", $shortTrace);
 
         return sprintf(
-            'SKU "%s": Error [%s] %s' . "\n\n" . '%s' . "...\n",
+            'SKU "%s": Error [%s] %s' . "\nTrace:\n" . '%s' . "...\n",
             $sku,
             $code,
             $e->getMessage(),
@@ -356,14 +353,20 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
 
                 try {
                     $this->productRepository->save($product);
-
-                    if (!empty($websiteIds)) {
-                        $this->updateProductWebsites($sku, $websiteIds);
-                    }
                     if ($productExists) {
                         $this->messages .= 'SKU ' . $sku . ': updated';
                     } else {
                         $this->messages .= 'SKU ' . $sku . ': created';
+                    }
+                    $this->setEntityId($product->getId());
+
+                    try {
+                        if (!empty($websiteIds)) {
+                            $this->updateProductWebsites($sku, $websiteIds);
+                        }
+                    } catch (\Throwable $e) {
+                        $this->messages .= ', but websites not assigned';
+                        throw $e;
                     }
                 } catch (\Throwable $e) {
                     $this->messages .= $this->getFormattedExceptionString($e, __LINE__, $sku);

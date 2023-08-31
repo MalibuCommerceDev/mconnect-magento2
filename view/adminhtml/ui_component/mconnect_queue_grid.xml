@@ -43,40 +43,44 @@
         <filters name="listing_filters"/>
         <massaction name="listing_massaction">
             <action name="requeue">
-                <argument name="data" xsi:type="array">
-                    <item name="config" xsi:type="array">
-                        <item name="type" xsi:type="string">requeue</item>
-                        <item name="label" xsi:type="string" translate="true">Re-Queue</item>
-                        <item name="url" xsi:type="url" path="mconnect/queue/massReQueue"/>
-                    </item>
-                </argument>
+                <settings>
+                    <url path="mconnect/queue/massReQueue"/>
+                    <type>requeue</type>
+                    <label translate="true">Re-Queue</label>
+                </settings>
             </action>
             <action name="requeueandsync">
-                <argument name="data" xsi:type="array">
-                    <item name="config" xsi:type="array">
-                        <item name="type" xsi:type="string">requeueandsync</item>
-                        <item name="label" xsi:type="string" translate="true">Re-Queue And Sync Now</item>
-                        <item name="url" xsi:type="url" path="mconnect/queue/massReQueueAndSyncNow"/>
-                    </item>
-                </argument>
+                <settings>
+                    <confirm>
+                        <message translate="true">Are you sure you want to re-queue and sync now selected items?</message>
+                        <title translate="true">Re-queue and sync items now</title>
+                    </confirm>
+                    <url path="mconnect/queue/massReQueueAndSyncNow"/>
+                    <type>requeueandsync</type>
+                    <label translate="true">Re-Queue And Sync Now</label>
+                </settings>
             </action>
             <action name="syncnow">
-                <argument name="data" xsi:type="array">
-                    <item name="config" xsi:type="array">
-                        <item name="type" xsi:type="string">syncnow</item>
-                        <item name="label" xsi:type="string" translate="true">Sync Now</item>
-                        <item name="url" xsi:type="url" path="mconnect/queue/massSyncNow"/>
-                    </item>
-                </argument>
+                <settings>
+                    <confirm>
+                        <message translate="true">Are you sure you want to sync now selected items?</message>
+                        <title translate="true">Sync items now</title>
+                    </confirm>
+                    <url path="mconnect/queue/massSyncNow"/>
+                    <type>syncnow</type>
+                    <label translate="true">Sync Now</label>
+                </settings>
             </action>
             <action name="delete">
-                <argument name="data" xsi:type="array">
-                    <item name="config" xsi:type="array">
-                        <item name="type" xsi:type="string">delete</item>
-                        <item name="label" xsi:type="string" translate="true">Delete</item>
-                        <item name="url" xsi:type="url" path="mconnect/queue/massDelete"/>
-                    </item>
-                </argument>
+                <settings>
+                    <confirm>
+                        <message translate="true">Are you sure you want to delete selected items?</message>
+                        <title translate="true">Delete items</title>
+                    </confirm>
+                    <url path="mconnect/queue/massDelete"/>
+                    <type>delete</type>
+                    <label translate="true">Delete</label>
+                </settings>
             </action>
         </massaction>
         <paging name="listing_paging"/>
@@ -190,6 +194,18 @@
                     <item name="label" xsi:type="string" translate="true">Scheduled At</item>
                     <item name="timezone" xsi:type="string">true</item>
                     <item name="sortOrder" xsi:type="number">80</item>
+                </item>
+            </argument>
+        </column>
+        <column name="started_at" class="Magento\Ui\Component\Listing\Columns\Date">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">dateRange</item>
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/date</item>
+                    <item name="dataType" xsi:type="string">date</item>
+                    <item name="label" xsi:type="string" translate="true">Started At</item>
+                    <item name="timezone" xsi:type="string">true</item>
+                    <item name="sortOrder" xsi:type="number">85</item>
                 </item>
             </argument>
         </column>

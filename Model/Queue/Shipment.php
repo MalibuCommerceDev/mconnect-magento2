@@ -51,6 +51,11 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
     protected $queueFlagFactory;
 
     /**
+     * @var \MalibuCommerce\MConnect\Model\QueueFactory
+     */
+    protected $queueFactory;
+
+    /**
      * @var \MalibuCommerce\MConnect\Model\Queue\Invoice
      */
     protected $malibuInvoice;
@@ -69,21 +74,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
      * @var array|null
      */
     protected $carriers = null;
-
-    /**
-     * Shipment constructor.
-     *
-     * @param \MalibuCommerce\MConnect\Model\Navision\Shipment               $navShipment
-     * @param \Magento\Sales\Model\OrderFactory                              $orderFactory
-     * @param \Magento\Sales\Model\Order\ShipmentFactory                     $shipmentFactory
-     * @param \Magento\Sales\Model\Order\Shipment\ShipmentValidatorInterface $shipmentValidator
-     * @param \Magento\Framework\DB\TransactionFactory                       $transactionFactory
-     * @param \Magento\Sales\Model\Order\Email\Sender\ShipmentSender         $shipmentSender
-     * @param \MalibuCommerce\MConnect\Model\Config                          $config
-     * @param FlagFactory                                                    $queueFlagFactory
-     * @param Invoice                                                        $malibuInvoice
-     * @param \Magento\Sales\Model\Order\Email\Sender\InvoiceSender          $invoiceSender
-     */
+    
     public function __construct(
         \MalibuCommerce\MConnect\Model\Navision\Shipment $navShipment,
         \Magento\Sales\Model\OrderFactory $orderFactory,
@@ -95,7 +86,8 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
         \MalibuCommerce\MConnect\Model\Queue\Invoice $malibuInvoice,
         \Magento\Sales\Model\Order\Email\Sender\InvoiceSender $invoiceSender,
-        \Magento\Shipping\Model\Config $shippingConfig
+        \Magento\Shipping\Model\Config $shippingConfig,
+        \MalibuCommerce\MConnect\Model\QueueFactory $queueFactory
     ) {
         $this->navShipment = $navShipment;
         $this->orderFactory = $orderFactory;
@@ -108,6 +100,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         $this->malibuInvoice = $malibuInvoice;
         $this->invoiceSender = $invoiceSender;
         $this->shippingConfig = $shippingConfig;
+        $this->queueFactory = $queueFactory;
     }
 
     public function importAction($websiteId, $navPageNumber = 0)

@@ -111,15 +111,15 @@ class Queue extends \Magento\Framework\Model\AbstractModel
     /**
      * Add new queue item
      *
-     * @param string $code
-     * @param string $action
-     * @param int    $websiteId
-     * @param int    $navPageNumber
-     * @param null   $id
-     * @param null   $increment_id
-     * @param array  $details
-     * @param null   $scheduledAt
-     * @param bool   $retrieveIfExists
+     * @param string        $code
+     * @param string        $action
+     * @param int           $websiteId
+     * @param int           $navPageNumber
+     * @param null          $id
+     * @param null          $increment_id
+     * @param array         $details
+     * @param null          $scheduledAt
+     * @param bool          $retrieveIfExists
      *
      * @return $this|\Magento\Framework\DataObject
      * @throws \Exception
@@ -154,12 +154,12 @@ class Queue extends \Magento\Framework\Model\AbstractModel
 
         $this->unsetData();
         $id = $id ? $id : null;
-        $navPageNumber = $navPageNumber ? (int)$navPageNumber : 0;
         $scheduledAt = $scheduledAt ?? date('Y-m-d H:i:s');
         if (empty($details)) {
             $details = null;
         }
         $details = is_array($details) ? json_encode($details) : $details;
+        $navPageNumber = (int)$navPageNumber;
 
         /** @var \MalibuCommerce\MConnect\Model\ResourceModel\Queue\Collection $collection */
         $collection = $this->getCollection();

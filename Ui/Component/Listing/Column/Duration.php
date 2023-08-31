@@ -18,7 +18,7 @@ class Duration extends \Magento\Ui\Component\Listing\Columns\Column
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
-                if (!empty($item['duration'])) {
+                if (!empty($item['duration']) && $item['duration'] > 0) {
                     $item['duration'] = sprintf('%02dm:%02ds', floor($item['duration'] / 60), $item['duration'] % 60);
                 } elseif (empty($item['finished_at'])) {
                     $item['duration'] = 'N/A';

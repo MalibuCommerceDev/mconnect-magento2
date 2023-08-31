@@ -90,11 +90,12 @@ class ProcessItemCommand extends Command
             ])
         ;
     }
- 
+
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         try {
             $this->emulatedAreaProcessor->process(function () use ($input, $output) {
+                $mt = microtime(true);
                 $code = $input->getArgument(self::ARGUMENT_CODE);
                 $action = $input->getArgument(self::ARGUMENT_ACTION);
                 $websiteIds = $input->getArgument(self::ARGUMENT_WEBSITE_ID);
@@ -133,9 +134,11 @@ class ProcessItemCommand extends Command
                     if ($sync) {
                         $output->writeln('Syncing...');
                         $queue->process();
-                        $output->writeln('Sync Completed!');
+                        $output->writeln(sprintf('Sync Completed for Website ID %s!', $websiteId));
                     }
                 }
+
+                $output->writeln(sprintf('<info>Execution time: %ss</info>', microtime(true) - $mt));
             });
 
             return Cli::RETURN_SUCCESS;

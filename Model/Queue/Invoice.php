@@ -43,10 +43,15 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue implements Importable
     protected $queueFlagFactory;
 
     /**
+     * @var \MalibuCommerce\MConnect\Model\QueueFactory
+     */
+    protected $queueFactory;
+
+    /**
      * @var \Magento\Store\Model\StoreManagerInterface
      */
     protected $storeManager;
-
+    
     public function __construct(
         \MalibuCommerce\MConnect\Model\Navision\Invoice $navInvoice,
         \Magento\Sales\Model\OrderFactory $orderFactory,
@@ -55,7 +60,8 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         \Magento\Sales\Model\Order\Email\Sender\InvoiceSender $invoiceSender,
         \MalibuCommerce\MConnect\Model\Config $config,
         \MalibuCommerce\MConnect\Model\Queue\FlagFactory $queueFlagFactory,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \MalibuCommerce\MConnect\Model\QueueFactory $queueFactory
     ) {
         $this->navInvoice = $navInvoice;
         $this->orderFactory = $orderFactory;
@@ -65,6 +71,7 @@ class Invoice extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         $this->config = $config;
         $this->queueFlagFactory = $queueFlagFactory;
         $this->storeManager = $storeManager;
+        $this->queueFactory = $queueFactory;
     }
 
     /**
