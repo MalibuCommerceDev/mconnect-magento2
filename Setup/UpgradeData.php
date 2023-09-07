@@ -97,6 +97,10 @@ class UpgradeData implements UpgradeDataInterface
             $this->upgrade2_12_3($setup);
         }
 
+        if (version_compare($context->getVersion(), '2.13.7', '<=')) {
+            $this->upgrade2_13_7($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -489,5 +493,20 @@ class UpgradeData implements UpgradeDataInterface
             $attribute->setData('used_in_forms', ['adminhtml_customer']);
             $attribute->save();
         }
+    }
+
+    protected function upgrade2_13_7(ModuleDataSetupInterface $setup)
+    {
+        $setup->getConnection()->update(
+            'core_config_data',
+            ['value = 20'],
+            ['path LIKE ?', 'malibucommerce_mconnect%max_rows']
+        );
+
+        $setup->getConnection()->update(
+            'core_config_data',
+            ['value = 10'],
+            ['path LIKE ?', 'malibucommerce_mconnect%max_pages_per_execution']
+        );
     }
 }

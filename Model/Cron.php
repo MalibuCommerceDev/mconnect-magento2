@@ -125,7 +125,7 @@ class Cron
                     $entityType,
                     \MalibuCommerce\MConnect\Model\Queue::ACTION_IMPORT,
                     $websiteId,
-                    0,
+                    $this->getLastImportItemNavPageByEntityType($entityType, $websiteId),
                     null,
                     null,
                     [],
@@ -208,5 +208,35 @@ class Cron
         }
 
         return array_unique($websiteIds);
+    }
+
+    /**
+     * @param string $entityType
+     * @param int $websiteId
+     *
+     * @return int
+     */
+    public function getLastImportItemNavPageByEntityType($entityType, $websiteId)
+    {
+        $connection = $this->queue->create()->getResource()->getConnection();
+        $select = $connection->select()
+            ->from('malibucommerce_mconnect_queue', ['status', 'nav_page_num'])
+            ->where('code = ?', $entityType)
+            ->where('action = ?', \MalibuCommerce\MConnect\Model\Queue::ACTION_IMPORT)
+            ->where('website_id = ?', $websiteId)
+            ->order('id '. \Magento\Framework\DB\Select::SQL_DESC)
+            ->limit(1);
+
+        $result = $connection->fetchRow($select);
+        if (empty($result)) {
+
+            return 0;
+        }
+        if ($result['status'] == \MalibuCommerce\MConnect\Model\Queue::STATUS_ERROR) {
+
+            return (int)$result['nav_page_num'];
+        }
+
+        return 0;
     }
 }
