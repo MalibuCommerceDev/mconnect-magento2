@@ -500,13 +500,13 @@ class UpgradeData implements UpgradeDataInterface
         $setup->getConnection()->update(
             'core_config_data',
             ['value' => 20],
-            ['path LIKE ?', 'malibucommerce_mconnect%max_rows']
+            ['path LIKE ?' => 'malibucommerce_mconnect%max_rows']
         );
 
         $setup->getConnection()->update(
             'core_config_data',
             ['value' => 10],
-            ['path LIKE ?', 'malibucommerce_mconnect%max_pages_per_execution']
+            ['path LIKE ?' => 'malibucommerce_mconnect%max_pages_per_execution']
         );
     }
 }
