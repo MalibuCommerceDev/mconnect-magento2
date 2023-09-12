@@ -53,17 +53,18 @@ class AfterCustomerAddressSaveObserver implements \Magento\Framework\Event\Obser
                 \MalibuCommerce\MConnect\Model\Queue\Customer::CODE,
                 \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT,
                 $websiteId,
-                $customerAddress->getCustomerId()
+                $customerAddress->getCustomerId(),
+                $customerAddress->getCustomer()->getEmail()
             );
         }
 
         return $this;
     }
 
-    protected function queueNewItem($code, $action, $websiteId, $id)
+    protected function queueNewItem($code, $action, $websiteId, $id, $email)
     {
         try {
-            return $this->queue->create()->add($code, $action, $websiteId, 0, $id);
+            return $this->queue->create()->add($code, $action, $websiteId, 0, $id, $email);
         } catch (\Throwable $e) {
             $this->logger->critical($e);
         }

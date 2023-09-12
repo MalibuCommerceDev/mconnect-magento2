@@ -9,7 +9,7 @@
                 <cron_expr>* * * * *</cron_expr>
                 <delete_after>60</delete_after>
                 <error_after>180</error_after>
-                <max_pages_per_execution>150</max_pages_per_execution>
+                <max_pages_per_execution>10</max_pages_per_execution>
             </queue>
             <nav_connection>
                 <password backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
@@ -43,7 +43,7 @@
                 <scheduled_customer_export_week_days>0,1,2,3,4,5,6</scheduled_customer_export_week_days>
                 <scheduled_customer_export_start_times>9:00 AM,12:00 PM,4:00 PM</scheduled_customer_export_start_times>
                 <scheduled_customer_export_delay_time>5</scheduled_customer_export_delay_time>
-                <max_rows>50</max_rows>
+                <max_rows>20</max_rows>
                 <update_customer_shipping_address>1</update_customer_shipping_address>
                 <default_nav_id_magento_registered></default_nav_id_magento_registered>
                 <default_nav_id_magento_guest></default_nav_id_magento_guest>
@@ -64,7 +64,7 @@
                 <scheduled_product_import_week_days>0,1,2,3,4,5,6</scheduled_product_import_week_days>
                 <scheduled_product_import_start_times>9:00 AM,12:00 PM,4:00 PM</scheduled_product_import_start_times>
                 <scheduled_product_import_delay_time>5</scheduled_product_import_delay_time>
-                <max_rows>50</max_rows>
+                <max_rows>20</max_rows>
                 <import_attribute_set>4</import_attribute_set>
                 <import_type>simple</import_type>
                 <import_visibility>4</import_visibility>
@@ -81,7 +81,7 @@
                 <scheduled_inventory_import_week_days>0,1,2,3,4,5,6</scheduled_inventory_import_week_days>
                 <scheduled_inventory_import_start_times>9:00 AM,12:00 PM,4:00 PM</scheduled_inventory_import_start_times>
                 <scheduled_inventory_import_delay_time>5</scheduled_inventory_import_delay_time>
-                <max_rows>50</max_rows>
+                <max_rows>20</max_rows>
                 <set_in_stock>1</set_in_stock>
                 <update_price>0</update_price>
             </inventory>
@@ -113,7 +113,7 @@
                 <scheduled_invoice_import_week_days>0,1,2,3,4,5,6</scheduled_invoice_import_week_days>
                 <scheduled_invoice_import_start_times>9:00 AM,12:00 PM,4:00 PM</scheduled_invoice_import_start_times>
                 <scheduled_invoice_import_delay_time>5</scheduled_invoice_import_delay_time>
-                <max_rows>50</max_rows>
+                <max_rows>20</max_rows>
                 <invoice_offline_capture>banktransfer,cashondelivery,checkmo,free,purchaseorder</invoice_offline_capture>
                 <invoice_online_capture>amazonlogin,amazon_payment,authorizenet_directpost,klarna,authorizenet_directpost,braintree,braintree_paypal,braintree_paypal_vault,braintree_cc_vault,authorizenet_acceptjs,cybersource,eway,payflowpro,payflow_advanced,paypal_billing_agreement,payflow_express_bml,paypal_express_bml,paypal_express,hosted_pro,payflowpro_cc_vault,worldpay</invoice_online_capture>
                 <send_email_enabled>1</send_email_enabled>
@@ -126,7 +126,7 @@
                 <scheduled_shipment_import_week_days>0,1,2,3,4,5,6</scheduled_shipment_import_week_days>
                 <scheduled_shipment_import_start_times>9:00 AM,12:00 PM,4:00 PM</scheduled_shipment_import_start_times>
                 <scheduled_shipment_import_delay_time>5</scheduled_shipment_import_delay_time>
-                <max_rows>50</max_rows>
+                <max_rows>20</max_rows>
                 <send_email_enabled>1</send_email_enabled>
                 <create_invoice_with_shipment>0</create_invoice_with_shipment>
                 <skip_shipment_but_invoice_for_virtual_orders>0</skip_shipment_but_invoice_for_virtual_orders>
@@ -140,14 +140,14 @@
                 <import_enabled>0</import_enabled>
                 <ignore_magento_errors>1</ignore_magento_errors>
                 <cron_expr>*/10 * * * *</cron_expr>
-                <max_rows>50</max_rows>
+                <max_rows>20</max_rows>
                 <default_rma_status>pending</default_rma_status>
             </rma>
             <price_rule>
                 <import_enabled>1</import_enabled>
                 <ignore_magento_errors>1</ignore_magento_errors>
                 <cron_expr>0 * * * *</cron_expr>
-                <max_rows>50</max_rows>
+                <max_rows>20</max_rows>
                 <display_regular_price>0</display_regular_price>
             </price_rule>
             <promotion>

@@ -41,8 +41,10 @@ class AddressPlugin
                 'customer/ignore_customer_address_validation',
                 $specialNavId[1] ?? null
             );
+            $normilizedNavId = $specialNavId[2] ?? 'DEFAULT';
             $resultAddressModel
-                ->setNavId($specialNavId[2] ?? 'DEFAULT')
+                ->setNavId($normilizedNavId)
+                ->setCustomAttribute('nav_id', $normilizedNavId)
                 ->setShouldIgnoreValidation($ignoreValidation)
                 ->setSkipMconnect(true);
         }

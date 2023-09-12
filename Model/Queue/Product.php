@@ -68,7 +68,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
      * @var array
      */
     protected $customAttributesMap = [];
-    
+
     public function __construct(
         \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
         \Magento\Catalog\Model\ProductFactory $productFactory,
@@ -331,14 +331,19 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
 
                 $this->productRepository->save($product);
 
-                if (!empty($websiteIds)) {
-                    $this->updateProductWebsites($sku, $websiteIds);
-                }
-
                 if ($productExists) {
                     $this->messages .= 'SKU ' . $sku . ': updated';
                 } else {
                     $this->messages .= 'SKU ' . $sku . ': created';
+                }
+
+                try {
+                    if (!empty($websiteIds)) {
+                        $this->updateProductWebsites($sku, $websiteIds);
+                    }
+                } catch (\Throwable $e) {
+                    $this->messages .= ', but websites not assigned' . PHP_EOL;
+                    throw $e;
                 }
             } else {
                 $this->messages .= 'SKU ' . $sku . ': skipped - no changes detected for this product';
@@ -365,7 +370,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                             $this->updateProductWebsites($sku, $websiteIds);
                         }
                     } catch (\Throwable $e) {
-                        $this->messages .= ', but websites not assigned';
+                        $this->messages .= ', but websites not assigned' . PHP_EOL;
                         throw $e;
                     }
                 } catch (\Throwable $e) {
