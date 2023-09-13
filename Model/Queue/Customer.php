@@ -82,7 +82,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
      * @var array
      */
     protected $customAttributesMap = [];
-    
+
     public function __construct(
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
         \Magento\Customer\Model\CustomerFactory $customerFactory,
@@ -328,19 +328,19 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 $this->saveCustomCustomerAttributes($customer, $data);
 
                 if ($customerExists) {
-                    $this->messages .= $id . ': UPDATED';
+                    $this->messages .= $id . ': UPDATED' . PHP_EOL;
                 } else {
-                    $this->messages .= $id . ': CREATED';
+                    $this->messages .= $id . ': CREATED' . PHP_EOL;
 
                     if ($this->mailer->resetPasswordForNewCustomer($customer)) {
                         $this->messages .= $id . ': REST PSWD EMAIL SENT';
                     }
                 }
             } else {
-                $this->messages .= $id . ': SKIPPED';
+                $this->messages .= $id . ': SKIPPED' . PHP_EOL;
             }
         } catch (\Throwable $e) {
-            $this->messages .= $id . ': ERROR - ' . $e->getMessage();
+            $this->messages .= $id . ': ERROR - ' . $e->getMessage() . PHP_EOL;
         }
 
         /**
@@ -439,19 +439,29 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
     public function importCustomerAddresses($customer, $addresses, $websiteId): array
     {
         $importedNewAddresses = $importedExistingAddresses = [];
+        $customerDefaultBillingAddress = $customer->getDefaultBillingAddress();
+        $customerDefaultShippingAddress = $customer->getDefaultShippingAddress();
 
         foreach ($addresses as $navAddressData) {
-            // By Magento Address ID
+            // -- Search by Magento Address ID --
             $addressId = filter_var($navAddressData->addr_mag_id, FILTER_VALIDATE_INT);
+            // If nav address is default billing then attempt to update default existing billing address
+            if ($customerDefaultBillingAddress && $this->isAddressDefaultBilling($navAddressData)) {
+                $addressId = $customerDefaultBillingAddress->getId();
+            }
+            // If nav address is default shipping then attempt to update default existing shipping address
+            if ($customerDefaultShippingAddress && $this->isAddressDefaultShipping($navAddressData)) {
+                $addressId = $customerDefaultShippingAddress->getId();
+            }
             if ($addressId) {
                 $updatedAddress = $this->updateExistingAddress($addressId, $navAddressData, $websiteId);
                 if ($updatedAddress) {
                     $importedExistingAddresses[$updatedAddress->getId()] = $navAddressData;
-                    continue;
                 }
+                continue;
             }
 
-            // By Street and Postcode
+            // -- Search by Street and Postcode --
             $searchCriteria = $this->searchCriteriaBuilder
                 ->addFilter('street', '%' . ((string)$navAddressData->addr_street) . '%', 'like')
                 ->addFilter('postcode', (string)$navAddressData->addr_post_code)
@@ -461,15 +471,29 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             /** @var \Magento\Customer\Api\Data\AddressInterface $addressByStreet */
             $address = current($searchResult);
             if ($address) {
-                $updatedAddress = $this->updateExistingAddress($address->getId(), $navAddressData, $websiteId);
-                if ($updatedAddress) {
-                    $importedExistingAddresses[$updatedAddress->getId()] = $navAddressData;
+                // If address exists but its default flag not same as for nav address - create new one -
+                // but only when default flag is actually set for nav address and it is true
+                // and only when shipping|billing address doesn't exist for a customer yet
+                if (($address->isDefaultShipping() && $this->isAddressDefaultBilling($navAddressData)
+                    && !$customerDefaultBillingAddress
+                    )
+                    || ($address->isDefaultBilling() && $this->isAddressDefaultShipping($navAddressData)
+                    && !$customerDefaultShippingAddress
+                    )
+                ) {
+                    $createdAddress = $this->createAddress($customer, $navAddressData, $websiteId);
+                    $importedNewAddresses[] = $createdAddress;
+                } else {
+                    $updatedAddress = $this->updateExistingAddress($address->getId(), $navAddressData, $websiteId);
+                    if ($updatedAddress) {
+                        $importedExistingAddresses[$updatedAddress->getId()] = $navAddressData;
+                    }
                 }
-                // If address was found, but could not be updated prevent it's duplicate creation
+                // Prevent address duplicate creation
                 continue;
             }
 
-            // Add new address
+            // -- Add new address --
             $createdAddress = $this->createAddress($customer, $navAddressData, $websiteId);
             $importedNewAddresses[] = $createdAddress;
         }
@@ -492,7 +516,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 $address = $this->addressRepository->getById($addressId);
             } catch (\NoSuchEntityException $e) {
                 $this->messages .= sprintf(
-                    "\n\t" . 'Address "%s": IGNORED - not found by Magento ID' . "\n",
+                    "\n\t" . 'Address "%s": IGNORED - not found by Magento ID' . PHP_EOL,
                     (string)$navAddressData->addr_street,
                 );
 
@@ -503,7 +527,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 && !$this->config->getWebsiteData('customer/update_customer_shipping_address', $websiteId)
             ) {
                 $this->messages .= sprintf(
-                    "\n\t" . 'Address "%s": UPDATE IGNORED - address marked as default shipping, but shipping address update is disabled' . "\n",
+                    "\n\t" . 'Address "%s": UPDATE IGNORED - address marked as default shipping, but shipping address update is disabled' . PHP_EOL,
                     (string)$navAddressData->addr_street,
                 );
 
@@ -570,12 +594,16 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 );
 
             $result = $this->addressRepository->save($address);
-            $this->messages .= sprintf("\n\t" . 'Address "%s": UPDATED' . "\n", (string)$navAddressData->addr_street);
+            // Needed so that importCustomerAddresses() loop keep getting reloaded address objects from database with
+            // latest customer data (otherwise for new customer default billing|shipping address IDs
+            // will not be updated when loading address
+            $this->addressRegistry->remove($address->getId());
+            $this->messages .= sprintf("\n\t" . 'Address "%s": UPDATED' . PHP_EOL, (string)$navAddressData->addr_street);
 
             return $result;
         } catch (\Throwable $e) {
             $this->messages .= sprintf(
-                "\n\t" . 'Address "%s": ERROR - %s' . "\n",
+                "\n\t" . 'Address "%s": ERROR - %s' . PHP_EOL,
                 (string)$navAddressData->addr_street,
                 $e->getMessage()
             );
@@ -599,7 +627,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 && $customer->getDefaultShippingAddress() && $customer->getDefaultShippingAddress()->getId()
             ) {
                 $this->messages .= sprintf(
-                    "\n\t" . 'Address "%s": CREATE IGNORED - address marked as default shipping, but shipping address update is disabled' . "\n",
+                    "\n\t" . 'Address "%s": CREATE IGNORED - address marked as default shipping, but shipping address update is disabled' . PHP_EOL,
                     (string)$navAddressData->addr_street,
                 );
 
@@ -672,12 +700,16 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 );
 
             $result = $this->addressRepository->save($address);
-            $this->messages .= sprintf("\n\t" . 'Address "%s": CREATED' . "\n", (string)$navAddressData->addr_street);
+            // Needed so that importCustomerAddresses() loop keep getting reloaded address objects from database with
+            // latest customer data (otherwise for new customer default billing|shipping address IDs
+            // will not be updated when loading address
+            $this->addressRegistry->remove($address->getId());
+            $this->messages .= sprintf("\n\t" . 'Address "%s": CREATED' . PHP_EOL, (string)$navAddressData->addr_street);
 
             return $result;
         } catch (\Throwable $e) {
             $this->messages .= sprintf(
-                "\n\t" . 'Address "%s": ERROR - %s' . "\n",
+                "\n\t" . 'Address "%s": ERROR - %s' . PHP_EOL,
                 (string)$navAddressData->addr_street,
                 $e->getMessage()
             );
