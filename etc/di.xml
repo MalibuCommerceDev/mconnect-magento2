@@ -37,6 +37,7 @@
                 <item name="malibucommerce_mconnect_processitem" xsi:type="object">MalibuCommerce\MConnect\Console\Command\ProcessItemCommand</item>
                 <item name="malibucommerce_mconnect_importall" xsi:type="object">MalibuCommerce\MConnect\Console\Command\ImportAllCommand</item>
                 <item name="malibucommerce_mconnect_exportall" xsi:type="object">MalibuCommerce\MConnect\Console\Command\ExportAllCommand</item>
+                <item name="malibucommerce_mconnect_import_price_rules" xsi:type="object">MalibuCommerce\MConnect\Console\Command\ImportPriceRulesFromCSV</item>
             </argument>
         </arguments>
     </type>
