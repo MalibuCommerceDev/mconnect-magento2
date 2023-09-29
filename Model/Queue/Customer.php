@@ -669,6 +669,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 }
             }
 
+            $company = !empty($navAddressData->cust_company_name) ? (string)$navAddressData->cust_company_name : '';
             $telephone = (string)$navAddressData->addr_phone;
             $telephone = empty($telephone) ? 'N/A' : $telephone;
             $streetData = [];
@@ -682,6 +683,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             $address
                 ->setId(null)
                 ->setCustomerId($customer->getId())
+                ->setCompany($company)
                 ->setCountryId($country)
                 ->setPostcode((string)$navAddressData->addr_post_code)
                 ->setRegion($region)
