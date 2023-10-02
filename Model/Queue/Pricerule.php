@@ -75,13 +75,19 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue implements Importab
 
     public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
-        $currencyCode = (string)$data->currency_code;
+        $currencyCode = null;
+        if (isset($data->currency_code)) {
+            $currencyCode = (string)$data->currency_code;
+            if (empty($currencyCode)) {
+                $currencyCode = $this->getDefaultCurrencyCode();
+            }
+        }
 
         $modelData = [
             'nav_id'               => (int)$data->unique_id,
             'website_id'           => (int)$websiteId,
             'sku'                  => (string)$data->nav_item_id,
-            'currency_code'        => !empty($currencyCode) ? $currencyCode : $this->getDefaultCurrencyCode(),
+            'currency_code'        => $currencyCode,
             'navision_customer_id' => (string)$data->nav_customer_id,
             'qty_min'              => (int)$data->min_quantity,
             'price'                => (float)$data->unit_price,
