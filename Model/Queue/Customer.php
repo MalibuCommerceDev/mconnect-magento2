@@ -347,6 +347,10 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
          * Add addresses
          */
         if (!empty($data->address)) {
+            $company = (string)$data->cust_company_name;
+            foreach ($data->address as $address) {
+                $address->cust_company_name = $company;
+            }
             $this->importCustomerAddresses($customer, $data->address, $websiteId);
         }
 
@@ -563,7 +567,6 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 }
             }
 
-            $company = !empty($navAddressData->cust_company_name) ? (string)$navAddressData->cust_company_name : '';
             $telephone = (string)$navAddressData->addr_phone;
             $telephone = empty($telephone) ? 'N/A' : $telephone;
             $streetData = [];
@@ -578,7 +581,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 ->setCountryId($country)
                 ->setPostcode((string)$navAddressData->addr_post_code)
                 ->setRegion($region)
-                ->setCompany($company)
+                ->setCompany((string)$navAddressData->cust_company_name)
                 ->setStreet($streetData)
                 ->setTelephone($telephone)
                 ->setCity((string)$navAddressData->addr_city)
@@ -669,7 +672,6 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 }
             }
 
-            $company = !empty($navAddressData->cust_company_name) ? (string)$navAddressData->cust_company_name : '';
             $telephone = (string)$navAddressData->addr_phone;
             $telephone = empty($telephone) ? 'N/A' : $telephone;
             $streetData = [];
@@ -683,7 +685,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             $address
                 ->setId(null)
                 ->setCustomerId($customer->getId())
-                ->setCompany($company)
+                ->setCompany((string)$navAddressData->cust_company_name)
                 ->setCountryId($country)
                 ->setPostcode((string)$navAddressData->addr_post_code)
                 ->setRegion($region)
