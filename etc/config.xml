@@ -45,6 +45,7 @@
                 <scheduled_customer_export_delay_time>5</scheduled_customer_export_delay_time>
                 <max_rows>20</max_rows>
                 <update_customer_shipping_address>1</update_customer_shipping_address>
+                <split_nav_customer_address>1</split_nav_customer_address>
                 <default_nav_id_magento_registered></default_nav_id_magento_registered>
                 <default_nav_id_magento_guest></default_nav_id_magento_guest>
                 <default_website>1</default_website>

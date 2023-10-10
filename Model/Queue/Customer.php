@@ -449,19 +449,52 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         foreach ($addresses as $navAddressData) {
             // -- Search by Magento Address ID --
             $addressId = filter_var($navAddressData->addr_mag_id, FILTER_VALIDATE_INT);
-            // If nav address is default billing then attempt to update default existing billing address
-            if ($customerDefaultBillingAddress && $this->isAddressDefaultBilling($navAddressData)) {
-                $addressId = $customerDefaultBillingAddress->getId();
-            }
-            // If nav address is default shipping then attempt to update default existing shipping address
-            if ($customerDefaultShippingAddress && $this->isAddressDefaultShipping($navAddressData)) {
-                $addressId = $customerDefaultShippingAddress->getId();
-            }
             if ($addressId) {
                 $updatedAddress = $this->updateExistingAddress($addressId, $navAddressData, $websiteId);
                 if ($updatedAddress) {
                     $importedExistingAddresses[$updatedAddress->getId()] = $navAddressData;
                 }
+                continue;
+            }
+
+            // -- Search by Magento default Address --
+            $updatingDefaultAddressesMode = false;
+            $isNavDefaultBilling = $this->isAddressDefaultBilling($navAddressData);
+            $isNavDefaultShipping = $this->isAddressDefaultShipping($navAddressData);
+
+            // If nav address is default billing then attempt to update default existing billing address
+            if ($customerDefaultBillingAddress && $isNavDefaultBilling) {
+                $addressId = $customerDefaultBillingAddress->getId();
+                $updatingDefaultAddressesMode = true;
+                // Split update mode
+                if ($this->config->getWebsiteData('customer/split_nav_customer_address', $websiteId)
+                    && $isNavDefaultBilling && $isNavDefaultShipping
+                ) {
+                    $navAddressData->is_default_shipping = 'false';
+                }
+
+                $updatedAddress = $this->updateExistingAddress($addressId, $navAddressData, $websiteId);
+                if ($updatedAddress) {
+                    $importedExistingAddresses[$updatedAddress->getId()] = $navAddressData;
+                }
+            }
+            // If nav address is default shipping then attempt to update default existing shipping address
+            if ($customerDefaultShippingAddress && $isNavDefaultShipping) {
+                $addressId = $customerDefaultShippingAddress->getId();
+                $updatingDefaultAddressesMode = true;
+                if ($this->config->getWebsiteData('customer/split_nav_customer_address', $websiteId)
+                    && $isNavDefaultBilling && $isNavDefaultShipping
+                ) {
+                    $navAddressData->is_default_billing = 'false';
+                }
+
+                $updatedAddress = $this->updateExistingAddress($addressId, $navAddressData, $websiteId);
+                if ($updatedAddress) {
+                    $importedExistingAddresses[$updatedAddress->getId()] = $navAddressData;
+                }
+            }
+
+            if ($updatingDefaultAddressesMode) {
                 continue;
             }
 
@@ -567,6 +600,10 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 }
             }
 
+            $company = (string)$navAddressData->addr_company_name;
+            if (empty($company)) {
+                $company = (string)$navAddressData->cust_company_name;
+            }
             $telephone = (string)$navAddressData->addr_phone;
             $telephone = empty($telephone) ? 'N/A' : $telephone;
             $streetData = [];
@@ -581,7 +618,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 ->setCountryId($country)
                 ->setPostcode((string)$navAddressData->addr_post_code)
                 ->setRegion($region)
-                ->setCompany((string)$navAddressData->cust_company_name)
+                ->setCompany($company)
                 ->setStreet($streetData)
                 ->setTelephone($telephone)
                 ->setCity((string)$navAddressData->addr_city)
@@ -672,6 +709,10 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 }
             }
 
+            $company = (string)$navAddressData->addr_company_name;
+            if (empty($company)) {
+                $company = (string)$navAddressData->cust_company_name;
+            }
             $telephone = (string)$navAddressData->addr_phone;
             $telephone = empty($telephone) ? 'N/A' : $telephone;
             $streetData = [];
@@ -682,10 +723,22 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 $streetData[] = (string)$navAddressData->address_2;
             }
 
+            $isDefaultBilling = $this->isAddressDefaultBilling($navAddressData);
+            $isDefaultShipping = $this->isAddressDefaultShipping($navAddressData);
+
+            // Split NAV address mode, first create billing address
+            $splitMode = false;
+            if ($this->config->getWebsiteData('customer/split_nav_customer_address', $websiteId)
+                && $isDefaultBilling && $isDefaultShipping
+            ) {
+                $isDefaultShipping = false;
+                $splitMode = true;
+            }
+
             $address
                 ->setId(null)
                 ->setCustomerId($customer->getId())
-                ->setCompany((string)$navAddressData->cust_company_name)
+                ->setCompany($company)
                 ->setCountryId($country)
                 ->setPostcode((string)$navAddressData->addr_post_code)
                 ->setRegion($region)
@@ -694,8 +747,8 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 ->setCity((string)$navAddressData->addr_city)
                 ->setFirstname($firstname)
                 ->setLastname($lastname)
-                ->setIsDefaultBilling($this->isAddressDefaultBilling($navAddressData))
-                ->setIsDefaultShipping($this->isAddressDefaultShipping($navAddressData))
+                ->setIsDefaultBilling($isDefaultBilling)
+                ->setIsDefaultShipping($isDefaultShipping)
                 ->setFax((string)$navAddressData->addr_fax)
                 ->setRegionId($region->getRegionId())
                 ->setCustomAttribute(
@@ -708,7 +761,25 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             // latest customer data (otherwise for new customer default billing|shipping address IDs
             // will not be updated when loading address
             $this->addressRegistry->remove($address->getId());
-            $this->messages .= sprintf("\n\t" . 'Address "%s": CREATED' . PHP_EOL, (string)$navAddressData->addr_street);
+
+            $defauFlagLabels = [];
+            if ($isDefaultBilling) {
+                $defauFlagLabels[] = 'billing';
+            }
+            if ($isDefaultShipping) {
+                $defauFlagLabels[] = 'shipping';
+            }
+            $this->messages .= sprintf(
+                "\n\t" . 'Address "%s": CREATED%s' . PHP_EOL,
+                (string)$navAddressData->addr_street,
+                !empty($defauFlagLabels) ? ' as default ' . implode('/', $defauFlagLabels) : ''
+            );
+
+            // Create shipping address in split mode
+            if ($splitMode) {
+                $navAddressData->is_default_billing = 'false';
+                return $this->createAddress($customer, $navAddressData, $websiteId);
+            }
 
             return $result;
         } catch (\Throwable $e) {

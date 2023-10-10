@@ -267,8 +267,13 @@
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
+                <field id="split_nav_customer_address" translate="label" type="select" sortOrder="145" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Split NAV default shipping/billing address</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Whether to split one NAV address that has default shipping and billing flags set to true into two separete Magento addresses]]></comment>
+                </field>
                 <field id="update_customer_shipping_address" translate="label" type="select" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Update Shipping Address</label>
+                    <label>Allow Updating Shipping Address</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Whether to always update default customer shipping address, or skip updating when customer already exists]]></comment>
                 </field>
