@@ -600,9 +600,13 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 }
             }
 
-            $company = (string)$navAddressData->addr_company_name;
-            if (empty($company)) {
+            if (!isset($navAddressData->addr_company_name)) {
                 $company = (string)$navAddressData->cust_company_name;
+            } else {
+                $company = (string)$navAddressData->addr_company_name;
+            }
+            if ($firstname == $company) {
+                $company = '';
             }
             $telephone = (string)$navAddressData->addr_phone;
             $telephone = empty($telephone) ? 'N/A' : $telephone;
@@ -709,9 +713,13 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 }
             }
 
-            $company = (string)$navAddressData->addr_company_name;
-            if (empty($company)) {
+            if (!isset($navAddressData->addr_company_name)) {
                 $company = (string)$navAddressData->cust_company_name;
+            } else {
+                $company = (string)$navAddressData->addr_company_name;
+            }
+            if ($firstname == $company) {
+                $company = '';
             }
             $telephone = (string)$navAddressData->addr_phone;
             $telephone = empty($telephone) ? 'N/A' : $telephone;
