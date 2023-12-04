@@ -383,6 +383,8 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             }
             $this->importCustomerAddresses($customer, $data->address, $websiteId);
         }
+        $this->messages .= PHP_EOL . PHP_EOL;
+
 
         return true;
     }
@@ -583,7 +585,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 $address = $this->addressRepository->getById($addressId);
             } catch (\NoSuchEntityException $e) {
                 $this->messages .= sprintf(
-                    "\n\t" . 'Address "%s": IGNORED - not found by Magento ID' . PHP_EOL,
+                    '--> Address "%s": IGNORED - not found by Magento ID' . PHP_EOL,
                     (string)$navAddressData->addr_street,
                 );
 
@@ -594,7 +596,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 && !$this->config->getWebsiteData('customer/update_customer_shipping_address', $websiteId)
             ) {
                 $this->messages .= sprintf(
-                    "\n\t" . 'Address "%s": UPDATE IGNORED - address marked as default shipping, but shipping address update is disabled' . PHP_EOL,
+                    '--> Address "%s": UPDATE IGNORED - address marked as default shipping, but shipping address update is disabled' . PHP_EOL,
                     (string)$navAddressData->addr_street,
                 );
 
@@ -672,12 +674,12 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             // latest customer data (otherwise for new customer default billing|shipping address IDs
             // will not be updated when loading address
             $this->addressRegistry->remove($address->getId());
-            $this->messages .= sprintf("\n\t" . 'Address "%s": UPDATED' . PHP_EOL, (string)$navAddressData->addr_street);
+            $this->messages .= sprintf('--> Address "%s": UPDATED' . PHP_EOL, (string)$navAddressData->addr_street);
 
             return $result;
         } catch (\Throwable $e) {
             $this->messages .= sprintf(
-                "\n\t" . 'Address "%s": ERROR - %s' . PHP_EOL,
+                '--> Address "%s": ERROR - %s' . PHP_EOL,
                 (string)$navAddressData->addr_street,
                 $e->getMessage()
             );
@@ -701,7 +703,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 && $customer->getDefaultShippingAddress() && $customer->getDefaultShippingAddress()->getId()
             ) {
                 $this->messages .= sprintf(
-                    "\n\t" . 'Address "%s": CREATE IGNORED - address marked as default shipping, but shipping address update is disabled' . PHP_EOL,
+                    '--> Address "%s": CREATE IGNORED - address marked as default shipping, but shipping address update is disabled' . PHP_EOL,
                     (string)$navAddressData->addr_street,
                 );
 
@@ -808,7 +810,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 $defauFlagLabels[] = 'shipping';
             }
             $this->messages .= sprintf(
-                "\n\t" . 'Address "%s": CREATED%s' . PHP_EOL,
+                 '--> Address "%s": CREATED%s' . PHP_EOL,
                 (string)$navAddressData->addr_street,
                 !empty($defauFlagLabels) ? ' as default ' . implode('/', $defauFlagLabels) : ''
             );
@@ -823,7 +825,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             return $result;
         } catch (\Throwable $e) {
             $this->messages .= sprintf(
-                "\n\t" . 'Address "%s": ERROR - %s' . PHP_EOL,
+                '--> Address "%s": ERROR - %s' . PHP_EOL,
                 (string)$navAddressData->addr_street,
                 $e->getMessage()
             );
