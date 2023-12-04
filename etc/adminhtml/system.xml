@@ -168,6 +168,11 @@
                     <label>Import Web Enabled Customers Only</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="import_by_nav_id" sortOrder="28" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Customers By NAV ID</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[When enabled, all customers in Magento with the same NAV ID will be updated. When disabled only one customer by email will be matched and updated]]></comment>
+                </field>
                 <field id="ignore_magento_errors" sortOrder="30" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Ignore Magento Logical Errors</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>

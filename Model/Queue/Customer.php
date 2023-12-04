@@ -223,30 +223,61 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
      */
     public function importEntity(\SimpleXMLElement $data, $websiteId)
     {
-        $email = (string)$data->cust_email;
-        if (empty($email)) {
-            $this->messages .= 'Customer "' . (string)$data->cust_nav_id . '": SKIPPED - email is empty' . PHP_EOL;
-
-            return false;
-        }
+        $importByNavId = (bool)$this->config->get('customer/import_by_nav_id');
 
         /**
          * Persist customer entity
          */
         $websiteId = $websiteId ? : $this->config->get('customer/default_website');
-        $customerExists = false;
-        try {
-            /** @var \Magento\Customer\Model\Customer $customer */
-            $customer = $this->customerFactory->create()->setWebsiteId($websiteId)->loadByEmail($email);
-            if ($customer->getId()) {
-                $customerExists = true;
-            }
-        } catch (\Throwable $e) {
-            $this->messages .= $email . ': ' . $e->getMessage();
+        $identity = $importByNavId ? (string)$data->cust_nav_id : (string)$data->cust_email;
+        if (empty($identity)) {
+            $this->messages .= 'Customer "' . $identity . '": SKIPPED - email/NAV ID is empty' . PHP_EOL;
 
             return false;
         }
 
+        if (!$importByNavId) {
+            try {
+                /** @var \Magento\Customer\Model\Customer $customer */
+                $customer = $this->customerFactory->create()->setWebsiteId($websiteId);
+                $customer = $customer->loadByEmail($identity);
+                $this->saveCustomerData($customer, $data, $websiteId);
+            } catch (\Throwable $e) {
+                $this->messages .= 'Customer "' . $identity . '": ERROR - ' . $e->getMessage() . PHP_EOL;
+
+                return false;
+            }
+        } else {
+            // Update all customers with same NAV ID
+            $searchCriteria = $this->searchCriteriaBuilder->addFilter('nav_id', $identity)->create();
+            $searchResult = $this->customerRepository->getList($searchCriteria)->getItems();
+            foreach ($searchResult as $customerEntity) {
+                try {
+                    /** @var \Magento\Customer\Model\Customer $customer */
+                    $customer = $this->customerFactory->create()->setWebsiteId($websiteId);
+                    $customer = $customer->load($customerEntity->getId());
+                    $this->saveCustomerData($customer, $data, $websiteId);
+                } catch (\Throwable $e) {
+                    $this->messages .= 'Customer "' . $identity . '": ERROR - ' . $e->getMessage() . PHP_EOL;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param \Magento\Customer\Model\Customer $customer
+     * @param \SimpleXMLElement                $data
+     * @param int                              $websiteId
+     *
+     * @return bool
+     * @throws InputException
+     */
+    protected function saveCustomerData(\Magento\Customer\Model\Customer $customer, \SimpleXMLElement $data, $websiteId)
+    {
+        $email = (string)$data->cust_email;
+        $customerExists = $customer->getId();
         if (!$customerExists) {
             $customer->setEmail($email)->setWebsiteId($websiteId);
         }
@@ -317,8 +348,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             $customer->setDataUsingMethod($attribute->getAttributeCode(), $value);
         }
 
-        $id = $customer && $customer->getNavId() ? $customer->getNavId() : $email;
-        $id = 'Customer: "' . $id . '"';
+        $id = 'Customer: "' . (string)$data->cust_nav_id . '/' . $email . '"';
         try {
             if ($customer->hasDataChanges() || !empty($this->customAttributesMap)) {
                 foreach ($customer->getAddresses() as $address) {
@@ -512,10 +542,10 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 // but only when default flag is actually set for nav address and it is true
                 // and only when shipping|billing address doesn't exist for a customer yet
                 if (($address->isDefaultShipping() && $this->isAddressDefaultBilling($navAddressData)
-                    && !$customerDefaultBillingAddress
+                     && !$customerDefaultBillingAddress
                     )
                     || ($address->isDefaultBilling() && $this->isAddressDefaultShipping($navAddressData)
-                    && !$customerDefaultShippingAddress
+                        && !$customerDefaultShippingAddress
                     )
                 ) {
                     $createdAddress = $this->createAddress($customer, $navAddressData, $websiteId);
@@ -786,6 +816,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             // Create shipping address in split mode
             if ($splitMode) {
                 $navAddressData->is_default_billing = 'false';
+
                 return $this->createAddress($customer, $navAddressData, $websiteId);
             }
 
