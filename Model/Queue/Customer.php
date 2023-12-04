@@ -348,7 +348,11 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             $customer->setDataUsingMethod($attribute->getAttributeCode(), $value);
         }
 
-        $id = 'Customer: "' . (string)$data->cust_nav_id . '/' . $email . '"';
+        if ($customerExists) {
+            $id = 'Customer: "' . (string)$data->cust_nav_id . '/' . $customer->getId() . '"';
+        } else {
+            $id = 'Customer: "' . (string)$data->cust_nav_id . '/' . $email . '"';
+        }
         try {
             if ($customer->hasDataChanges() || !empty($this->customAttributesMap)) {
                 foreach ($customer->getAddresses() as $address) {
