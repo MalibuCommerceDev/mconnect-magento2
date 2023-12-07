@@ -150,7 +150,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         $status = (string)$response->result->status;
         if ($status === 'Processed') {
             $navId = (string)$response->result->Customer->nav_record_id;
-            if ($customerDataModel->getNavId() != $navId) {
+            if (!empty($navId) && $customerDataModel->getNavId() != $navId) {
                 $customerDataModel->setNavId($navId)
                     ->setSkipMconnect(true)
                     ->save();
@@ -163,7 +163,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                         }
                         $customerData->setCustomAttribute($attribute->getAttributeCode(), $attribute->getValue());
                     }
-                    $customerDataModel->updateData($customerData)->save();
+                    $customerDataModel->updateData($customerData)->setSkipMconnect(true)->save();
                 }
             }
             $this->messages .= sprintf('Customer exported, NAV ID: %s', $navId);
