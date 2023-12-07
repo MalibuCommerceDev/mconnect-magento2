@@ -248,9 +248,25 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 return false;
             }
         } else {
-            // Update all customers with same NAV ID
             $searchCriteria = $this->searchCriteriaBuilder->addFilter('nav_id', $identity)->create();
-            $searchResult = $this->customerRepository->getList($searchCriteria)->getItems();
+            $searchResult = $this->customerRepository->getList($searchCriteria);
+
+            if (!$searchResult->getItems()) {
+                try {
+                    /** @var \Magento\Customer\Model\Customer $customer */
+                    $customer = $this->customerFactory->create()->setWebsiteId($websiteId);
+                    $customer = $customer->loadByEmail($identity);
+                    $this->saveCustomerData($customer, $data, $websiteId);
+                } catch (\Throwable $e) {
+                    $this->messages .= 'Customer "' . $identity . '": ERROR - ' . $e->getMessage() . PHP_EOL;
+
+                    return false;
+                }
+
+                return true;
+            }
+
+            // Update all customers with same NAV ID
             foreach ($searchResult as $customerEntity) {
                 try {
                     /** @var \Magento\Customer\Model\Customer $customer */
