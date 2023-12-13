@@ -237,6 +237,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
         }
 
         if (!$importByNavId) {
+            // Create/Update Flow by email
             try {
                 /** @var \Magento\Customer\Model\Customer $customer */
                 $customer = $this->customerFactory->create()->setWebsiteId($websiteId);
@@ -251,6 +252,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             $searchCriteria = $this->searchCriteriaBuilder->addFilter('nav_id', $identity)->create();
             $searchResult = $this->customerRepository->getList($searchCriteria);
 
+            // Create Flow
             if (!$searchResult->getItems()) {
                 try {
                     /** @var \Magento\Customer\Model\Customer $customer */
@@ -266,8 +268,8 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 return true;
             }
 
-            // Update all customers with same NAV ID
-            foreach ($searchResult as $customerEntity) {
+            // Update Flow: update all customers with same NAV ID
+            foreach ($searchResult->getItems() as $customerEntity) {
                 try {
                     /** @var \Magento\Customer\Model\Customer $customer */
                     $customer = $this->customerFactory->create()->setWebsiteId($websiteId);
