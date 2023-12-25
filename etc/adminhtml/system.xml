@@ -343,6 +343,10 @@
                 <field id="max_rows" sortOrder="20" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
                     <label>Import Entity Limit Per Request</label>
                 </field>
+                <field id="import_enabled_only" sortOrder="25" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Import Web Enabled Products Only</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
                 <field id="ignore_magento_errors" sortOrder="30" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Ignore Magento Logical Errors</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>

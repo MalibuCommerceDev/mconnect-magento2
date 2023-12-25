@@ -393,6 +393,8 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             }
         } catch (\Throwable $e) {
             $this->messages .= $id . ': ERROR - ' . $e->getMessage() . PHP_EOL;
+
+            return false;
         }
 
         /**
