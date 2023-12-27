@@ -5,6 +5,7 @@ namespace MalibuCommerce\MConnect\Plugin\Customer\Model;
 use Magento\Customer\Api\Data\AddressInterface;
 use Magento\Customer\Model\Address as Subject;
 use Magento\Customer\Model\AddressFactory;
+use Magento\Customer\Model\AddressRegistry;
 use Psr\Log\LoggerInterface;
 
 class AddressPlugin
@@ -20,6 +21,9 @@ class AddressPlugin
     /** @var LoggerInterface */
     protected $logger;
 
+    /** @var AddressRegistry */
+    protected $addressRegistry;
+
     /**
      * AddressPlugin constructor.
      *
@@ -30,11 +34,13 @@ class AddressPlugin
     public function __construct(
         \MalibuCommerce\MConnect\Model\Config $config,
         AddressFactory $addressModel,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        AddressRegistry $addressRegistry
     ) {
         $this->config = $config;
         $this->addressModel = $addressModel;
         $this->logger = $logger;
+        $this->addressRegistry = $addressRegistry;
     }
 
     /**
@@ -44,7 +50,7 @@ class AddressPlugin
      * @param \Magento\Customer\Model\Address $savedAddress
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      *
-     * @return mixed
+     * @return \Magento\Customer\Model\Address
      */
     public function afterSave(
         \Magento\Customer\Model\Address $subject,
@@ -54,7 +60,10 @@ class AddressPlugin
 
             return $savedAddress;
         }
+
+        $this->addressRegistry->remove($savedAddress->getId());
         $customer = $savedAddress->getCustomer();
+
         if ($customer->getDefaultBilling() == $customer->getDefaultShipping()
             && $savedAddress->getId() == $customer->getDefaultBilling()
         ) {
@@ -71,7 +80,7 @@ class AddressPlugin
                     ->setSkipMconnect(true)
                     ->save();
             } catch (\Exception $e) {
-                $this->logger->critical($e->getMessage());
+                $this->logger->error($e->getMessage());
             }
         }
 
