@@ -5,7 +5,7 @@ namespace MalibuCommerce\MConnect\Plugin\Customer\Model;
 use Magento\Customer\Api\Data\AddressInterface;
 use Magento\Customer\Model\Address as Subject;
 use Magento\Customer\Model\AddressFactory;
-use Magento\Customer\Model\AddressRegistry;
+use Magento\Customer\Api\CustomerRepositoryInterface;
 use Psr\Log\LoggerInterface;
 
 class AddressPlugin
@@ -21,8 +21,10 @@ class AddressPlugin
     /** @var LoggerInterface */
     protected $logger;
 
-    /** @var AddressRegistry */
-    protected $addressRegistry;
+    /**
+     * @var CustomerRepositoryInterface
+     */
+    protected $customerRepository;
 
     /**
      * AddressPlugin constructor.
@@ -35,12 +37,12 @@ class AddressPlugin
         \MalibuCommerce\MConnect\Model\Config $config,
         AddressFactory $addressModel,
         LoggerInterface $logger,
-        AddressRegistry $addressRegistry
+        CustomerRepositoryInterface $customerRepository
     ) {
         $this->config = $config;
         $this->addressModel = $addressModel;
         $this->logger = $logger;
-        $this->addressRegistry = $addressRegistry;
+        $this->customerRepository = $customerRepository;
     }
 
     /**
@@ -61,8 +63,7 @@ class AddressPlugin
             return $savedAddress;
         }
 
-        $this->addressRegistry->remove($savedAddress->getId());
-        $customer = $savedAddress->getCustomer();
+        $customer = $this->customerRepository->getById($savedAddress->getCustomer()->getId());
 
         if ($customer->getDefaultBilling() == $customer->getDefaultShipping()
             && $savedAddress->getId() == $customer->getDefaultBilling()
