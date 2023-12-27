@@ -549,6 +549,14 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                     $importedExistingAddresses[$updatedAddress->getId()] = $navAddressData;
                 }
             }
+            // Reset default billing/shipping flags to original for NAV XML address
+            // (required when updating multiple customers with the same NAV ID)
+            if ($isNavDefaultBilling) {
+                $navAddressData->is_default_billing = 'true';
+            }
+            if ($isNavDefaultShipping) {
+                $navAddressData->is_default_shipping = 'true';
+            }
 
             if ($updatingDefaultAddressesMode) {
                 continue;
@@ -695,8 +703,8 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
 
             $result = $this->addressRepository->save($address);
             // Needed so that importCustomerAddresses() loop keep getting reloaded address objects from database with
-            // latest customer data (otherwise for new customer default billing|shipping address IDs
-            // will not be updated when loading address
+            // latest customer data. Otherwise for new customer default billing|shipping address IDs
+            // will not be updated when loading address.
             $this->addressRegistry->remove($address->getId());
             $this->messages .= sprintf('--> Address "%s": UPDATED' . PHP_EOL, (string)$navAddressData->addr_street);
 
@@ -822,8 +830,8 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
 
             $result = $this->addressRepository->save($address);
             // Needed so that importCustomerAddresses() loop keep getting reloaded address objects from database with
-            // latest customer data (otherwise for new customer default billing|shipping address IDs
-            // will not be updated when loading address
+            // latest customer data. Otherwise for new customer default billing|shipping address IDs
+            // will not be updated when loading address.
             $this->addressRegistry->remove($address->getId());
 
             $defauFlagLabels = [];

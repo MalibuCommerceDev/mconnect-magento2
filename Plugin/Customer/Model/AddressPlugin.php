@@ -4,6 +4,8 @@ namespace MalibuCommerce\MConnect\Plugin\Customer\Model;
 
 use Magento\Customer\Api\Data\AddressInterface;
 use Magento\Customer\Model\Address as Subject;
+use Magento\Customer\Model\AddressFactory;
+use Psr\Log\LoggerInterface;
 
 class AddressPlugin
 {
@@ -12,12 +14,68 @@ class AddressPlugin
      */
     protected $config;
 
+    /** @var AddressFactory */
+    protected $addressModel;
+
+    /** @var LoggerInterface */
+    protected $logger;
+
     /**
+     * AddressPlugin constructor.
+     *
      * @param \MalibuCommerce\MConnect\Model\Config $config
+     * @param AddressFactory                        $addressModel
+     * @param LoggerInterface                       $logger
      */
-    public function __construct(\MalibuCommerce\MConnect\Model\Config $config)
-    {
+    public function __construct(
+        \MalibuCommerce\MConnect\Model\Config $config,
+        AddressFactory $addressModel,
+        LoggerInterface $logger
+    ) {
         $this->config = $config;
+        $this->addressModel = $addressModel;
+        $this->logger = $logger;
+    }
+
+    /**
+     * Create New address after magento address saved as both default billing and default shipping
+     *
+     * @param \Magento\Customer\Model\Address $subject
+     * @param \Magento\Customer\Model\Address $savedAddress
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     *
+     * @return mixed
+     */
+    public function afterSave(
+        \Magento\Customer\Model\Address $subject,
+        $savedAddress
+    ) {
+        if (!$this->config->get('customer/split_default_customer_address_into_two')) {
+
+            return $savedAddress;
+        }
+        $customer = $savedAddress->getCustomer();
+        if ($customer->getDefaultBilling() == $customer->getDefaultShipping()
+            && $savedAddress->getId() == $customer->getDefaultBilling()
+        ) {
+            try {
+                if ($savedAddress->getIsDuplicate()) {
+                    return $this;
+                }
+                $oriAddress = $this->addressModel->create()->load($savedAddress->getId());
+                $newAddress = clone $oriAddress;
+                $newAddress
+                    ->setIsDefaultBilling(false)
+                    ->setIsDefaultShipping(true)
+                    ->setIsDuplicate(true)
+                    ->setSkipMconnect(true)
+                    ->save();
+            } catch (\Exception $e) {
+                $this->logger->critical($e->getMessage());
+            }
+        }
+
+        return $savedAddress;
     }
 
     /**

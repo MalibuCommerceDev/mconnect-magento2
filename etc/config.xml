@@ -58,6 +58,7 @@
                 <new_customer_email_template>malibucommerce_mconnect_customer_new_customer_email_template</new_customer_email_template>
                 <show_reports>0</show_reports>
                 <nav_reports_allowed_customer_groups></nav_reports_allowed_customer_groups>
+                <split_default_customer_address_into_two>0</split_default_customer_address_into_two>
             </customer>
             <product>
                 <import_enabled>1</import_enabled>

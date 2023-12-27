@@ -332,6 +332,11 @@
                         <field id="show_reports">1</field>
                     </depends>
                 </field>
+                <field id="split_default_customer_address_into_two" translate="label" type="select" sortOrder="260" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Split Default Billing/Shipping Into Two Addresses</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[When Customer Address created on frontend/backend as single default billing and shipping - split it into two addresses, one default shipping and one default billing]]></comment>
+                </field>
             </group>
 
             <group id="product" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
