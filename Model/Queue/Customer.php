@@ -518,6 +518,22 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             $isNavDefaultBilling = $this->isAddressDefaultBilling($navAddressData);
             $isNavDefaultShipping = $this->isAddressDefaultShipping($navAddressData);
 
+            // If only one default billing or shipping address exists in Magento, and defalt address split is enabled
+            // and if NAV address is both default billing/shipping - create missing one in Magento
+            if (((!$customerDefaultBillingAddress && $customerDefaultShippingAddress)
+                 || ($customerDefaultBillingAddress && !$customerDefaultShippingAddress))
+                && $isNavDefaultBilling && $isNavDefaultShipping
+                && $this->config->getWebsiteData('customer/split_nav_customer_address', $websiteId)
+            ) {
+                if (!$customerDefaultBillingAddress) {
+                    $navAddressData->is_default_shipping = 'false';
+                } else {
+                    $navAddressData->is_default_billing = 'false';
+                }
+                $updatingDefaultAddressesMode = true;
+                $createdAddress = $this->createAddress($customer, $navAddressData, $websiteId);
+                $importedNewAddresses[] = $createdAddress;
+            }
             // If nav address is default billing then attempt to update default existing billing address
             if ($customerDefaultBillingAddress && $isNavDefaultBilling) {
                 $addressId = $customerDefaultBillingAddress->getId();
