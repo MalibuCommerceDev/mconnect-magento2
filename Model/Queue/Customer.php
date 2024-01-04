@@ -550,6 +550,11 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                     $importedExistingAddresses[$updatedAddress->getId()] = $navAddressData;
                 }
             }
+            // Reset default billing/shipping flags to original for NAV XML address
+            // (required when updating multiple customers with the same NAV ID)
+            if ($isNavDefaultShipping) {
+                $navAddressData->is_default_shipping = 'true';
+            }
             // If nav address is default shipping then attempt to update default existing shipping address
             if ($customerDefaultShippingAddress && $isNavDefaultShipping) {
                 $addressId = $customerDefaultShippingAddress->getId();
@@ -570,10 +575,6 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             if ($isNavDefaultBilling) {
                 $navAddressData->is_default_billing = 'true';
             }
-            if ($isNavDefaultShipping) {
-                $navAddressData->is_default_shipping = 'true';
-            }
-
             if ($updatingDefaultAddressesMode) {
                 continue;
             }
@@ -867,7 +868,12 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             if ($splitMode) {
                 $navAddressData->is_default_billing = 'false';
 
-                return $this->createAddress($customer, $navAddressData, $websiteId);
+                $result = $this->createAddress($customer, $navAddressData, $websiteId);
+                if ($isDefaultBilling) {
+                    $navAddressData->is_default_billing = 'true';
+                }
+
+                return $result;
             }
 
             return $result;
