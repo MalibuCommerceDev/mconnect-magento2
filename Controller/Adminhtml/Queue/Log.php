@@ -14,13 +14,13 @@ class Log extends Queue
         $queueItemId = (int)$this->getRequest()->getParam('id');
         $logs = $this->helper->getLog($queueItemId);
         if (!$logs) {
-            $this->messageManager->addErrorMessage(__('Wrong request.'));
+            $this->messageManager->addErrorMessage(__('No recorded logs'));
             return $resultRedirect->setPath('*/*');
         }
 
         $size = $this->helper->getLogSize($logs, false);
         if ($size > \MalibuCommerce\MConnect\Helper\Data::ALLOWED_LOG_SIZE_TO_BE_VIEWED) {
-            $this->messageManager->addErrorMessage(__('Wrong request'));
+            $this->messageManager->addErrorMessage(__('Log size is too large to display (> 16MB)'));
             return $resultRedirect->setPath('*/*');
         }
 

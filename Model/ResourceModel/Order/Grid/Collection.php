@@ -28,7 +28,8 @@ class Collection extends OriginalCollection
                     \MalibuCommerce\MConnect\Model\Queue\Order::CODE
                 ),
                 []
-            );
+            )
+            ->limit(1);
 
         $this->getSelect()->joinLeft(
             ['mc_q1' => new \Zend_Db_Expr('(' . $subSelect . ')')],

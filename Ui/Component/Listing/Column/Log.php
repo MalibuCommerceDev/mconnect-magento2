@@ -47,7 +47,7 @@ class Log extends \Magento\Ui\Component\Listing\Columns\Column
                         $url = $this->urlBuilder->getUrl('mconnect/queue/log', ['id' => $item['id']]);
                         $item['log'] = __('<a target="_blank" href="%1">View (%2)</a>', $url, $this->helper->getLogSize($logs));
                     } else {
-                        $item['log'] = __('Large Data (%1)', $size);
+                        $item['log'] = __('Log size is too large to display (> 16MB) - %1', $this->helper->getLogSize($logs));
                     }
                 } else {
                     $item['log'] = __('N/A');
