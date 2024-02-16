@@ -5,6 +5,7 @@ namespace MalibuCommerce\MConnect\Model\Navision;
 use Magento\Catalog\Model\Product\Type as ProductType;
 use Magento\Framework\Module\Manager;
 use Magento\Sales\Api\Data\OrderInterface;
+use MalibuCommerce\MConnect\Model\SimpleXMLExtended;
 
 class Order extends AbstractModel
 {
@@ -100,11 +101,11 @@ class Order extends AbstractModel
      * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
      * @param int                                    $websiteId
      *
-     * @return \simpleXMLElement
+     * @return \SimpleXMLElement
      */
     public function import(\Magento\Sales\Api\Data\OrderInterface $orderEntity, $websiteId = 0)
     {
-        $root = new \simpleXMLElement('<sales_order_import />');
+        $root = new SimpleXMLExtended('<sales_order_import />');
 
         $orderObject = $root->addChild('Order');
 
@@ -130,7 +131,7 @@ class Order extends AbstractModel
         }
         foreach ($orderEntity->getStatusHistories() as $statusHistory) {
             if ($statusHistory->getIsVisibleOnFront()) {
-                $orderObject->addChild('sales_order_comment', $statusHistory->getComment());
+                $orderObject->addChild('sales_order_comment')->addCData($statusHistory->getComment());
             }
         }
         $this->addGiftOptions($orderEntity, $orderObject, $websiteId);
@@ -152,11 +153,11 @@ class Order extends AbstractModel
      * Add order custom attributes to NAV payload XML
      *
      * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
-     * @param \simpleXMLElement                      $root
+     * @param \SimpleXMLElement                      $root
      *
      * @return $this
      */
-    public function addCustomAttributes(\Magento\Sales\Api\Data\OrderInterface $orderEntity, \simpleXMLElement &$root)
+    public function addCustomAttributes(\Magento\Sales\Api\Data\OrderInterface $orderEntity, \SimpleXMLElement &$root)
     {
         return $this;
     }
@@ -165,11 +166,11 @@ class Order extends AbstractModel
      * Add order payment data to NAV payload XML
      *
      * @param OrderInterface $orderEntity
-     * @param \simpleXMLElement $root
+     * @param \SimpleXMLElement $root
      *
      * @return Order
      */
-    protected function addPayment(OrderInterface $orderEntity, \simpleXMLElement &$root)
+    protected function addPayment(OrderInterface $orderEntity, \SimpleXMLElement &$root)
     {
         $root->web_order_amt = $orderEntity->getOrderCurrencyCode() == $orderEntity->getStoreCurrencyCode()
             ? ($orderEntity->getBaseGrandTotal() ?: 0)
@@ -188,7 +189,7 @@ class Order extends AbstractModel
      * Add rewards options to NAV export XML
      *
      * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
-     * @param \simpleXMLElement                      $root
+     * @param \SimpleXMLElement                      $root
      * @param int                                    $websiteId
      *
      * @return $this
@@ -220,7 +221,7 @@ class Order extends AbstractModel
      * Add gift options to NAV export XML
      *
      * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
-     * @param \simpleXMLElement                      $root
+     * @param \SimpleXMLElement                      $root
      * @param int                                    $websiteId
      *
      * @return $this
@@ -298,7 +299,7 @@ class Order extends AbstractModel
      * Add order addresses to NAV payload XML
      *
      * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
-     * @param \simpleXMLElement                      $root
+     * @param \SimpleXMLElement                      $root
      */
     protected function addAddresses(\Magento\Sales\Api\Data\OrderInterface $orderEntity, &$root)
     {
@@ -312,7 +313,7 @@ class Order extends AbstractModel
      *
      * @param \Magento\Sales\Api\Data\OrderAddressInterface $address
      * @param \Magento\Sales\Api\Data\OrderInterface        $orderEntity
-     * @param \simpleXMLElement                             $root
+     * @param \SimpleXMLElement                             $root
      */
     protected function addAddress(\Magento\Sales\Api\Data\OrderAddressInterface $address, $orderEntity, &$root)
     {
@@ -337,9 +338,9 @@ class Order extends AbstractModel
     /**
      * @param \Magento\Sales\Api\Data\OrderAddressInterface $address
      * @param \Magento\Sales\Api\Data\OrderInterface        $orderEntity
-     * @param \simpleXMLElement                             $childElement
+     * @param \SimpleXMLElement                             $childElement
      *
-     * @return \simpleXMLElement
+     * @return \SimpleXMLElement
      */
     public function setAdditionalAddressData(
         \Magento\Sales\Api\Data\OrderAddressInterface $address,
@@ -367,7 +368,7 @@ class Order extends AbstractModel
      * Add order items to NAV payload XML
      *
      * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
-     * @param \simpleXMLElement                      $root
+     * @param \SimpleXMLElement                      $root
      */
     protected function addItems(\Magento\Sales\Api\Data\OrderInterface $orderEntity, &$root)
     {
@@ -381,7 +382,7 @@ class Order extends AbstractModel
      *
      * @param \Magento\Sales\Api\Data\OrderInterface     $orderEntity
      * @param \Magento\Sales\Api\Data\OrderItemInterface $item
-     * @param \simpleXMLElement                          $root
+     * @param \SimpleXMLElement                          $root
      *
      * @return $this
      * @todo currently only simple, virtual and giftcard products are supported
@@ -431,7 +432,7 @@ class Order extends AbstractModel
      * Construct NAV shipping information XML
      *
      * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
-     * @param \simpleXMLElement                      $root
+     * @param \SimpleXMLElement                      $root
      *
      * @return $this
      */
