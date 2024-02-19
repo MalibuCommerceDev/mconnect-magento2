@@ -2,7 +2,7 @@
 
 namespace MalibuCommerce\MConnect\Model;
 
-class SimpleXMLExtended extends SimpleXMLElement
+class SimpleXMLExtended extends \SimpleXMLElement
 {
     public function addCData($value)
     {
