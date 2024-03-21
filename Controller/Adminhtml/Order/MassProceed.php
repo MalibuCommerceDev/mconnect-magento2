@@ -11,6 +11,11 @@ use MalibuCommerce\MConnect\Model\Queue as QueueModel;
 class MassProceed extends \Magento\Backend\App\Action
 {
     /**
+     * @var \Magento\Ui\Component\MassAction\Filter
+     */
+    protected $filter;
+
+    /**
      * @var \Magento\Sales\Model\ResourceModel\Order\CollectionFactory
      */
     protected $collectionFactory;
@@ -41,14 +46,16 @@ class MassProceed extends \Magento\Backend\App\Action
     protected $queueCollectionFactory;
 
     /**
-     * @param \Magento\Backend\App\Action\Context                        $context
-     * @param \Magento\Ui\Component\MassAction\Filter                    $filter
-     * @param \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory
-     * @param \MalibuCommerce\MConnect\Model\QueueFactory                $queue
-     * @param \MalibuCommerce\MConnect\Model\Config                     vibмшимшvi $config
-     * @param \Psr\Log\LoggerInterface                      $logger
-     * @param \Magento\Store\Model\StoreManagerInterface    $storeManager
-     * @param \MalibuCommerce\MConnect\Model\ResourceModel\Queue\Collection
+     * MassProceed constructor.
+     *
+     * @param Context                                                              $context
+     * @param Filter                                                               $filter
+     * @param \Magento\Sales\Model\ResourceModel\Order\CollectionFactory           $orderCollectionFactory
+     * @param \MalibuCommerce\MConnect\Model\QueueFactory                          $queue
+     * @param \MalibuCommerce\MConnect\Model\Config                                $config
+     * @param \Psr\Log\LoggerInterface                                             $logger
+     * @param \Magento\Store\Model\StoreManagerInterface                           $storeManager
+     * @param \MalibuCommerce\MConnect\Model\ResourceModel\Queue\CollectionFactory $queueCollectionFactory
      */
     public function __construct(
         Context $context,
@@ -70,18 +77,23 @@ class MassProceed extends \Magento\Backend\App\Action
         $this->queueCollectionFactory = $queueCollectionFactory;
     }
 
+    /**
+     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\Result\Redirect|\Magento\Framework\Controller\ResultInterface
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function execute()
     {
-        $countMassQueue = 0;
+        $processedSyncs = 0;
         $collection = $this->filter->getCollection($this->collectionFactory->create());
+        $notAllowedtoSyncOrderIds = $syncErrorOrderIds = [];
         foreach ($collection->getItems() as $order) {
-
             try {
                 $scheduledAt = null;
                 $websiteId = $this->storeManager->getStore($order->getStoreId())->getWebsiteId();
 
-                $customerGroupId = $order->getCustomerGroupId();
-                if (in_array((string)$customerGroupId, $this->config->getOrderExportDisallowedCustomerGroups($websiteId))) {
+                $customerGroupId = (string)$order->getCustomerGroupId();
+                if (in_array($customerGroupId, $this->config->getOrderExportDisallowedCustomerGroups($websiteId))) {
+                    $notAllowedtoSyncOrderIds[] = $order->getId();
                     continue;
                 }
 
@@ -106,25 +118,28 @@ class MassProceed extends \Magento\Backend\App\Action
                 $queue = $queues->getFirstItem();
                 if ($queue) {
                     $queue->process();
-                    $countMassQueue++;
+                    $processedSyncs++;
                 }
 
             } catch (\Throwable $e) {
+                $syncErrorOrderIds[] = $order->getId();
                 $this->logger->critical($e);
             }
         }
-
-        $countNonAddedOrder = $collection->count() - $countMassQueue;
-
-        if ($countNonAddedOrder && $countMassQueue) {
-            $this->messageManager->addErrorMessage(__('%1 order(s) cannot be synced.', $countNonAddedOrder));
-        } elseif ($countNonAddedOrder) {
-            $this->messageManager->addErrorMessage(__('You cannot sync the order(s).'));
+        if ($processedSyncs) {
+            $this->messageManager->addSuccessMessage(__('Successfully synced %1 order(s)', $processedSyncs));
+        }
+        if (!empty($notAllowedtoSyncOrderIds)) {
+            $this->messageManager->addWarningMessage(
+                __('Order(s) %1 cannot be synced because their Customer Group is dissallowed for exports', implode(', ', $notAllowedtoSyncOrderIds))
+            );
+        }
+        if (!empty($syncErrorOrderIds)) {
+            $this->messageManager->addErrorMessage(
+                __('Order(s) %1 cannot be synced because of some sync errors. See system.log', implode(', ', $syncErrorOrderIds))
+            );
         }
 
-        if ($countMassQueue) {
-            $this->messageManager->addSuccessMessage(__('We synced %1 order(s).', $countMassQueue));
-        }
         $resultRedirect = $this->resultRedirectFactory->create();
         $resultRedirect->setPath('sales/*/');
         return $resultRedirect;
