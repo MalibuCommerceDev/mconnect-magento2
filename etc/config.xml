@@ -33,6 +33,7 @@
                 <export_enabled>1</export_enabled>
                 <import_enabled_only>0</import_enabled_only>
                 <ignore_magento_errors>1</ignore_magento_errors>
+                <ignore_customer_validation>0</ignore_customer_validation>
                 <ignore_customer_address_validation>0</ignore_customer_address_validation>
                 <import_by_nav_id>0</import_by_nav_id>
                 <cron_expr>0 * * * *</cron_expr>

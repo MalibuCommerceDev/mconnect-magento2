@@ -376,6 +376,9 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                 foreach ($customer->getAddresses() as $address) {
                     $address->setShouldIgnoreValidation(true);
                 }
+                if ($this->config->get('customer/ignore_customer_validation')) {
+                    $customer->setData('ignore_validation_flag', true);
+                }
                 $customer->save();
                 $this->saveCustomCustomerAttributes($customer, $data);
 
