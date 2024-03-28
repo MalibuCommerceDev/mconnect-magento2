@@ -63,6 +63,95 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue implements Importab
     }
 
     /**
+     * @param Navision\AbstractModel $navExporter
+     * @param Queue\ImportableEntity|\MalibuCommerce\MConnect\Model\Queue $magentoImporter
+     * @param                        $websiteId
+     * @param int                    $navPageNumber
+     *
+     * @return $this|bool|\Magento\Framework\DataObject
+     * @throws \Exception
+     */
+    public function processMagentoImport(
+        \MalibuCommerce\MConnect\Model\Navision\AbstractModel $navExporter,
+        Queue\ImportableEntity $magentoImporter,
+        $websiteId,
+        $navPageNumber = 0
+    ) {
+        $processedPages = $affectedEntitiesCount = 0;
+        $detectedErrors = $lastSync = false;
+        $maxPagesPerRun = $this->config->get('queue/max_pages_per_execution');
+        $lastUpdated = $this->getLastSyncTime($this->getImportLastSyncFlagName($websiteId));
+        do {
+            $result = $navExporter->export($navPageNumber, $lastUpdated, $websiteId);
+            foreach ($result->{$this->getNavXmlNodeName()} as $data) {
+                try {
+                    $importResult = $magentoImporter->importEntity($data, $websiteId);
+                    if ($importResult) {
+                        $affectedEntitiesCount++;
+                    }
+                } catch (\Throwable $e) {
+                    $detectedErrors = true;
+                    $magentoImporter->addMessage($e->getMessage());
+                }
+                $magentoImporter->addMessage('');
+            }
+
+            /**
+             * Added support for Price Rules removal within the same Price Rules NAV export logic:
+             */
+            foreach ($result->{$this->getNavXmlNodeName() . '_del'} as $data) {
+                try {
+                    $deleteResult = $magentoImporter->deleteEntity($data, $websiteId);
+                    if ($deleteResult) {
+                        $affectedEntitiesCount++;
+                    }
+                } catch (\Throwable $e) {
+                    $detectedErrors = true;
+                    $magentoImporter->addMessage($e->getMessage());
+                }
+                $magentoImporter->addMessage('');
+            }
+
+            if (!$lastSync) {
+                $lastSync = $result->status->current_date_time;
+            }
+            $processedPages++;
+            $navPageNumber++;
+            if ($processedPages >= $maxPagesPerRun && $this->hasRecords($result)) {
+                if ($affectedEntitiesCount > 0) {
+                    $magentoImporter->addMessage('Successfully processed ' . $affectedEntitiesCount . ' NAV record(s).');
+                } else {
+                    $magentoImporter->addMessage('Nothing to import.');
+                }
+
+                return $this->queueFactory->create()->add(
+                    $magentoImporter->getQueueCode(),
+                    self::ACTION_IMPORT,
+                    $websiteId,
+                    $navPageNumber
+                );
+            }
+        } while ($this->hasRecords($result));
+
+        if (!$detectedErrors
+            || $this->config->getWebsiteData($magentoImporter->getQueueCode() . '/ignore_magento_errors', $websiteId)
+        ) {
+            $this->setLastSyncTime($this->getImportLastSyncFlagName($websiteId), $lastSync);
+        }
+
+        $magentoImporter->setMagentoErrorsDetected($detectedErrors);
+
+        if ($affectedEntitiesCount > 0) {
+            $magentoImporter->addAffectedEntitiesCount($affectedEntitiesCount);
+            $magentoImporter->addMessage('Successfully processed ' . $affectedEntitiesCount . ' NAV record(s).');
+        } else {
+            $magentoImporter->addMessage('Nothing to import.');
+        }
+
+        return true;
+    }
+
+    /**
      * Backward compatibility method
      *
      * @param \SimpleXMLElement $data
@@ -122,7 +211,40 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue implements Importab
                 $e->getMessage()
             );
         }
-        $this->rule->unsetData();
+
+        return true;
+    }
+
+    public function deleteEntity(\SimpleXMLElement $data, $websiteId)
+    {
+        /** @var \MalibuCommerce\MConnect\Model\ResourceModel\Pricerule\Collection $collection */
+        $collection = $this->rule->getCollection()
+            ->addFilter('nav_id', (int)$data->unique_id)
+            ->addFilter('website_id', (int)$websiteId)
+            ->setPageSize(1)
+            ->setCurPage(1);
+
+        /** @var \MalibuCommerce\MConnect\Model\Pricerule $model */
+        $model = $collection->getFirstItem();
+        if (!$model || !$model->getId()) {
+
+            return false;
+        }
+
+        try {
+            $model->delete();
+            $this->messages .= sprintf(
+                'Price Rule Nav ID %s: DELETED',
+                $model->getNavId()
+            );
+        } catch (\Throwable $e) {
+            $this->messages .= sprintf(
+                'Price Rule Nav ID %s (SKU %s): DELETE ERROR - %s',
+                $model->getNavId(),
+                $model->getSku(),
+                $e->getMessage()
+            );
+        }
 
         return true;
     }

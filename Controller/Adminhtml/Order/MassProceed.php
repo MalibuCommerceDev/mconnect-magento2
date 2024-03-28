@@ -127,16 +127,16 @@ class MassProceed extends \Magento\Backend\App\Action
             }
         }
         if ($processedSyncs) {
-            $this->messageManager->addSuccessMessage(__('Successfully synced %1 order(s)', $processedSyncs));
+            $this->messageManager->addSuccessMessage(__('Processed %1 order(s)', $processedSyncs));
         }
         if (!empty($notAllowedtoSyncOrderIds)) {
             $this->messageManager->addWarningMessage(
-                __('Order(s) %1 cannot be synced because their Customer Group is dissallowed for exports', implode(', ', $notAllowedtoSyncOrderIds))
+                __('Order IDs %1 were not synced because their Customer Group is dissallowed for exports', implode(', ', $notAllowedtoSyncOrderIds))
             );
         }
         if (!empty($syncErrorOrderIds)) {
             $this->messageManager->addErrorMessage(
-                __('Order(s) %1 cannot be synced because of some sync errors. See system.log', implode(', ', $syncErrorOrderIds))
+                __('Order IDs %1 were not synced because of some sync errors. See system.log', implode(', ', $syncErrorOrderIds))
             );
         }
 
