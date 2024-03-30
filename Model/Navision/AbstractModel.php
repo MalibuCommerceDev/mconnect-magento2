@@ -205,7 +205,7 @@ abstract class AbstractModel extends \Magento\Framework\DataObject
     {
         switch ($type) {
             case \MalibuCommerce\MConnect\Model\Queue::ACTION_EXPORT:
-                $method = 'ExportFromNAV';
+                $method = 'ExportFrom' . ($this->config->isOauth2($websiteId) ? 'BC' : 'NAV');
                 break;
             case \MalibuCommerce\MConnect\Model\Queue::ACTION_IMPORT:
                 $method = 'ImportToNAV';

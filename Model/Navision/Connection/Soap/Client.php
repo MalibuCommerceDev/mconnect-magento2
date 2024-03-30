@@ -86,13 +86,13 @@ class Client extends SoapClient
         $username = $this->mConnectConfig->getNavConnectionUsername($this->getWebsiteId());
         $password = $this->mConnectConfig->getNavConnectionPassword($this->getWebsiteId());
         $ch = curl_init($location);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        $headers = [
             'Method: POST',
             'Connection: Keep-Alive',
             'User-Agent: PHP-SOAP-CURL',
             'Content-Type: text/xml; charset=utf-8',
             'SOAPAction: "' . $action . '"',
-        ]);
+        ];
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_HEADER, true);
@@ -104,11 +104,14 @@ class Client extends SoapClient
 
         curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-        if ($method = $this->mConnectConfig->getAuthenticationMethod($this->getWebsiteId())) {
+        if ($this->mConnectConfig->isOauth2($this->getWebsiteId())) {
+            $headers[] = 'Authorization: Bearer ' . $this->mConnectConfig->getBearerToken($this->getWebsiteId());
+        } elseif ($method = $this->mConnectConfig->getAuthenticationMethod($this->getWebsiteId())) {
             curl_setopt($ch, CURLOPT_HTTPAUTH, $method);
+            curl_setopt($ch, CURLOPT_USERPWD, $username . ':' . $password);
         }
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
-        curl_setopt($ch, CURLOPT_USERPWD, $username . ':' . $password);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $this->getCallerModel()->getConnectionTimeout($this->getWebsiteId()));
         curl_setopt($ch, CURLOPT_TIMEOUT, $this->getCallerModel()->getRequestTimeout($this->getWebsiteId()));
 
