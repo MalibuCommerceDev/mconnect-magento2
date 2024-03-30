@@ -15,7 +15,7 @@ class Logger extends \Monolog\Logger
      */
     public function setQueueItemId(int $queueItemId): Logger
     {
-        foreach ($this->getHandlers() as $handler) {var_dump(get_class($handler));
+        foreach ($this->getHandlers() as $handler) {
             if ($handler instanceof Handler) {
                 $handler->setQueueItemId($queueItemId);
             }
