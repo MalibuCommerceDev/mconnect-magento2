@@ -193,14 +193,18 @@ class Stream
         }
 
         curl_setopt($this->streamCurlHandle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-        if ($method = $config->getAuthenticationMethod($this->getWebsiteId())) {
+        if ($config->isOauth2($this->getWebsiteId())) {
+            curl_setopt($this->streamCurlHandle, CURLOPT_HTTPHEADER, [
+                'Authorization: Bearer ' . $config->getBearerToken($this->getWebsiteId()),
+            ]);
+        } elseif ($method = $config->getAuthenticationMethod($this->getWebsiteId())) {
             curl_setopt($this->streamCurlHandle, CURLOPT_HTTPAUTH, $method);
+            curl_setopt(
+                $this->streamCurlHandle,
+                CURLOPT_USERPWD,
+                $config->getNavConnectionUsername($this->getWebsiteId()) . ':' . $config->getNavConnectionPassword($this->getWebsiteId())
+            );
         }
-        curl_setopt(
-            $this->streamCurlHandle,
-            CURLOPT_USERPWD,
-            $config->getNavConnectionUsername($this->getWebsiteId()) . ':' . $config->getNavConnectionPassword($this->getWebsiteId())
-        );
         curl_setopt(
             $this->streamCurlHandle,
             CURLOPT_CONNECTTIMEOUT,

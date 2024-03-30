@@ -15,6 +15,9 @@ class Config
 
     const AUTH_METHOD_NTLM   = 1;
     const AUTH_METHOD_DIGEST = 2;
+    const AUTH_METHOD_OAUTH2 = 3;
+
+    const REGISTRY_BEARER_TOKEN = 'malibucommerce_mconnect_bearer_token';
 
     /** @var \Magento\Framework\App\Config\ScopeConfigInterface */
     protected $scopeConfig;
@@ -95,6 +98,8 @@ class Config
                 return CURLAUTH_NTLM;
             case self::AUTH_METHOD_DIGEST:
                 return CURLAUTH_DIGEST;
+            case self::AUTH_METHOD_OAUTH2:
+                return $value;
             default:
                 return false;
         }
@@ -696,5 +701,54 @@ class Config
     public function getConfigValue($path, $store = null)
     {
         return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store);
+    }
+
+    public function isOauth2($websiteId = null)
+    {
+        return $this->getAuthenticationMethod($websiteId) == self::AUTH_METHOD_OAUTH2;
+    }
+
+    public function getNavTenantId($websiteId = null)
+    {
+        preg_match('/\/v[0-9\.]+\/([a-z0-9\-]*)\//i', $this->getNavConnectionUrl($websiteId), $matches);
+        if (!isset($matches[1])) {
+            throw new \Exception('Unable to parse Tenant ID from URL');
+        }
+        return $matches[1];
+    }
+
+    public function getBearerToken($websiteId = null)
+    {
+        if (!$this->registry->registry(self::REGISTRY_BEARER_TOKEN)) {
+            $ch = curl_init();
+            curl_setopt_array($ch, [
+                CURLOPT_URL => 'https://login.microsoftonline.com/' . $this->getNavTenantId($websiteId) . '/oauth2/v2.0/token',
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => [
+                    'grant_type' => 'client_credentials',
+                    'scope' => 'https://api.businesscentral.dynamics.com/.default',
+                ],
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HEADER => true,
+                CURLOPT_USERPWD => $this->getNavConnectionUsername($websiteId) . ':' . $this->getNavConnectionPassword($websiteId),
+            ]);
+            try {
+                $response = curl_exec($ch);
+            } catch (\Exception $e) {
+                curl_close($ch);
+                throw $e;
+            }
+            $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+            $code       = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $header     = substr($response, 0, $headerSize);
+            $body       = trim(substr($response, $headerSize));
+            if ($code !== 200) {
+                throw new \Exception($body);
+            }
+            curl_close($ch);
+            $this->registry->register(self::REGISTRY_BEARER_TOKEN, json_decode($body)->access_token);
+        }
+        return $this->registry->registry(self::REGISTRY_BEARER_TOKEN);
     }
 }

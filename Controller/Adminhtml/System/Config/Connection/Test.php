@@ -60,14 +60,11 @@ class Test extends Action
                 $websiteId = null;
             }
             $url = $this->mConnectConfig->getNavConnectionUrl($websiteId);
-            $username = $this->mConnectConfig->getNavConnectionUsername($websiteId);
-            $password = $this->mConnectConfig->getNavConnectionPassword($websiteId);
             $options = [
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_URL            => $url,
                 CURLOPT_USERAGENT      => 'PHP-SOAP-CURL',
                 CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
-                CURLOPT_USERPWD        => $username . ':' . $password,
                 CURLOPT_CONNECTTIMEOUT => $this->mConnectConfig->getConnectionTimeout($websiteId),
                 CURLOPT_TIMEOUT        => $this->mConnectConfig->getRequestTimeout($websiteId),
                 CURLOPT_HEADER         => true,
@@ -79,8 +76,11 @@ class Test extends Action
                 $options[CURLOPT_SSL_VERIFYHOST] = 0;
                 $options[CURLOPT_SSL_VERIFYPEER] = 0;
             }
-            if ($method = $this->mConnectConfig->getAuthenticationMethod($websiteId)) {
+            if ($this->mConnectConfig->isOauth2($websiteId)) {
+                $options[CURLOPT_HTTPHEADER] = ['Authorization: Bearer ' . $this->mConnectConfig->getBearerToken($websiteId)];
+            } elseif ($method = $this->mConnectConfig->getAuthenticationMethod($websiteId)) {
                 $options[CURLOPT_HTTPAUTH] = $method;
+                $options[CURLOPT_USERPWD] = $this->mConnectConfig->getNavConnectionUsername($websiteId) . ':' . $this->mConnectConfig->getNavConnectionPassword($websiteId);
             }
             curl_setopt_array($ch, $options);
             $response = curl_exec($ch);
