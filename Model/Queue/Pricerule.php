@@ -73,7 +73,7 @@ class Pricerule extends \MalibuCommerce\MConnect\Model\Queue implements Importab
      */
     public function processMagentoImport(
         \MalibuCommerce\MConnect\Model\Navision\AbstractModel $navExporter,
-        Queue\ImportableEntity $magentoImporter,
+        ImportableEntity $magentoImporter,
         $websiteId,
         $navPageNumber = 0
     ) {
