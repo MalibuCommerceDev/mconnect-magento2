@@ -2,6 +2,7 @@
 
 namespace MalibuCommerce\MConnect\Model;
 
+use Magento\Store\Model\Website;
 use MalibuCommerce\MConnect\Model\Adminhtml\Config\Backend\Cron\SyncSchedule;
 use MalibuCommerce\MConnect\Model\Queue\Customer as CustomerModel;
 use MalibuCommerce\MConnect\Model\Queue\Order as OrderModel;
@@ -775,5 +776,41 @@ class Config
         }
 
         return $this->registry->registry(self::REGISTRY_BEARER_TOKEN);
+    }
+
+    /**
+     * Is set URL with sku format
+     *
+     * @param null|int|string|Website $websiteId
+     *
+     * @return bool
+     */
+    public function isSetUrlWithSkuFormat($websiteId = null)
+    {
+        return (bool)$this->getWebsiteData('product/set_url_with_sku_format', $websiteId);
+    }
+
+    /**
+     * Is set URL with numeric format
+     *
+     * @param null|int|string|Website $websiteId
+     *
+     * @return bool
+     */
+    public function isSetUrlWithNumericFormat($websiteId = null)
+    {
+        return (bool)$this->getWebsiteData('product/set_url_with_numeric_format', $websiteId);
+    }
+
+    /**
+     * Is create Redirect when changing URL key
+     *
+     * @param null|int|string|Website $websiteId
+     *
+     * @return bool
+     */
+    public function isCreateRedirectUrl($websiteId = null)
+    {
+        return (bool)$this->getWebsiteData('product/create_redirect_url', $websiteId);
     }
 }

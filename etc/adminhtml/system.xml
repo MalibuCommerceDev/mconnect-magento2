@@ -421,6 +421,20 @@
                     <label>Always Set Product Name from NAV</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="set_url_with_sku_format" sortOrder="116" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Change URL key with sku</label>
+                    <comment><![CDATA[Change URL key in the format of "[product-name]-[product-sku]" if it failed to save by default]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="set_url_with_numeric_format" sortOrder="117" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Change URL key with numeric</label>
+                    <comment><![CDATA[Change URL key in the format of "[product-name]-[numeric]" if it failed to save by default]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="create_redirect_url" sortOrder="118" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Create Redirect when changing URL key</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
                 <field id="set_in_stock" sortOrder="120" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Set Product Stock Status to "In Stock" if QTY > "0"</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>

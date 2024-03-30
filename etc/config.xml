@@ -78,6 +78,8 @@
                 <set_in_stock>1</set_in_stock>
                 <disable_new_products>0</disable_new_products>
                 <is_assign_to_all_websites>0</is_assign_to_all_websites>
+                <set_url_with_numeric_format>1</set_url_with_numeric_format>
+                <create_redirect_url>1</create_redirect_url>
             </product>
             <inventory>
                 <import_enabled>1</import_enabled>

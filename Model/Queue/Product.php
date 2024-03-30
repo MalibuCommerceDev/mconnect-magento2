@@ -11,8 +11,9 @@ use Magento\Catalog\Model\Product\Attribute\Source\Status as ProductStatus;
 
 class Product extends \MalibuCommerce\MConnect\Model\Queue implements ImportableEntity
 {
-    const CODE                   = 'product';
-    const NAV_XML_NODE_ITEM_NAME = 'item';
+    const CODE                            = 'product';
+    const NAV_XML_NODE_ITEM_NAME          = 'item';
+    const PRODUCT_URL_POSTFIX_MAX_COUNTER = 100;
 
     /**
      * @var \Magento\Catalog\Api\ProductRepositoryInterface|ProductRepositoryInterface
@@ -200,7 +201,7 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                 $product->setName((string)$data->item_name);
                 $urlKey = $product->formatUrlKey($data->item_name);
                 $product->setUrlKey($urlKey);
-                $product->setData('save_rewrites_history', true);
+                $product->setData('save_rewrites_history', $this->config->isCreateRedirectUrl($websiteId));
             }
         } else {
             $product->setAttributeSetId($this->getDefaultAttributeSetId())
@@ -215,8 +216,8 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
 
                 $stockData = [
                     'use_config_manage_stock' => 1,
-                    'qty'          => (int)$data->item_qty_on_hand,
-                    'is_in_stock'  => $stockStatus,
+                    'qty'                     => (int)$data->item_qty_on_hand,
+                    'is_in_stock'             => $stockStatus,
                 ];
 
                 $product->setStockData($stockData);
@@ -329,13 +330,56 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
                 // Fix image roles reset issue
                 $product->unsetData('media_gallery');
 
-                $this->productRepository->save($product);
+                // Save product and try set product url
+                $productUrlKeyWasSet = false;
+                try {
+                    $this->productRepository->save($product);
+                } catch (AlreadyExistsException | UrlAlreadyExistsException $e) {
+                    if (!$this->config->isSetUrlWithSkuFormat($websiteId)
+                        && !$this->config->isSetUrlWithNumericFormat($websiteId)
+                    ) {
+                        throw $e;
+                    }
+
+                    if ($this->config->isSetUrlWithSkuFormat($websiteId)) {
+                        try {
+                            $urlKey = $product->formatUrlKey($data->item_name . '-' . $product->getSku());
+                            $product->setUrlKey($urlKey);
+                            $product->setCustomAttribute('url_key', $urlKey);
+                            $this->productRepository->save($product);
+                            $productUrlKeyWasSet = true;
+                        } catch (AlreadyExistsException | UrlAlreadyExistsException $e) {
+                            if (!$this->config->isSetUrlWithNumericFormat($websiteId)) {
+                                throw $e;
+                            }
+                        }
+                    }
+
+                    if (!$productUrlKeyWasSet && $this->config->isSetUrlWithNumericFormat($websiteId)) {
+                        $attempts = 1;
+                        while ($attempts <= self::PRODUCT_URL_POSTFIX_MAX_COUNTER) {
+                            try {
+                                $this->productRepository->save($product);
+                                break;
+                            } catch (AlreadyExistsException | UrlAlreadyExistsException $e) {
+                                if ($attempts == self::PRODUCT_URL_POSTFIX_MAX_COUNTER) {
+                                    throw $e;
+                                }
+                                $attempts++;
+                                $urlKey = $product->formatUrlKey($data->item_name . '-' . rand());
+                                $product->setUrlKey($urlKey);
+                                $product->setCustomAttribute('url_key', $urlKey);
+                            }
+                        }
+                    }
+                }
 
                 if ($productExists) {
                     $this->messages .= 'SKU ' . $sku . ': updated';
                 } else {
                     $this->messages .= 'SKU ' . $sku . ': created';
                 }
+                $this->setEntityId($product->getId());
 
                 try {
                     if (!empty($websiteIds)) {
@@ -351,38 +395,9 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
 
             $this->setEntityId($product->getId());
         } catch (\Throwable $e) {
+            $this->messages .= $this->getFormattedExceptionString($e, __LINE__, $sku);
 
-            if ($e instanceof AlreadyExistsException || $e instanceof UrlAlreadyExistsException) {
-                $urlKey = $product->formatUrlKey($product->getName() . '-' . $product->getSku());
-                $product->setUrlKey($urlKey);
-
-                try {
-                    $this->productRepository->save($product);
-                    if ($productExists) {
-                        $this->messages .= 'SKU ' . $sku . ': updated';
-                    } else {
-                        $this->messages .= 'SKU ' . $sku . ': created';
-                    }
-                    $this->setEntityId($product->getId());
-
-                    try {
-                        if (!empty($websiteIds)) {
-                            $this->updateProductWebsites($sku, $websiteIds);
-                        }
-                    } catch (\Throwable $e) {
-                        $this->messages .= ', but websites not assigned' . PHP_EOL;
-                        throw $e;
-                    }
-                } catch (\Throwable $e) {
-                    $this->messages .= $this->getFormattedExceptionString($e, __LINE__, $sku);
-
-                    return false;
-                }
-            } else {
-                $this->messages .= $this->getFormattedExceptionString($e, __LINE__, $sku);
-
-                return false;
-            }
+            return false;
         }
 
         return true;
