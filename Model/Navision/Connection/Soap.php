@@ -2,55 +2,37 @@
 
 namespace MalibuCommerce\MConnect\Model\Navision\Connection;
 
+use MalibuCommerce\MConnect\Model\Config;
+use MalibuCommerce\MConnect\Helper\Mail;
+use MalibuCommerce\MConnect\Helper\Data;
 use MalibuCommerce\MConnect\Model\Navision\AbstractModel;
+use Psr\Log\LoggerInterface;
+use Magento\Framework\App\Filesystem\DirectoryList;
 
 class Soap
 {
     /**
      * @var \MalibuCommerce\MConnect\Model\Navision\Connection\Soap\Client[]
      */
-    protected $soapClients        = [];
-    protected $isStreamRegistered = false;
-    protected $restoreStream      = false;
-    protected $protocol;
+    protected array $soapClients = [];
 
-    /**
-     * @var \MalibuCommerce\MConnect\Model\Config
-     */
-    protected $mConnectConfig;
+    protected bool $isStreamRegistered = false;
+    protected bool $restoreStream = false;
+    protected ?string $protocol = null;
 
-    /**
-     * @var \MalibuCommerce\MConnect\Model\Navision\Connection\Soap\Client
-     */
-    protected $mConnectNavisionConnectionSoapClient;
-
-    /**
-     * @var \MalibuCommerce\MConnect\Helper\Mail
-     */
-    protected $mConnectMailer;
-
-    /**
-     * @var \MalibuCommerce\MConnect\Helper\Data
-     */
-    protected $mConnectHelper;
-
-    /**
-     * @var \MalibuCommerce\MConnect\Model\Navision\Connection\Stream
-     */
-    protected $stream;
-
-    /**
-     * @var  \MalibuCommerce\MConnect\Model\Navision\AbstractModel
-     */
-    protected $callerModel;
+    protected Config $mConnectConfig;
+    protected Mail $mConnectMailer;
+    protected Data $mConnectHelper;
+    protected Stream $stream;
+    protected AbstractModel $callerModel;
 
     public function __construct(
-        \MalibuCommerce\MConnect\Model\Config $mConnectConfig,
-        \MalibuCommerce\MConnect\Helper\Mail $mConnectMailer,
-        \MalibuCommerce\MConnect\Helper\Data $mConnectHelper,
-        \MalibuCommerce\MConnect\Model\Navision\Connection\Stream $stream,
-        \Psr\Log\LoggerInterface $logger,
-        \Magento\Framework\App\Filesystem\DirectoryList $directoryList
+        Config $mConnectConfig,
+        Mail $mConnectMailer,
+        Data $mConnectHelper,
+        Stream $stream,
+        LoggerInterface $logger,
+        DirectoryList $directoryList
     ) {
         $this->mConnectConfig = $mConnectConfig;
         $this->mConnectMailer = $mConnectMailer;
@@ -60,8 +42,7 @@ class Soap
 
     /**
      * @param string $method
-     * @param array  $arguments
-     *
+     * @param array $arguments
      * @return mixed
      * @throws \Magento\Framework\Exception\FileSystemException
      * @throws \Magento\Framework\Exception\LocalizedException
@@ -69,6 +50,7 @@ class Soap
      */
     public function __call($method, $arguments)
     {
+        $mt = microtime(true);
         try {
             $websiteId = $arguments[0]['website_id'] ?? 0;
 
@@ -80,14 +62,16 @@ class Soap
 
             $this->mConnectHelper->logSoapRequestResponse(
                 $this->soapClients[$websiteId]->__getLastRequest(),
-                $this->soapClients[$websiteId]->__getLastResponse()
+                $this->soapClients[$websiteId]->__getLastResponse(),
+                ['duration' => microtime(true) - $mt]
             );
         } catch (\Throwable $e) {
             try {
                 if (!empty($this->soapClients[$websiteId])) {
                     $this->mConnectHelper->logSoapRequestResponse(
                         $this->soapClients[$websiteId]->__getLastRequest(),
-                        $this->soapClients[$websiteId]->__getLastResponse()
+                        $this->soapClients[$websiteId]->__getLastResponse(),
+                        ['duration' => microtime(true) - $mt]
                     );
                 }
             } catch (\Throwable $e) {
@@ -121,7 +105,7 @@ class Soap
                 throw new \LogicException(sprintf('Failed to unregister "%s" stream when connecting to Navision.', $protocol));
             }
         }
-        if (!stream_wrapper_register($protocol, \MalibuCommerce\MConnect\Model\Navision\Connection\Stream::class)) {
+        if (!stream_wrapper_register($protocol, Stream::class)) {
             throw new \LogicException(sprintf('Failed to register "%s" stream when connecting to Navision.', $protocol));
         }
         $this->isStreamRegistered = true;

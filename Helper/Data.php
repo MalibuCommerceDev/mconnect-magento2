@@ -10,7 +10,7 @@ use MalibuCommerce\MConnect\Model\Queue;
 
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
 {
-    const ALLOWED_LOG_SIZE_TO_BE_VIEWED = 10485760; // in bytes, 10 MB
+    const ALLOWED_LOG_SIZE_TO_BE_VIEWED = 16777200; // in bytes, ~16 MB
     const QUEUE_ITEM_MAX_MESSAGE_SIZE   = 16777200; // in bytes, ~16 MB
 
     /**
@@ -205,7 +205,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             }
         } else {
             $contents = $dataLog;
-            $results[] = $this->serializer->unserialize($dataLog);
+            $results[] = $dataLog;
         }
 
         if (count($results)) {
@@ -271,7 +271,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @return bool|null
      * @throws \Magento\Framework\Exception\FileSystemException
      */
-    public function logSoapRequestResponse($request, $response)
+    public function logSoapRequestResponse($request, $response, $debug = [])
     {
         if (!$this->mConnectConfig->getIsSoapDebugEnabled()) {
 
@@ -288,6 +288,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 'host'     => gethostname(),
                 'trace'    => $e->getTraceAsString(),
             ];
+            $debugData += $debug;
             $directoryList = new DirectoryList(BP);
             $logFile = $directoryList->getPath('log') . DIRECTORY_SEPARATOR . 'malibu_connect_soap.log';
             file_put_contents($logFile, print_r($debugData, true), FILE_APPEND);
@@ -375,34 +376,40 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function logRequest($request, $location, $action, $code, $header, $body)
     {
-        if (!$this->mConnectConfig->get('nav_connection/log')) {
-            return false;
-        }
+        try {
+            if (!$this->mConnectConfig->get('nav_connection/log')) {
+                return false;
+            }
 
-        /** @var Queue $queueItem */
-        $queueItem = $this->registry->registry('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM');
-        if (!$queueItem || !$queueItem->getId()) {
+            /** @var Queue $queueItem */
+            $queueItem = $this->registry->registry('MALIBUCOMMERCE_MCONNET_ACTIVE_QUEUE_ITEM');
+            if (!$queueItem || !$queueItem->getId()) {
 
-            return false;
-        }
+                return false;
+            }
 
-        $request = $this->prepareLogRequest($request, $location, $action);
-        $response = [
-            'Code'          => $code,
-            'Headers'       => $header,
-            'Response Data' => $this->decodeRequest('/<responseXML>(.*)<\/responseXML>/', $body)
-        ];
-        $logData = [
-            'Request'  => $request,
-            'Response' => $response
-        ];
+            $request = $this->prepareLogRequest($request, $location, $action);
+            $response = [
+                'Code'          => $code,
+                'Headers'       => $header,
+                'Response Data' => $this->decodeRequest('/<responseXML>(.*)<\/responseXML>/', $body)
+            ];
+            $logData = [
+                'Request'  => $request,
+                'Response' => $response
+            ];
 
-        if ($this->isLogDataToDb()) {
-            $this->queueResourceModel->saveLog($queueItem->getId(), $this->serializer->serialize($logData));
-        } else {
+            if ($this->isLogDataToDb()) {
+                $this->queueResourceModel->saveLog($queueItem->getId(), $logData);
+            } else {
+                $this->logger
+                    ->setQueueItemId($queueItem->getId())
+                    ->info('Debug Data', $logData);
+            }
+        } catch (\Throwable $e) {
             $this->logger
                 ->setQueueItemId($queueItem->getId())
-                ->info('Debug Data', $logData);
+                ->error($e);
         }
 
         return true;

@@ -142,6 +142,13 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         $this->importEntity($data, $websiteId);
     }
 
+    /**
+     * @param \Throwable $e
+     * @param int $code
+     * @param string $sku
+     *
+     * @return string
+     */
     protected function getFormattedExceptionString(\Throwable $e, $code, $sku)
     {
         $shortTrace = explode("\n", $e->getTraceAsString());
@@ -149,13 +156,31 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
             ? $shortTrace[0] . "\n" . $shortTrace[1] . "\n" . $shortTrace[2] . "\n" . $shortTrace[3]
             : implode("\n", $shortTrace);
 
-        return sprintf(
+        $message = sprintf(
             'SKU "%s": Error [%s] %s' . "\nTrace:\n" . '%s' . "...\n",
             $sku,
             $code,
             $e->getMessage(),
             $shortTrace
         );
+
+        $originalException = $e->getPrevious();
+        if ($originalException) {
+            $originalError = $originalException->getMessage();
+            $shortTrace = explode("\n", $originalException->getTraceAsString());
+            $shortTrace = count($shortTrace) > 10
+                ? $shortTrace[0] . "\n" . $shortTrace[1] . "\n" . $shortTrace[2] . "\n" . $shortTrace[3]
+                : implode("\n", $shortTrace);
+
+            $message .= sprintf(
+                'SKU "%s": Original Error: %s' . "\nTrace:\n" . '%s' . "...\n",
+                $sku,
+                $originalError,
+                $shortTrace
+            );
+        }
+
+        return $message;
     }
 
     public function importEntity(\SimpleXMLElement $data, $websiteId)

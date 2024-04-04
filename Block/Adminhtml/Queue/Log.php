@@ -25,11 +25,9 @@ class Log extends \Magento\Framework\View\Element\Template
         parent::__construct($context, $data);
     }
 
-    public function getLogContents()
-    {
-        return $this->helper->getLogContents((int)$this->getRequest()->getParam('id'));
-    }
-
+    /**
+     * @return mixed|array|bool|true|string
+     */
     public function getLogDetails()
     {
         return $this->helper->getLogContents((int)$this->getRequest()->getParam('id'), false);

@@ -422,13 +422,13 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="set_url_with_sku_format" sortOrder="116" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                    <label>Change URL key with sku</label>
+                    <label>If URL Key Exists, append to it the product sku?</label>
                     <comment><![CDATA[Change URL key in the format of "[product-name]-[product-sku]" if it failed to save by default]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="set_url_with_numeric_format" sortOrder="117" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                    <label>Change URL key with numeric</label>
-                    <comment><![CDATA[Change URL key in the format of "[product-name]-[numeric]" if it failed to save by default]]></comment>
+                    <label>If URL Key Exists, append to it the random number?</label>
+                    <comment><![CDATA[Change URL key in the format of "[product-name]-[random-numer]" if it failed to save by default]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="create_redirect_url" sortOrder="118" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
