@@ -119,7 +119,7 @@ class Queue extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
             try {
                 $logs = $this->serializer->unserialize($result);
                 // support old format
-                if (!empty($logs) && (array_keys($arr) !== range(0, count($arr) - 1))) {
+                if (!empty($logs) && (array_keys($logs) !== range(0, count($logs) - 1))) {
                     $logs = [$logs];
                 }
             } catch (\Throwable $e) {
@@ -165,7 +165,7 @@ class Queue extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
             try {
                 $logs = $this->serializer->unserialize($result);
                 // @todo change it to array_is_list() - added in PHP 8.1
-                if (array_keys($arr) === range(0, count($arr) - 1)) {
+                if (array_keys($logs) === range(0, count($logs) - 1)) {
                     return $logs;
                 }
 

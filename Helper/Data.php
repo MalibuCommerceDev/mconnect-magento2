@@ -143,6 +143,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
     public function getLogSize($data, $humanReadable = true)
     {
+        if (is_array($data)) {
+            // @todo use Core serializer instead
+            $data = json_encode($data);
+        }
         if (!is_file($data)) {
             $bytes = mb_strlen($data);
             if (!$humanReadable) {
@@ -188,7 +192,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
 
         $results = [];
-        if (file_exists($dataLog)) {
+        if (is_string($dataLog) && file_exists($dataLog)) {
             $contents = file_get_contents($dataLog);
             if (preg_match_all('~({.+})~', $contents, $matches)) {
                 foreach ($matches[1] as $match) {
