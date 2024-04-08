@@ -54,7 +54,7 @@
                 <field id="test_connection" translate="label comment" type="button" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
                     <frontend_model>\MalibuCommerce\MConnect\Block\Adminhtml\System\Config\Connection\Test</frontend_model>
                     <label />
-                    <comment><![CDATA[Save credentials before testing!]]></comment>
+                    <comment><![CDATA[Important: Save credentials before testing!]]></comment>
                 </field>
                 <field id="trigger_password" sortOrder="80" type="password" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Trigger Password</label>

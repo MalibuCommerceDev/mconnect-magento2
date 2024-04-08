@@ -84,8 +84,11 @@ class Test extends Action
             }
             curl_setopt_array($ch, $options);
             $response = curl_exec($ch);
-            if (curl_errno($ch)) {
+            if ($errorNo = curl_errno($ch)) {
                 $response = curl_error($ch);
+                if (empty($response) && $errorNo == 7) {
+                    $response = 'Failed to connect to host';
+                }
             }
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $success = $httpCode === 200;
