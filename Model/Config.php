@@ -102,7 +102,7 @@ class Config
             case self::AUTH_METHOD_OAUTH2:
                 return $value;
             default:
-                return false;
+                return CURLAUTH_BASIC;
         }
     }
 
