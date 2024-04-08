@@ -29,7 +29,7 @@ class Collection extends OriginalCollection
                 ),
                 []
             )
-            ->limit(1);
+            ->group('mc_entity_id');
 
         $this->getSelect()->joinLeft(
             ['mc_q1' => new \Zend_Db_Expr('(' . $subSelect . ')')],
