@@ -521,17 +521,17 @@ class Product extends \MalibuCommerce\MConnect\Model\Queue implements Importable
         } catch (\Throwable $e) {
             return false;
         }
+        $data = [];
+        $productId = (int)$product->getId();
 
-        $productId = $product->getId();
-        $connection->query('DELETE FROM ' . $tableName . ' WHERE product_id = ' . $productId);
-        foreach ($websiteIds as $id) {
-            $id = (int)$id;
-            try {
-                $connection->query('INSERT INTO ' . $tableName . ' (product_id, website_id) VALUES (' . $productId . ', ' . $id . ')');
-            } catch (\Throwable $e) {
-                // ignore Integrity constraint violation error in Magento 2.3.2
-            }
+        $connection->delete($tableName, ['product_id = ?' => $productId]);
+        foreach ($websiteIds as $websiteId) {
+            $data[] = [
+                $productId,
+                $websiteId
+            ];
         }
+        $connection->insertArray($tableName, ['product_id', 'website_id'], $data);
 
         return true;
     }

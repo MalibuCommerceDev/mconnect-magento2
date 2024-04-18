@@ -129,11 +129,22 @@ class Order extends AbstractModel
         if (!empty($orderEntity->getCouponCode())) {
             $orderObject->promo_code = $orderEntity->getCouponCode();
         }
+
+        $adminName = '';
         foreach ($orderEntity->getStatusHistories() as $statusHistory) {
             if ($statusHistory->getIsVisibleOnFront()) {
                 $orderObject->addChild('sales_order_comment')->addCData($statusHistory->getComment());
+            } else {
+                // @todo better detect admin user like in core FrontAddCommentOnOrderPlacementPlugin plugin and store it in sales_order DB table to later utilize it here
+                // Detect if order was placed by Admin user logged in as customer
+                $comment = $statusHistory->getComment();
+                if (preg_match('~Order Placed by ([^\s]+).+ using Login as Customer~is', $comment, $matches)) {
+                    $adminName = $matches[1];
+                }
             }
         }
+        $orderObject->addChild('admin_name')->addCData($adminName);
+
         $this->addGiftOptions($orderEntity, $orderObject, $websiteId);
         $this->addRewardPoints($orderEntity, $orderObject, $websiteId);
         $this->addShipping($orderEntity, $orderObject);
@@ -323,9 +334,11 @@ class Order extends AbstractModel
         $child->mag_address_id = !empty($customerAddressId) ? $customerAddressId : $address->getEntityId();
         $child->nav_address_id = $specialNavId[2] ?? 'DEFAULT';
         $child->address_type = $address->getAddressType();
-        $child->first_name = $address->getFirstname();
-        $child->last_name = $address->getLastname();
-        $child->company_name = $address->getCompany();
+
+        $child->addChild('first_name')->addCData($address->getFirstname());
+        $child->addChild('last_name')->addCData($address->getLastname());
+        $child->addChild('company_name')->addCData($address->getCompany());
+
         $child->city = $address->getCity();
         $child->state = $this->directoryRegion->load($address->getRegionId())->getCode();
         $child->post_code = $address->getPostcode();

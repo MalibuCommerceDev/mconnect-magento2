@@ -229,7 +229,26 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
          * Persist customer entity
          */
         $websiteId = $websiteId ? : $this->config->get('customer/default_website');
-        $identity = $importByNavId ? (string)$data->cust_nav_id : (string)$data->cust_email;
+        $importCustomerEmail = (string)$data->cust_email;
+        $createdNewCustomerByEmail = false;
+        // This will always make sure that non-existing customer by email will be created in Magento
+        // Also covers a case when email is changed in NAV
+        try {
+            /** @var \Magento\Customer\Model\Customer $customer */
+            $customer = $this->customerFactory->create()->setWebsiteId($websiteId);
+            $customer = $customer->loadByEmail($importCustomerEmail);
+            if (!$customer->getId()) {
+                $this->saveCustomerData($customer, $data, $websiteId);
+                $createdNewCustomerByEmail = true;
+            }
+        } catch (\Throwable $e) {
+            $this->messages .= 'Customer "' . $identity . '": ERROR - ' . $e->getMessage() . PHP_EOL;
+
+            return false;
+        }
+
+
+        $identity = $importByNavId ? (string)$data->cust_nav_id : $importCustomerEmail;
         if (empty($identity)) {
             $this->messages .= 'Customer "' . $identity . '": SKIPPED - email/NAV ID is empty' . PHP_EOL;
 
@@ -238,6 +257,10 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
 
         if (!$importByNavId) {
             // Create/Update Flow by email
+            if ($createdNewCustomerByEmail) {
+
+                return true;
+            }
             try {
                 /** @var \Magento\Customer\Model\Customer $customer */
                 $customer = $this->customerFactory->create()->setWebsiteId($websiteId);
@@ -253,7 +276,7 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             $searchResult = $this->customerRepository->getList($searchCriteria);
 
             // Create Flow
-            if (!$searchResult->getItems()) {
+            if (!$searchResult->getItems() && !$createdNewCustomerByEmail) {
                 try {
                     /** @var \Magento\Customer\Model\Customer $customer */
                     $customer = $this->customerFactory->create()->setWebsiteId($websiteId);
@@ -270,6 +293,10 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
 
             // Update Flow: update all customers with same NAV ID
             foreach ($searchResult->getItems() as $customerEntity) {
+                // Prevent double saving for already created customer
+                if ($customerEntity->getEmail() == $importCustomerEmail && $createdNewCustomerByEmail) {
+                    continue;
+                }
                 try {
                     /** @var \Magento\Customer\Model\Customer $customer */
                     $customer = $this->customerFactory->create()->setWebsiteId($websiteId);
