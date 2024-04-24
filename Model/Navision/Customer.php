@@ -50,10 +50,8 @@ class Customer extends AbstractModel
         $exportXml = $root->addChild('Customer');
         $exportXml->nav_customer_id = $customerDataModel->getNavId();
         $exportXml->mag_customer_id = $customer->getId();
-
-        $exportXml->addChild('first_name')->addCData($customer->getFirstname());
-        $exportXml->addChild('last_name')->addCData($customer->getLastname());
-
+        $exportXml->first_name      = $customer->getFirstname();
+        $exportXml->last_name       = $customer->getLastname();
         $exportXml->email_address   = $customer->getEmail();
         $exportXml->store_id        = $customer->getStoreId();
         $exportXml->customer_group  = $this->getCustomerGroupCodeById($customer->getGroupId());
@@ -91,11 +89,9 @@ class Customer extends AbstractModel
         $child->mag_address_id      = $address->getId();
         $child->is_default_billing  = $address->isDefaultBilling();
         $child->is_default_shipping = $address->isDefaultShipping();
-
-        $child->addChild('first_name')->addCData($address->getFirstname());
-        $child->addChild('last_name')->addCData($address->getLastname());
-        $child->addChild('company_name')->addCData($address->getCompany());
-
+        $child->first_name          = $address->getFirstname();
+        $child->last_name           = $address->getLastname();
+        $child->company_name        = $address->getCompany();
         $child->address_1           = $street[0];
         $child->address_2           = isset($street[1]) ? $street[1] : '';
         $child->city                = $address->getCity();

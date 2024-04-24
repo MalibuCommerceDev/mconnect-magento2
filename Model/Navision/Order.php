@@ -334,11 +334,9 @@ class Order extends AbstractModel
         $child->mag_address_id = !empty($customerAddressId) ? $customerAddressId : $address->getEntityId();
         $child->nav_address_id = $specialNavId[2] ?? 'DEFAULT';
         $child->address_type = $address->getAddressType();
-
-        $child->addChild('first_name')->addCData($address->getFirstname());
-        $child->addChild('last_name')->addCData($address->getLastname());
-        $child->addChild('company_name')->addCData($address->getCompany());
-
+        $child->first_name = $address->getFirstname();
+        $child->last_name = $address->getLastname();
+        $child->company_name = $address->getCompany();
         $child->city = $address->getCity();
         $child->state = $this->directoryRegion->load($address->getRegionId())->getCode();
         $child->post_code = $address->getPostcode();
