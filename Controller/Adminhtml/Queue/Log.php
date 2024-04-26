@@ -18,12 +18,6 @@ class Log extends Queue
             return $resultRedirect->setPath('*/*');
         }
 
-        $size = $this->helper->getLogSize($logs, false);
-        if ($size > \MalibuCommerce\MConnect\Helper\Data::ALLOWED_LOG_SIZE_TO_BE_VIEWED) {
-            $this->messageManager->addErrorMessage(__('Log size is too large to display (> 16MB)'));
-            return $resultRedirect->setPath('*/*');
-        }
-
         /** @var \Magento\Backend\Model\View\Result\Page $resultPage */
         $resultPage = $this->resultPageFactory->create();
         $resultPage->setActiveMenu('MalibuCommerce_MConnect::queue');

@@ -141,48 +141,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         return !file_exists($file) && !$nameOnly ? false : $file;
     }
 
-    public function getLogSize($data, $humanReadable = true)
-    {
-        if (is_array($data)) {
-            // @todo use Core serializer instead
-            $data = json_encode($data);
-        }
-        if (!is_file($data)) {
-            $bytes = mb_strlen($data);
-            if (!$humanReadable) {
-                return $bytes;
-            }
-
-            return $this->getFormattedSize($bytes);
-        }
-
-        return $this->getFileSize($data, $humanReadable);
-    }
-
-    public function getFileSize($file, $humanReadable = true)
-    {
-        if (!file_exists($file)) {
-            return false;
-        }
-        $bytes = filesize($file);
-        if (!$humanReadable) {
-            return $bytes;
-        }
-
-        return $this->getFormattedSize($bytes);
-    }
-
-    public function getFormattedSize($bytes)
-    {
-        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        $bytes = max($bytes, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
-        $bytes /= (1 << (10 * $pow));
-
-        return number_format($bytes, 2) . ' ' . $units[$pow];
-    }
-
     public function getLogContents($queueItemId, $asString = true)
     {
         $dataLog = $this->getLog($queueItemId, true, true);

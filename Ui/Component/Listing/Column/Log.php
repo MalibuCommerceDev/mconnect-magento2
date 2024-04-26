@@ -41,14 +41,9 @@ class Log extends \Magento\Ui\Component\Listing\Columns\Column
                     $logs = $this->helper->getLogFile($item['id']);
                 }
 
-                $size = $this->helper->getLogSize($logs, false);
-                if ($size) {
-                    if ($size <= \MalibuCommerce\MConnect\Helper\Data::ALLOWED_LOG_SIZE_TO_BE_VIEWED) {
-                        $url = $this->urlBuilder->getUrl('mconnect/queue/log', ['id' => $item['id']]);
-                        $item['log'] = __('<a target="_blank" href="%1">View (%2)</a>', $url, $this->helper->getLogSize($logs));
-                    } else {
-                        $item['log'] = __('Log size is too large to display (> 16MB) - %1', $this->helper->getLogSize($logs));
-                    }
+                if ($logs) {
+                    $url = $this->urlBuilder->getUrl('mconnect/queue/log', ['id' => $item['id']]);
+                    $item['log'] = __('<a target="_blank" href="%1">View</a>', $url);
                 } else {
                     $item['log'] = __('N/A');
                 }
