@@ -132,12 +132,12 @@ class Order extends AbstractModel
 
         $adminName = '';
         foreach ($orderEntity->getStatusHistories() as $statusHistory) {
+            $comment = (string)$statusHistory->getComment();
             if ($statusHistory->getIsVisibleOnFront()) {
-                $orderObject->addChild('sales_order_comment')->addCData($statusHistory->getComment());
+                $orderObject->addChild('sales_order_comment')->addCData($comment);
             } else {
                 // @todo better detect admin user like in core FrontAddCommentOnOrderPlacementPlugin plugin and store it in sales_order DB table to later utilize it here
                 // Detect if order was placed by Admin user logged in as customer
-                $comment = $statusHistory->getComment();
                 if (preg_match('~Order Placed by ([^\s]+).+ using Login as Customer~is', $comment, $matches)) {
                     $adminName = $matches[1];
                 }
