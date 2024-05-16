@@ -134,7 +134,7 @@
                 </field>
 
                 <field id="export_cdata_enabled" sortOrder="200" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
-                    <label>Enabled</label>
+                    <label>Enable CDATA in XML exports</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
