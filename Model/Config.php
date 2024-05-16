@@ -813,4 +813,14 @@ class Config
     {
         return (bool)$this->getWebsiteData('product/create_redirect_url', $websiteId);
     }
+
+    /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return string
+     */
+    public function isCdataEnabledInExportXML($websiteId = null)
+    {
+        return $this->getFlag('nav_connection/export_cdata_enabled', $websiteId);
+    }
 }

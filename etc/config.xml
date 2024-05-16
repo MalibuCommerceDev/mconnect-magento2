@@ -27,6 +27,7 @@
                 <error_email_sender>general</error_email_sender>
                 <error_email_template>malibucommerce_mconnect_nav_connection_error_email_template</error_email_template>
                 <retry_error_orders_email_template>malibucommerce_mconnect_nav_connection_retry_error_orders_email_template</retry_error_orders_email_template>
+                <export_cdata_enabled>0</export_cdata_enabled>
             </nav_connection>
             <customer>
                 <import_enabled>1</import_enabled>

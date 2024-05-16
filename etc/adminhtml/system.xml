@@ -132,6 +132,11 @@
                         <field id="send_error_emails">1</field>
                     </depends>
                 </field>
+
+                <field id="export_cdata_enabled" sortOrder="200" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Enabled</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
             </group>
 
             <group id="queue" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">

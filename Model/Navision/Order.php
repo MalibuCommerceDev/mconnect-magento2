@@ -134,7 +134,11 @@ class Order extends AbstractModel
         foreach ($orderEntity->getStatusHistories() as $statusHistory) {
             $comment = (string)$statusHistory->getComment();
             if ($statusHistory->getIsVisibleOnFront()) {
-                $orderObject->addChild('sales_order_comment')->addCData($comment);
+                if ($this->config->isCdataEnabledInExportXML($websiteId)) {
+                    $orderObject->addChild('sales_order_comment')->addCData($comment);
+                } else {
+                    $orderObject->sales_order_comment = $comment;
+                }
             } else {
                 // @todo better detect admin user like in core FrontAddCommentOnOrderPlacementPlugin plugin and store it in sales_order DB table to later utilize it here
                 // Detect if order was placed by Admin user logged in as customer
@@ -143,7 +147,11 @@ class Order extends AbstractModel
                 }
             }
         }
-        $orderObject->addChild('admin_name')->addCData($adminName);
+        if ($this->config->isCdataEnabledInExportXML($websiteId)) {
+            $orderObject->addChild('admin_name')->addCData($adminName);
+        } else {
+            $orderObject->admin_name = $adminName;
+        }
 
         $this->addGiftOptions($orderEntity, $orderObject, $websiteId);
         $this->addRewardPoints($orderEntity, $orderObject, $websiteId);
@@ -154,7 +162,7 @@ class Order extends AbstractModel
         $orderObject->order_discount_amount = number_format((float)$orderEntity->getBaseDiscountAmount(), 2, '.', '');
         $orderObject->order_tax = number_format((float)$orderEntity->getBaseTaxAmount(), 2, '.', '');
 
-        $this->addAddresses($orderEntity, $orderObject);
+        $this->addAddresses($orderEntity, $orderObject, $websiteId);
         $this->addItems($orderEntity, $orderObject);
 
         return $this->_import('order_import', $root, $websiteId);
@@ -311,11 +319,12 @@ class Order extends AbstractModel
      *
      * @param \Magento\Sales\Api\Data\OrderInterface $orderEntity
      * @param \SimpleXMLElement                      $root
+     * @param int                                    $websiteId
      */
-    protected function addAddresses(\Magento\Sales\Api\Data\OrderInterface $orderEntity, &$root)
+    protected function addAddresses(\Magento\Sales\Api\Data\OrderInterface $orderEntity, &$root, $websiteId = 0)
     {
         foreach ($orderEntity->getAddresses() as $address) {
-            $this->addAddress($address, $orderEntity, $root);
+            $this->addAddress($address, $orderEntity, $root, $websiteId);
         }
     }
 
@@ -325,18 +334,30 @@ class Order extends AbstractModel
      * @param \Magento\Sales\Api\Data\OrderAddressInterface $address
      * @param \Magento\Sales\Api\Data\OrderInterface        $orderEntity
      * @param \SimpleXMLElement                             $root
+     * @param int                                           $websiteId
      */
-    protected function addAddress(\Magento\Sales\Api\Data\OrderAddressInterface $address, $orderEntity, &$root)
-    {
+    protected function addAddress(
+        \Magento\Sales\Api\Data\OrderAddressInterface $address,
+        $orderEntity,
+        &$root,
+        $websiteId = 0
+    ) {
         $child = $root->addChild('order_address');
         $specialNavId = explode('|', (string)$address->getNavId());
         $customerAddressId = $address->getCustomerAddressId();
         $child->mag_address_id = !empty($customerAddressId) ? $customerAddressId : $address->getEntityId();
         $child->nav_address_id = $specialNavId[2] ?? 'DEFAULT';
         $child->address_type = $address->getAddressType();
-        $child->first_name = $address->getFirstname();
-        $child->last_name = $address->getLastname();
-        $child->company_name = $address->getCompany();
+        if ($this->config->isCdataEnabledInExportXML($websiteId)) {
+            $child->addChild('first_name')->addCData($address->getFirstname());
+            $child->addChild('last_name')->addCData($address->getLastname());
+            $child->addChild('company_name')->addCData($address->getCompany());
+        } else {
+            $child->first_name = $address->getFirstname();
+            $child->last_name = $address->getLastname();
+            $child->company_name = $address->getCompany();
+        }
+
         $child->city = $address->getCity();
         $child->state = $this->directoryRegion->load($address->getRegionId())->getCode();
         $child->post_code = $address->getPostcode();
