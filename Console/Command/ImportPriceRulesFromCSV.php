@@ -168,7 +168,7 @@ class ImportPriceRulesFromCSV extends Command
                         'nav_id'               => $rowData[0],
                         'website_id'           => $websiteId,
                         'sku'                  => $rowData[12],
-                        'currency_code'        => !empty($rowData[10]) ? $rowData[10] : $this->queue->getDefaultCurrencyCode(),
+                        'currency_code'        => $rowData[10] ?? null,
                         'navision_customer_id' => null,
                         'qty_min'              => $rowData[5],
                         'price'                => $rowData[8],

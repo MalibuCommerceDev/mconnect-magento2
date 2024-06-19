@@ -152,8 +152,6 @@ class Collection extends AbstractCollection
     /**
      * Apply customer price currency filter
      *
-     * @param int $value
-     *
      * @return $this
      */
     public function applyCustomerCurrencyFilter()

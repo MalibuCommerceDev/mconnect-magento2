@@ -56,10 +56,11 @@ class AggregateCatalogProductTierPriceObserver implements ObserverInterface
             foreach ((array)$prices as $itemQty => $itemPrice) {
                 if ($itemQty > self::MIN_QTY_TO_SHOW_TIER_PRICE) {
                     $tierPrices[] = [
-                        'website_id' => $websiteId,
-                        'cust_group' => Group::CUST_GROUP_ALL,
-                        'price_qty'  => $itemQty,
-                        'price'      => $itemPrice
+                        'website_id'    => $websiteId,
+                        'cust_group'    => Group::CUST_GROUP_ALL,
+                        'price_qty'     => $itemQty,
+                        'price'         => $itemPrice,
+                        'website_price' => $price,
                     ];
                 }
             }
@@ -73,7 +74,7 @@ class AggregateCatalogProductTierPriceObserver implements ObserverInterface
                 ->applyCustomerCurrencyFilter()
                 ->applyCustomerFilter()
                 ->applyFromToDateFilter()
-                ->setOrder('price', \Zend_Db_Select::SQL_ASC);
+                ->setOrder('qty_min', \Zend_Db_Select::SQL_ASC);
 
             if ($collection->getSize() > 0) {
                 foreach ($collection as $item) {

@@ -7,7 +7,7 @@ use MalibuCommerce\MConnect\Model\Pricerule;
 use MalibuCommerce\MConnect\Model\Queue\Promotion;
 
 /**
- * Used to override product price on PLP
+ * Used to override product price on PDP and on PLP
  */
 class ProductPlugin
 {

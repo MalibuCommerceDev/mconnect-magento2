@@ -102,7 +102,7 @@ class Queue
         }
 
         if ($items == 0) {
-            return 'No items in queue need processing.';
+            return 'No items in the queue for processing.';
         }
 
         return sprintf('Processed %d item(s) in queue.', $items);
@@ -142,7 +142,7 @@ class Queue
 
         $count = $queueItems->getSize();
         if (!$count) {
-            return 'No items in queue need processing.';
+            return 'No items in the queue for processing.';
         }
 
         /** @var \MalibuCommerce\MConnect\Model\Queue $item */
