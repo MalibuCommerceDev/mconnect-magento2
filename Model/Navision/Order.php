@@ -14,6 +14,16 @@ class Order extends AbstractModel
         'paypal_express_bml',
         'braintree_paypal',
         'braintree_paypal_vault',
+        'payment_services_paypal_smart_buttons',
+        'payment_services_paypal_hosted_fields',
+        'payment_services_paypal_google_pay',
+        'payment_services_paypal_vault',
+        'payflow_advanced',
+        'payflow_link',
+        'paypal_billing_agreement',
+        'payflow_express',
+        'hosted_pro',
+        'payflowpro_cc_vault'
     ];
 
     /**
@@ -189,7 +199,7 @@ class Order extends AbstractModel
      *
      * @return Order
      */
-    protected function addPayment(OrderInterface $orderEntity, \SimpleXMLElement &$root)
+    public function addPayment(OrderInterface $orderEntity, \SimpleXMLElement &$root)
     {
         $root->web_order_amt = $orderEntity->getOrderCurrencyCode() == $orderEntity->getStoreCurrencyCode()
             ? ($orderEntity->getBaseGrandTotal() ?: 0)
