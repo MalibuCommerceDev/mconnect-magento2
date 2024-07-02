@@ -208,7 +208,8 @@ class Order extends AbstractModel
         $root->payment_method = $payment !== false ? $payment->getMethod() : '';
         $root->po_number = $payment !== false ? $payment->getPoNumber() : '';
         if (!empty($payment) && in_array($payment->getMethod(), self::PAYPAL_PAYMENT_METHODS)) {
-            $root->paypal_transaction_id = $payment->getLastTransId() ?: $payment->getCcTransId();
+            $gatewayReference = $payment->getAdditionalInformation('paypal_order_id');
+            $root->paypal_transaction_id = $gatewayReference ?: ($payment->getLastTransId() ?: $payment->getCcTransId());
         }
 
         return $this;
