@@ -163,17 +163,17 @@ class Order extends AbstractModel
             $orderObject->admin_name = $adminName;
         }
 
+        $orderObject->order_discount_amount = number_format((float)$orderEntity->getBaseDiscountAmount(), 2, '.', '');
+        $orderObject->order_tax = number_format((float)$orderEntity->getBaseTaxAmount(), 2, '.', '');
+
         $this->addGiftOptions($orderEntity, $orderObject, $websiteId);
         $this->addRewardPoints($orderEntity, $orderObject, $websiteId);
         $this->addShipping($orderEntity, $orderObject);
         $this->addPayment($orderEntity, $orderObject);
-        $this->addCustomAttributes($orderEntity, $orderObject);
-
-        $orderObject->order_discount_amount = number_format((float)$orderEntity->getBaseDiscountAmount(), 2, '.', '');
-        $orderObject->order_tax = number_format((float)$orderEntity->getBaseTaxAmount(), 2, '.', '');
-
         $this->addAddresses($orderEntity, $orderObject, $websiteId);
         $this->addItems($orderEntity, $orderObject);
+
+        $this->addCustomAttributes($orderEntity, $orderObject);
 
         return $this->_import('order_import', $root, $websiteId);
     }
