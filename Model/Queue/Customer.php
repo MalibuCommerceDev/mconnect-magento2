@@ -610,9 +610,13 @@ class Customer extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
             }
 
             // -- Search by Street and Postcode --
+            $street = trim((string)$navAddressData->addr_street);
+            $navAddressData->addr_street = $street;
+            $postcode = trim((string)$navAddressData->addr_post_code);
+            $navAddressData->addr_post_code = $postcode;
             $searchCriteria = $this->searchCriteriaBuilder
-                ->addFilter('street', '%' . ((string)$navAddressData->addr_street) . '%', 'like')
-                ->addFilter('postcode', (string)$navAddressData->addr_post_code)
+                ->addFilter('street', '%' . $street . '%', 'like')
+                ->addFilter('postcode', $postcode)
                 ->addFilter('parent_id', (int)$customer->getId())
                 ->create();
             $searchResult = $this->addressRepository->getList($searchCriteria)->getItems();
