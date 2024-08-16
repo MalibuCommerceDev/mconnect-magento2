@@ -72,4 +72,11 @@
     <type name="Magento\Customer\Model\Address">
         <plugin name="mconnect_customer_address_model_plugin" type="MalibuCommerce\MConnect\Plugin\Customer\Model\AddressPlugin" />
     </type>
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="mconnect_pricerule_import_grid_data_source" xsi:type="string">MalibuCommerce\MConnect\Model\ResourceModel\PriceRuleImport\Grid\Collection</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

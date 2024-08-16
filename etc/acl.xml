@@ -8,6 +8,7 @@
                     <resource id="MalibuCommerce_MConnect::rule" title="Manage Price Rules" translate="title" sortOrder="20" />
                     <resource id="MalibuCommerce_MConnect::promo" title="Manage Mconnect Price Rule" translate="title" sortOrder="30" >
                         <resource id="MalibuCommerce_MConnect::price_rule" title="Manage Mconnect Price Rule" translate="title" sortOrder="10" />
+                        <resource id="MalibuCommerce_MConnect::price_rule_import" title="Manage Mconnect Price Rule Import" translate="title" sortOrder="20" />
                     </resource>
                 </resource>
                 <resource id="Magento_Backend::stores">

@@ -13,6 +13,10 @@
                 <class>primary</class>
                 <label translate="true">Add New Rule</label>
             </button>
+            <button name="import">
+                <url path="*/priceruleimport/index"/>
+                <label translate="true">Import Price Rules</label>
+            </button>
         </buttons>
         <spinner>mconnect_pricerule_columns</spinner>
         <deps>

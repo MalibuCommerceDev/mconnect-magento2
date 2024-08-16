@@ -8,4 +8,10 @@
             </argument>
         </arguments>
     </type>
+    <virtualType name="MalibuCommerce\MConnect\Model\ResourceModel\PriceRuleImport\Grid\Collection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">malibucommerce_mconnect_price_rule_import</argument>
+            <argument name="resourceModel" xsi:type="string">MalibuCommerce\MConnect\Model\ResourceModel\PriceRuleImport</argument>
+        </arguments>
+    </virtualType>
 </config>

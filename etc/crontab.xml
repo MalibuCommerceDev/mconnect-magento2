@@ -41,5 +41,8 @@
         <job name="malibucommerce_mconnect_navision_rma_import" instance="MalibuCommerce\MConnect\Model\Cron" method="queueRmaImport">
             <config_path>malibucommerce_mconnect/rma/cron_expr</config_path>
         </job>
+        <job name="malibucommerce_mconnect_price_rules_import" instance="MalibuCommerce\MConnect\Model\PriceRuleImport\Cron" method="execute">
+            <schedule>*/2 * * * *</schedule>
+        </job>
     </group>
 </config>
