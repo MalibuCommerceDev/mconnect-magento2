@@ -156,7 +156,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 foreach ($matches[1] as $match) {
                     $debug = json_decode($match);
                     $result = [];
-                    foreach ($debug as $title => $data) {
+                    foreach ($debug ?? [] as $title => $data) {
                         if (preg_match('~({.+})~', $data, $matches2)) {
                             $data = json_decode($matches2[1]);
                         }

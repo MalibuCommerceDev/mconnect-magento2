@@ -79,6 +79,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->upgrade2_13_7($setup);
         }
 
+        if (version_compare($context->getVersion(), '2.21.0', '<=')) {
+            $this->upgrade2_21_0($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -531,5 +535,62 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ),
             ['nav_id', 'website_id']
         );
+    }
+
+    protected function upgrade2_21_0(SchemaSetupInterface $setup)
+    {
+        $connection = $setup->getConnection();
+        /**
+         * Create table 'malibucommerce_mconnect_price_rule_import'
+         */
+        $table = $connection
+            ->newTable($setup->getTable('malibucommerce_mconnect_price_rule_import'))
+            ->addColumn('uuid', Table::TYPE_VARBINARY, 39, [
+                    'nullable' => false,
+                ],'UUID')
+            ->addColumn('website_id', Table::TYPE_INTEGER, null, [
+                'nullable' => false,
+                'default' => 0,
+                'unsigned' => true
+            ], 'Website ID')
+            ->addColumn('status', Table::TYPE_TEXT, 100, [
+                'nullable' => false,
+            ], 'Status')
+            ->addColumn('processed_count', Table::TYPE_INTEGER, null, [
+                'nullable' => false,
+                'default' => 0,
+            ], 'Processed Count')
+            ->addColumn('attempts', Table::TYPE_INTEGER, null, [
+                'nullable' => false,
+                'default' => 0,
+            ], 'Attempts')
+            ->addColumn('message', Table::TYPE_TEXT, null, [
+                'nullable' => true,
+            ], 'Message')
+            ->addColumn('filename', Table::TYPE_TEXT, 255, [
+                'nullable' => true,
+            ], 'Filename')
+            ->addColumn('created_at', Table::TYPE_TIMESTAMP, null, [
+                    'nullable' => false,
+                'default' => Table::TIMESTAMP_INIT
+            ], 'Created At')
+            ->addColumn('executed_at', Table::TYPE_TIMESTAMP, null, [
+                'nullable' => true,
+            ], 'Executed At')
+            ->addIndex(
+                $setup->getIdxName('malibucommerce_mconnect_price_rule_import', ['status']),
+                ['status']
+            )
+            ->addIndex(
+                $setup->getIdxName(
+                    'malibucommerce_mconnect_price_rule_import',
+                    ['uuid', 'website_id'],
+                    AdapterInterface::INDEX_TYPE_UNIQUE
+                ),
+                ['uuid', 'website_id'],
+                ['type' => AdapterInterface::INDEX_TYPE_UNIQUE]
+            );
+
+        $connection->createTable($table);
     }
 }

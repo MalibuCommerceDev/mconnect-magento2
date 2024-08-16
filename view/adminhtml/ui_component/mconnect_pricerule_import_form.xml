@@ -1,0 +1,84 @@
+<?xml version="1.0" ?>
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">mconnect_pricerule_import_form.mconnect_pricerule_import_form_data_source</item>
+        </item>
+        <item name="template" xsi:type="string">templates/form/collapsible</item>
+        <item name="config" xsi:type="array">
+            <item name="dataScope" xsi:type="string">data</item>
+            <item name="namespace" xsi:type="string">mconnect_pricerule_import_form</item>
+        </item>
+    </argument>
+    <settings>
+        <namespace>mconnect_pricerule_import_form</namespace>
+        <dataScope>data</dataScope>
+        <deps>
+            <dep>mconnect_pricerule_import_form.mconnect_pricerule_import_form_data_source</dep>
+        </deps>
+        <buttons>
+            <button name="save">
+                <class>save primary</class>
+                <label translate="true">Schedule Import</label>
+            </button>
+        </buttons>
+    </settings>
+    <dataSource name="mconnect_pricerule_import_form_data_source">
+        <argument name="data" xsi:type="array">
+            <item name="js_config" xsi:type="array">
+                <item name="component" xsi:type="string">Magento_Ui/js/form/provider</item>
+            </item>
+        </argument>
+        <settings>
+            <submitUrl path="*/*/save"/>
+            <validateUrl path="*/*/validate"/>
+        </settings>
+        <aclResource>MalibuCommerce_MConnect::price_rule_import</aclResource>
+        <dataProvider class="MalibuCommerce\MConnect\Ui\DataProvider\PriceRuleImport" name="mconnect_pricerule_import_form_data_source">
+            <settings>
+                <requestFieldName>uuid</requestFieldName>
+                <primaryFieldName>uuid</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <fieldset name="general">
+        <settings>
+            <collapsible>false</collapsible>
+            <label translate="true">Import price rules</label>
+        </settings>
+        <field name="website_id" formElement="select">
+            <settings>
+                <label translate="true">Website</label>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <dataType>number</dataType>
+            </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options class="MalibuCommerce\MConnect\Model\Source\Websites"/>
+                    </settings>
+                </select>
+            </formElements>
+        </field>
+        <field name="file" formElement="fileUploader">
+            <settings>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <label translate="true">File</label>
+            </settings>
+            <formElements>
+                <fileUploader>
+                    <settings>
+                        <allowedExtensions>csv</allowedExtensions>
+                        <uploaderConfig>
+                            <param xsi:type="string" name="url">mconnect/priceruleimport_fileUploader/save</param>
+                        </uploaderConfig>
+                    </settings>
+                </fileUploader>
+            </formElements>
+        </field>
+    </fieldset>
+</form>
