@@ -7,14 +7,6 @@ use MalibuCommerce\MConnect\Model\ResourceModel\PriceRuleImport\CollectionFactor
 
 class PriceRuleImport extends AbstractDataProvider
 {
-    /**
-     * @param $name
-     * @param $primaryFieldName
-     * @param $requestFieldName
-     * @param CollectionFactory $collectionFactory
-     * @param array $meta
-     * @param array $data
-     */
     public function __construct(
         $name,
         $primaryFieldName,
