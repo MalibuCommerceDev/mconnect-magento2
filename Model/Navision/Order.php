@@ -17,6 +17,7 @@ class Order extends AbstractModel
         'payment_services_paypal_smart_buttons',
         'payment_services_paypal_hosted_fields',
         'payment_services_paypal_google_pay',
+        'payment_services_paypal_apple_pay',
         'payment_services_paypal_vault',
         'payflow_advanced',
         'payflow_link',
