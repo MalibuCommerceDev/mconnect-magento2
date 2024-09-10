@@ -85,6 +85,9 @@ class ImportProcessor
             $file = $directory->openFile($filePath);
             $headers = $file->readCsv();
 
+            // Remove any invalid or hidden characters
+            $headers = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $headers);
+
             $updatedCount = 0;
             $batchOfPriceRules = [];
             while ($csvRow = $file->readCsv()) {

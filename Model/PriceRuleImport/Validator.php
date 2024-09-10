@@ -69,6 +69,9 @@ class Validator
         //read the first line of the file to validate the header
         $header = $directory->openFile($filePath)->readCsv();
 
+        // Remove any invalid or hidden characters
+        $header = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $header);
+
         if (empty($header)) {
             throw new LocalizedException(__('Invalid CSV file. Please check the file content.'));
         }
