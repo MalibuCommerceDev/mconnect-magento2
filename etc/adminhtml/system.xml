@@ -672,6 +672,10 @@
                     <label>GiftWrapping Functionality Forcefully Enabled</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="disable_sync_if_nav_id_set" sortOrder="200" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                    <label>Disable sync if NAV ID is set</label>
+                    <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
             </group>
 
             <group id="invoice" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">

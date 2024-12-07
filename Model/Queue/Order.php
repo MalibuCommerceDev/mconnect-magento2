@@ -61,6 +61,10 @@ class Order extends \MalibuCommerce\MConnect\Model\Queue
             throw new LocalizedException(__('Order ID "' . $entityId . '" loading error: %1', $e->getMessage()));
         }
 
+        if ($orderEntity->getNavId() && $this->config->isSyncDisabledIfNavIdSet($orderEntity->getWebsiteId())) {
+            throw new LocalizedException(__('Order ID "' . $entityId . '" has a NAV ID and Disable Sync is enabled'));
+        }
+
         $websiteId = $this->storeManager->getStore($orderEntity->getStoreId())->getWebsiteId();
         $message = sprintf(
             'Order "%s" (ID: %s) was not exported because its status was %s and it is not allowed for export',
