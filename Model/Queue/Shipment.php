@@ -74,7 +74,7 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
      * @var array|null
      */
     protected $carriers = null;
-    
+
     public function __construct(
         \MalibuCommerce\MConnect\Model\Navision\Shipment $navShipment,
         \Magento\Sales\Model\OrderFactory $orderFactory,
@@ -199,12 +199,12 @@ class Shipment extends \MalibuCommerce\MConnect\Model\Queue implements Importabl
                     && $this->config->get($this->getQueueCode() . '/cancel_remaining_not_shipped_items')
                 ) {
                     if ($order->canCancel()) {
-                        if (strpos($order->getPayment()->getMethod(), 'braintree') !== false) {
-                            $order->getPayment()->setNotVoid(true);
-                        }
+                        $order->getPayment()->setNotVoid(true);
                         $order->cancel();
                         $order->save($order);
                         $this->messages .= 'Order #' . $incrementId . ' was completed, remaining not shipped items were canceled' . "\n";
+                    } else {
+                        $this->messages .= 'Order #' . $incrementId . ': remaining not shipped items could not be canceled' . "\n";
                     }
                 }
             } catch (\Throwable $e) {
