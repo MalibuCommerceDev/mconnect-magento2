@@ -657,6 +657,11 @@ class Config
         return (bool)$this->getWebsiteData('shipment/allow_shipment_without_tracking_number', $websiteId);
     }
 
+    public function isSyncDisabledIfNavIdSet($websiteId = null)
+    {
+        return (bool)$this->getWebsiteData('order/disable_sync_if_nav_id_set', $websiteId);
+    }
+
     /**
      * Get Malibu Mconnect config value per store
      *
