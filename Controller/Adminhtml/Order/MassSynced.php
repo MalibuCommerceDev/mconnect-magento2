@@ -105,6 +105,7 @@ class MassSynced extends \Magento\Backend\App\Action
                 $queue = $queues->getFirstItem();
                 if ($queue) {
                     $queue->setStatus(QueueModel::STATUS_SUCCESS)
+                        ->setFinishedAt(date('Y-m-d H:i:s'))
                         ->save();
                     $countMassQueue++;
                 }
