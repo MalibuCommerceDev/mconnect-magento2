@@ -409,6 +409,20 @@ class Queue
 
                 continue;
             }
+
+            $success = $this->queueCollectionFactory->create()
+                ->addFieldToFilter('status', ['eq' => QueueModel::STATUS_SUCCESS])
+                ->addFieldToFilter('code', ['eq' => OrderModel::CODE])
+                ->addFieldToFilter('action', ['eq' => QueueModel::ACTION_EXPORT])
+                ->addFieldToFilter('entity_id', ['eq' => $item->getEntityId()])
+                ->addFieldToFilter('created_at', ['from' => $item->getCreatedAt()])
+                ->getSize();
+            if ($success) {
+                // order was successfully processed elsewhere, prevent this queue from retrying again
+                $item->setRetryCount($maxRetryAmount)->save();
+                continue;
+            }
+
             $order = $this->salesOrderFactory->create()->load($item->getEntityId());
             if ($order->getStatus() == 'kount_review') {
 
