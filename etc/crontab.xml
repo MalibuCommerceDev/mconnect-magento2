@@ -44,5 +44,8 @@
         <job name="malibucommerce_mconnect_price_rules_import" instance="MalibuCommerce\MConnect\Model\PriceRuleImport\Cron" method="execute">
             <schedule>*/2 * * * *</schedule>
         </job>
+        <job name="malibucommerce_mconnect_price_rules_import_from_dir" instance="MalibuCommerce\MConnect\Model\PriceRuleImport\ImportDirectoryHandlerCron" method="execute">
+            <schedule>0 9,21 * * *</schedule>
+        </job>
     </group>
 </config>
