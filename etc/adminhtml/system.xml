@@ -901,6 +901,10 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[By default QTY 1 is used to obtain product price(s). When current setting is enabled, by default the “Minimum Qty Allowed in Shopping Cart” product attribute value will be used instead.]]></comment>
                 </field>
+                <field id="default_website" sortOrder="70" type="select" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Default website for price rule import</label>
+                    <source_model>\MalibuCommerce\MConnect\Model\Source\Websites</source_model>
+                </field>
             </group>
 
             <group id="promotion" type="text" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
