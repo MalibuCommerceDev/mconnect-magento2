@@ -3,8 +3,9 @@
         <h2>M-Connect</h2>
     </div>
     <?php /* var_dump(get_class($block), $block->getName());exit; */ ?>
-    <form method="post" action="<?php /* @noEscape */ echo $block->getUrl('adminhtml/mconnect/orderNavIdEdit'); ?>">
+    <form method="post" action="<?php /* @noEscape */ echo $block->getUrl('mconnect/order/editNavId'); ?>">
         <input type="hidden" name="order_id" value="<?= $block->getOrder()->getId() ?>" />
+        <?php echo $block->getBlockHtml('formkey') ?>
         <table class="admin__table-secondary">
             <tbody>
                 <?= $block->getChildHtml() ?>
