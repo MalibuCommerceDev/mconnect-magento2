@@ -9,8 +9,5 @@
                </action>
            </referenceBlock>
        </referenceContainer>
-        <referenceContainer name="malibucommerce_mconnect_order_edit">
-            <uiComponent name="mconnect_order_edit_form"/>
-        </referenceContainer>
    </body>
 </page>
