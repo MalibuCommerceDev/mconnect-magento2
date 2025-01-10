@@ -64,7 +64,10 @@ class Order extends \MalibuCommerce\MConnect\Model\Queue
         $websiteId = $this->storeManager->getStore($orderEntity->getStoreId())->getWebsiteId();
 
         if ($orderEntity->getNavId() && $this->config->isSyncDisabledIfNavIdSet($websiteId)) {
-            throw new \LogicException(__('Order ID "' . $entityId . '" has a NAV ID and Disable Sync is enabled'));
+            $this->messages .= 'Order ID "' . $entityId . '" has a NAV ID and Disable Sync is enabled' . "\n";
+            $this->setMagentoErrorsDetected(true);
+
+            return true;
         }
 
         $message = sprintf(
