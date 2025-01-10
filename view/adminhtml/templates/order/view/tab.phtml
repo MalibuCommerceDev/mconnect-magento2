@@ -1,0 +1,19 @@
+<div class="fieldset-wrapper order-information">
+    <div>
+        <h2>M-Connect</h2>
+    </div>
+    <form method="post" action="<?php /* @noEscape */ echo $block->getUrl('mconnect/order/editNavId'); ?>">
+        <input type="hidden" name="order_id" value="<?= $block->getOrder()->getId() ?>" />
+        <?php echo $block->getBlockHtml('formkey') ?>
+        <table class="admin__table-secondary">
+            <tbody>
+                <?= $block->getChildHtml() ?>
+                <tr>
+                    <th><label for="mconnect_nav_id"><?= __('NAV ID:') ?></label></th>
+                    <td><input type="text" id="mconnect_nav_id" name="mconnect_nav_id" value="<?= $block->getOrder()->getNavId() ?>" /></td>
+                </tr>
+            </tbody>
+        </table>
+        <input type="submit" value="Save" class="action-default scalable action-secondary save" />
+    </form>
+</div>

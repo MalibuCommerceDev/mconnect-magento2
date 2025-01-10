@@ -663,6 +663,16 @@ class Config
     }
 
     /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return bool
+     */
+    public function isSyncDisabledIfNavIdSet($websiteId = null)
+    {
+        return (bool)$this->getWebsiteData('order/disable_sync_if_nav_id_set', $websiteId);
+    }
+
+    /**
      * Get Malibu Mconnect config value per store
      *
      * @param string          $path
