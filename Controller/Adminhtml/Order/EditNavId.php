@@ -4,9 +4,23 @@ namespace MalibuCommerce\MConnect\Controller\Adminhtml\Order;
 
 class EditNavId extends \Magento\Backend\App\Action
 {
+    /**
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
+     */
     protected $orderRepository;
+
+    /**
+     * @var \Magento\Framework\Message\ManagerInterface
+     */
     protected $messageManager;
 
+    /**
+     * @param \Magento\Backend\App\Action\Context
+     * @param \Magento\Framework\Message\ManagerInterface
+     * @param \Magento\Sales\Api\OrderRepositoryInterface
+     *
+     * @return null
+     */
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
         \Magento\Framework\Message\ManagerInterface $messageManager,
@@ -17,6 +31,9 @@ class EditNavId extends \Magento\Backend\App\Action
         $this->orderRepository = $orderRepository;
     }
 
+    /**
+     * @return null
+     */
     public function execute()
     {
         $post = $this->getRequest()->getPost();

@@ -657,6 +657,11 @@ class Config
         return (bool)$this->getWebsiteData('shipment/allow_shipment_without_tracking_number', $websiteId);
     }
 
+    /**
+     * @param null|int|string|\Magento\Store\Model\Website $websiteId
+     *
+     * @return bool
+     */
     public function isSyncDisabledIfNavIdSet($websiteId = null)
     {
         return (bool)$this->getWebsiteData('order/disable_sync_if_nav_id_set', $websiteId);
