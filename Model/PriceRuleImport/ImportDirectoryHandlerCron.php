@@ -16,7 +16,7 @@ use Psr\Log\LoggerInterface;
 
 class ImportDirectoryHandlerCron
 {
-    const IMPORT_FILE_DIR = 'import/mconnect/pricerules';
+    const IMPORT_FILE_DIR             = 'import/mconnect/pricerules';
     const DEFAULT_WEBSITE_CONFIG_PATH = 'price_rule/default_website';
 
     /**
@@ -50,12 +50,12 @@ class ImportDirectoryHandlerCron
     private LoggerInterface $logger;
 
     /**
-     * @param Filesystem $filesystem
-     * @param Name $fileNameLookup
-     * @param PriceRuleImportFactory $priceRuleImportFactory
+     * @param Filesystem                $filesystem
+     * @param Name                      $fileNameLookup
+     * @param PriceRuleImportFactory    $priceRuleImportFactory
      * @param SavePriceRuleImportEntity $savePriceRuleImport
-     * @param Config $config
-     * @param LoggerInterface $logger
+     * @param Config                    $config
+     * @param LoggerInterface           $logger
      */
     public function __construct(
         Filesystem $filesystem,
@@ -114,10 +114,13 @@ class ImportDirectoryHandlerCron
 
             $importDirectory->renameFile($file, $newFile);
 
-            $importModel = $this->priceRuleImportFactory->create(['data' => [
-                PriceRuleImport::WEBSITE_ID => $websiteId,
-                PriceRuleImport::FILENAME => $newFileName
-            ]]);
+            $importModel = $this->priceRuleImportFactory->create([
+                'data' => [
+                    PriceRuleImport::WEBSITE_ID => $websiteId,
+                    PriceRuleImport::FILENAME   => $newFileName,
+                    PriceRuleImport::MESSAGE    => 'Automatic Import from ./var/import/mconnect/pricerules/' . $fileName
+                ]
+            ]);
             $this->savePriceRuleImport->execute($importModel);
 
             foreach ($filesWithAbsolutePath as $file) {
@@ -134,12 +137,14 @@ class ImportDirectoryHandlerCron
      *
      * @param string $path
      * @param string $fileName
+     *
      * @return string
      */
     private function buildFilePath(string $path, string $fileName): string
     {
         $path = rtrim($path, DIRECTORY_SEPARATOR);
         $fileName = ltrim($fileName, DIRECTORY_SEPARATOR);
+
         return $path . DIRECTORY_SEPARATOR . $fileName;
     }
 }

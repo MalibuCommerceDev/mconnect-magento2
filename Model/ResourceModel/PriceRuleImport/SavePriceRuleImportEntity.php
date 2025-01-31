@@ -23,8 +23,8 @@ class SavePriceRuleImportEntity
     }
 
     /**
-     *
      * @param PriceRuleImport $priceRuleImport
+     *
      * @return PriceRuleImport
      */
     public function execute(PriceRuleImport $priceRuleImport): PriceRuleImport

@@ -14,10 +14,11 @@ class Status implements \Magento\Framework\Option\ArrayInterface
     public function toOptionArray()
     {
         return [
-            ['value' => Queue::STATUS_PENDING, 'label' => __('Pending')],
-            ['value' => Queue::STATUS_SUCCESS, 'label' => __('Success')],
-            ['value' => Queue::STATUS_RUNNING, 'label' => __('Running')],
-            ['value' => Queue::STATUS_ERROR, 'label' => __('Error')],
+            ['value' => Queue::STATUS_PENDING,  'label' => __('Pending')],
+            ['value' => Queue::STATUS_SUCCESS,  'label' => __('Success')],
+            ['value' => Queue::STATUS_RUNNING,  'label' => __('Running')],
+            ['value' => Queue::STATUS_WARNING,  'label' => __('Warning')],
+            ['value' => Queue::STATUS_ERROR,    'label' => __('Error')],
             ['value' => Queue::STATUS_CANCELED, 'label' => __('Canceled')],
         ];
     }
@@ -32,6 +33,7 @@ class Status implements \Magento\Framework\Option\ArrayInterface
         return [
             Queue::STATUS_PENDING  => __('Pending'),
             Queue::STATUS_SUCCESS  => __('Success'),
+            Queue::STATUS_WARNING  => __('Warning'),
             Queue::STATUS_RUNNING  => __('Running'),
             Queue::STATUS_ERROR    => __('Error'),
             Queue::STATUS_CANCELED => __('Canceled'),

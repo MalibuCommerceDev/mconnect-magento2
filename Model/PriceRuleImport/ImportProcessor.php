@@ -11,7 +11,7 @@ use Psr\Log\LoggerInterface;
 class ImportProcessor
 {
     const DEFAULT_BATCH_SIZE = 1000;
-    const TABLE_NAME = 'malibucommerce_mconnect_price_rule';
+    const TABLE_NAME         = 'malibucommerce_mconnect_price_rule';
 
     /**
      * @var FileProcessor
@@ -39,11 +39,11 @@ class ImportProcessor
     private LoggerInterface $logger;
 
     /**
-     * @param FileProcessor $fileProcessor
-     * @param Validator $validator
+     * @param FileProcessor             $fileProcessor
+     * @param Validator                 $validator
      * @param SavePriceRuleImportEntity $savePriceRuleImportEntity
-     * @param ResourceConnection $resourceConnection
-     * @param LoggerInterface $logger
+     * @param ResourceConnection        $resourceConnection
+     * @param LoggerInterface           $logger
      */
     public function __construct(
         FileProcessor $fileProcessor,
@@ -61,6 +61,7 @@ class ImportProcessor
 
     /**
      * @param PriceRuleImport $priceRuleImport
+     *
      * @return int
      */
     public function process(PriceRuleImport $priceRuleImport): int
@@ -135,7 +136,8 @@ class ImportProcessor
      * Update/Insert data in Table
      *
      * @param AdapterInterface $connection
-     * @param array $data
+     * @param array            $data
+     *
      * @return int
      */
     protected function importPriceRulesBatch(AdapterInterface $connection, array $data): int
