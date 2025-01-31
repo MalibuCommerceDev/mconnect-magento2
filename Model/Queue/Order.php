@@ -62,6 +62,14 @@ class Order extends \MalibuCommerce\MConnect\Model\Queue
         }
 
         $websiteId = $this->storeManager->getStore($orderEntity->getStoreId())->getWebsiteId();
+
+        if ($orderEntity->getNavId() && $this->config->isSyncDisabledIfNavIdSet($websiteId)) {
+            $this->messages .= 'Order ID "' . $entityId . '" has a NAV ID and Disable Sync is enabled' . "\n";
+            $this->setMagentoErrorsDetected(true);
+
+            return true;
+        }
+
         $message = sprintf(
             'Order "%s" (ID: %s) was not exported because its status was %s and it is not allowed for export',
             $orderEntity->getIncrementId(),
