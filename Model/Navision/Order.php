@@ -142,20 +142,26 @@ class Order extends AbstractModel
         }
 
         $adminName = '';
+        $isCDATAEnabled = $this->config->isCdataEnabledInExportXML($websiteId);
         foreach ($orderEntity->getStatusHistories() as $statusHistory) {
             $comment = (string)$statusHistory->getComment();
             // @todo better detect admin user like in core FrontAddCommentOnOrderPlacementPlugin plugin and store it in sales_order DB table to later utilize it here
             // Detect if order was placed by Admin user logged in as customer
             if (preg_match('~Order Placed by ([^\s]+).+ using Login as Customer~is', $comment, $matches)) {
                 $adminName = $matches[1];
+                continue;
             }
-            if ($this->config->isCdataEnabledInExportXML($websiteId)) {
+            if (!$statusHistory->getIsVisibleOnFront()) {
+                continue;
+            }
+
+            if ($isCDATAEnabled) {
                 $orderObject->addChild('sales_order_comment')->addCData($comment);
             } else {
                 $orderObject->addChild('sales_order_comment', $comment);
             }
         }
-        if ($this->config->isCdataEnabledInExportXML($websiteId)) {
+        if ($isCDATAEnabled) {
             $orderObject->addChild('admin_name')->addCData($adminName);
         } else {
             $orderObject->admin_name = $adminName;
