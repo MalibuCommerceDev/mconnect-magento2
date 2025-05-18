@@ -132,8 +132,15 @@
                         <field id="send_error_emails">1</field>
                     </depends>
                 </field>
-
-                <field id="export_cdata_enabled" sortOrder="200" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="retry_error_customers_email_template" translate="label comment" type="select" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Retry Errored Customers Email Template</label>
+                    <comment>Email template chosen based on theme fallback when "Default" option is selected.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                    <depends>
+                        <field id="send_error_emails">1</field>
+                    </depends>
+                </field>
+                <field id="export_cdata_enabled" sortOrder="210" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Enable CDATA in XML exports</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
@@ -281,48 +288,81 @@
                         <field id="export_enabled">1</field>
                     </depends>
                 </field>
-                <field id="split_nav_customer_address" translate="label" type="select" sortOrder="145" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="auto_retry_cron" sortOrder="145" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Auto Re-export Errored Customers: Schedule (cron syntax)</label>
+                    <comment><![CDATA[<a href="http://crontab.guru/" target="_blank">Need help?</a>]]></comment>
+                    <depends>
+                        <field id="export_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="auto_retry_attempts" sortOrder="150" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Auto Re-export Errored Customers: Maximum Retry Attempts</label>
+                    <depends>
+                        <field id="export_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="auto_retry_batch_size" sortOrder="155" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Auto Re-export Errored Customers: Batch Size</label>
+                    <depends>
+                        <field id="export_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="auto_retry_delay" sortOrder="160" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Auto Re-export Errored Customers: Delay Between Each Customer Export Attempt</label>
+                    <comment><![CDATA[In Seconds. Used to minimize load impact on NAV server when re-exporting the batch of customers. It is a delay for each queue item processing when exporting the batch of customers.]]></comment>
+                    <depends>
+                        <field id="export_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="auto_retry_period" sortOrder="165" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
+                    <label>Auto Re-export Errored Customers: Sync Period</label>
+                    <comment><![CDATA[In Days. How many days back errored customers must be re-exported]]></comment>
+                    <depends>
+                        <field id="export_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="split_nav_customer_address" translate="label" type="select" sortOrder="170" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Split NAV default shipping/billing address</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Whether to split one NAV address that has default shipping and billing flags set to true into two separete Magento addresses]]></comment>
                 </field>
-                <field id="update_customer_shipping_address" translate="label" type="select" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="update_customer_shipping_address" translate="label" type="select" sortOrder="180" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Allow Updating Shipping Address</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Whether to always update default customer shipping address, or skip updating when customer already exists]]></comment>
                 </field>
-                <field id="default_nav_id_magento_guest" sortOrder="160" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="default_nav_id_magento_guest" sortOrder="190" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default NAV ID For Magento Guest Customers</label>
                     <comment><![CDATA[Leave blank to disable]]></comment>
                 </field>
-                <field id="default_nav_id_magento_registered" sortOrder="170" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="default_nav_id_magento_registered" sortOrder="200" type="text" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default NAV ID For Magento Newly Registered Customers</label>
                     <comment><![CDATA[Leave blank to disable]]></comment>
                 </field>
-                <field id="default_group_taxable" sortOrder="180" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="default_group_taxable" sortOrder="210" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default group for customers (taxable)</label>
                     <source_model>\Magento\Customer\Model\Config\Source\Group</source_model>
                 </field>
-                <field id="default_group_nontaxable" sortOrder="190" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="default_group_nontaxable" sortOrder="220" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default group for customers (non-taxable)</label>
                     <source_model>\Magento\Customer\Model\Config\Source\Group</source_model>
                 </field>
-                <field id="default_website" sortOrder="200" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="default_website" sortOrder="230" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Default website for new customers</label>
                     <source_model>\Magento\Config\Model\Config\Source\Website</source_model>
                 </field>
-                <field id="send_new_customer_emails" translate="label" type="select" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="send_new_customer_emails" translate="label" type="select" sortOrder="240" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Send Password Reset Email to a New Customers Imported from NAV</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="new_customer_email_sender" translate="label" type="select" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="new_customer_email_sender" translate="label" type="select" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Password Reset Email Sender</label>
                     <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
                     <depends>
                         <field id="send_new_customer_emails">1</field>
                     </depends>
                 </field>
-                <field id="new_customer_email_template" translate="label comment" type="select" sortOrder="230" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="new_customer_email_template" translate="label comment" type="select" sortOrder="260" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Password Res Email Template</label>
                     <comment>Email template chosen based on theme fallback when "Default" option is selected.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
@@ -330,18 +370,18 @@
                         <field id="send_new_customer_emails">1</field>
                     </depends>
                 </field>
-                <field id="show_reports" sortOrder="240" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="show_reports" sortOrder="270" type="select" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>Enable NAV Reports In Customer Account</label>
                     <source_model>\Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="nav_reports_allowed_customer_groups" sortOrder="250" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
+                <field id="nav_reports_allowed_customer_groups" sortOrder="280" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="0" translate="label">
                     <label>NAV Reports Allowed Customer Groups</label>
                     <source_model>\MalibuCommerce\MConnect\Model\Adminhtml\Config\Source\CustomerGroups</source_model>
                     <depends>
                         <field id="show_reports">1</field>
                     </depends>
                 </field>
-                <field id="split_default_customer_address_into_two" translate="label" type="select" sortOrder="260" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="split_default_customer_address_into_two" translate="label" type="select" sortOrder="290" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Split Default Billing/Shipping Into Two Addresses</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[When Customer Address created on frontend/backend as single default billing and shipping - split it into two addresses, one default shipping and one default billing]]></comment>
@@ -588,7 +628,7 @@
                     </depends>
                 </field>
                 <field id="auto_retry_attempts" sortOrder="80" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Auto Re-export Errored Orders: Retry Attempts Count</label>
+                    <label>Auto Re-export Errored Orders: Maximum Retry Attempts</label>
                     <depends>
                         <field id="export_enabled">1</field>
                     </depends>
@@ -600,8 +640,8 @@
                     </depends>
                 </field>
                 <field id="auto_retry_delay" sortOrder="100" type="text" showInDefault="1" showInWebsite="0" showInStore="0" translate="label">
-                    <label>Auto Re-export Errored Orders: Delay Between Retry Attempts</label>
-                    <comment><![CDATA[In Seconds]]></comment>
+                    <label>Auto Re-export Errored Orders: Delay Between Each Order Export Attempt</label>
+                    <comment><![CDATA[In Seconds. Used to minimize load impact on NAV server when re-exporting the batch of orders. It is a delay for each queue item processing when exporting the batch of orders.]]></comment>
                     <depends>
                         <field id="export_enabled">1</field>
                     </depends>

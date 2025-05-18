@@ -1,7 +1,7 @@
 <!--@subject M-Connect: Navision Error@-->
 <!--@vars
-"var error_title":"Not exported orders",
-"var orders":"List of errored Order Increment IDs",
+"var error_title":"Not exported customers",
+"var customers":"List of errored Customer IDs",
 "var attempts":"Navision request",
 @-->
 
@@ -9,7 +9,7 @@
     <tr>
         <td class="action-content">
             <h1>{{var error_title}}</h1>
-            <strong>List of orders with error status after {{var attempts}} export attempts: {{var orders}}</strong>
+            <strong>List of customers with error status after {{var attempts}} export attempts: {{var customers}}</strong>
             <br />
             <p>You can disable this notification in <strong>Admin Panel</strong> -> <strong>Stores</strong> -> <strong>Configuration</strong> -> <strong>Services</strong> > <strong>M-Connect</strong> -> <strong>NAV Connection</strong>.</p>
         </td>

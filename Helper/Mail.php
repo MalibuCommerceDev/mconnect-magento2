@@ -132,6 +132,31 @@ class Mail extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * @param array $variables
+     *
+     * @return bool|null
+     */
+    public function sendRetryCustomerErrorEmail(array $variables)
+    {
+        if (!$this->config->isErrorEmailingEnabled()) {
+            return null;
+        }
+
+        try {
+            return $this->sendTemplateEmail(
+                null,
+                null,
+                $this->config->getRetryCustomerErrorEmailTemplate(),
+                $this->config->getErrorEmailSender(),
+                $variables,
+                $this->config->getErrorRecipients()
+            );
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
      * @param \Magento\Customer\Model\Customer $customer
      *
      * @return bool|null

@@ -27,6 +27,7 @@
                 <error_email_sender>general</error_email_sender>
                 <error_email_template>malibucommerce_mconnect_nav_connection_error_email_template</error_email_template>
                 <retry_error_orders_email_template>malibucommerce_mconnect_nav_connection_retry_error_orders_email_template</retry_error_orders_email_template>
+                <retry_error_customers_email_template>malibucommerce_mconnect_nav_connection_retry_error_customers_email_template</retry_error_customers_email_template>
                 <export_cdata_enabled>0</export_cdata_enabled>
             </nav_connection>
             <customer>
@@ -61,6 +62,11 @@
                 <show_reports>0</show_reports>
                 <nav_reports_allowed_customer_groups></nav_reports_allowed_customer_groups>
                 <split_default_customer_address_into_two>0</split_default_customer_address_into_two>
+                <auto_retry_cron>0 * * * *</auto_retry_cron>
+                <auto_retry_attempts>5</auto_retry_attempts>
+                <auto_retry_batch_size>50</auto_retry_batch_size>
+                <auto_retry_delay>2</auto_retry_delay>
+                <auto_retry_period>30</auto_retry_period>
             </customer>
             <product>
                 <import_enabled>1</import_enabled>

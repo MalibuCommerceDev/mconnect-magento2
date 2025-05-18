@@ -31,6 +31,11 @@ class Queue
     /** @var \Magento\Sales\Model\OrderFactory */
     protected $salesOrderFactory;
 
+    /**
+     * @var \Magento\Customer\Model\CustomerFactory
+     */
+    protected $customerFactory;
+
     /** @var \MalibuCommerce\MConnect\Model\FlagFactory */
     protected $flagFactory;
 
@@ -40,6 +45,7 @@ class Queue
         \Magento\Framework\Stdlib\DateTime\DateTime $date,
         \MalibuCommerce\MConnect\Helper\Mail $mConnectMailer,
         \Magento\Sales\Model\OrderFactory $salesOrderFactory,
+        \Magento\Customer\Model\CustomerFactory $customerFactory,
         \MalibuCommerce\MConnect\Model\FlagFactory $flagFactory
     ) {
         $this->config = $config;
@@ -47,6 +53,7 @@ class Queue
         $this->date = $date;
         $this->mConnectMailer = $mConnectMailer;
         $this->salesOrderFactory = $salesOrderFactory;
+        $this->customerFactory = $customerFactory;
         $this->flagFactory = $flagFactory;
     }
 
@@ -378,12 +385,12 @@ class Queue
         }
         $maxRetryAmount = $config->get('order/auto_retry_attempts');
         $retryDelay = $config->get('order/auto_retry_delay');
-        $ordersAmount = $config->get('order/auto_retry_batch_size');
-        $ordersPeriod = (int)$config->get('order/auto_retry_period');
-        if ($ordersPeriod) {
-            $orderPeriodToTime = date("y-m-d", strtotime("-$ordersPeriod day"));
+        $batchSize = $config->get('order/auto_retry_batch_size');
+        $erroredItemsPeriod = (int)$config->get('order/auto_retry_period');
+        if ($erroredItemsPeriod) {
+            $createdAtFrom = date("y-m-d", strtotime("-$erroredItemsPeriod day"));
         } else {
-            $orderPeriodToTime = date("y-m-d", strtotime("-1 month"));
+            $createdAtFrom = date("y-m-d", strtotime("-1 month"));
         }
 
         $items = $this->queueCollectionFactory->create();
@@ -391,9 +398,9 @@ class Queue
             ->addFieldToFilter('code', ['eq' => OrderModel::CODE])
             ->addFieldToFilter('action', ['eq' => QueueModel::ACTION_EXPORT])
             ->addFieldToFilter('retry_count', ['lt' => $maxRetryAmount])
-            ->addFieldToFilter('created_at', ['from' => $orderPeriodToTime]);
-        if ($ordersAmount) {
-            $items->getSelect()->limit($ordersAmount);
+            ->addFieldToFilter('created_at', ['from' => $createdAtFrom]);
+        if ($batchSize) {
+            $items->getSelect()->limit($batchSize);
         }
 
         $count = $items->getSize();
@@ -418,7 +425,7 @@ class Queue
                 ->addFieldToFilter('created_at', ['from' => $item->getCreatedAt()])
                 ->getSize();
             if ($success) {
-                // order was successfully processed elsewhere, prevent this queue from retrying again
+                // queue item was successfully processed elsewhere, prevent this queue from retrying again
                 $item->setRetryCount($maxRetryAmount)->save();
                 continue;
             }
@@ -431,8 +438,7 @@ class Queue
 
             $status = $item->process();
             if ($item->getRetryCount() == ($maxRetryAmount - 1) && $status == QueueModel::STATUS_ERROR) {
-                $entityId = '#' . $order->getIncrementId();
-                $prepareOrdersToEmail[] = $entityId;
+                $prepareOrdersToEmail[] = $order->getIncrementId();
             }
             $item->getResource()->incrementRetryCount($item->getId());
             sleep($retryDelay);
@@ -447,5 +453,88 @@ class Queue
         }
 
         return sprintf('Resynced %d errored previously order(s) in the queue.', $count);
+    }
+
+    /**
+     * @return string
+     * @throws \Exception
+     */
+    public function autoResyncErroredCustomers()
+    {
+        $config = $this->config;
+        if (!$config->isModuleEnabled()) {
+
+            return 'Module is disabled.';
+        }
+        $maxRetryAmount = $config->get('customer/auto_retry_attempts');
+        $retryDelay = $config->get('customer/auto_retry_delay');
+        $batchSize = $config->get('customer/auto_retry_batch_size');
+        $erroredItemsPeriod = (int)$config->get('customer/auto_retry_period');
+        if ($erroredItemsPeriod) {
+            $createdAtFrom = date("y-m-d", strtotime("-$erroredItemsPeriod day"));
+        } else {
+            $createdAtFrom = date("y-m-d", strtotime("-1 month"));
+        }
+
+        $items = $this->queueCollectionFactory->create();
+        $items = $items->addFieldToFilter('status', ['eq' => QueueModel::STATUS_ERROR])
+            ->addFieldToFilter('code', ['eq' => CustomerModel::CODE])
+            ->addFieldToFilter('action', ['eq' => QueueModel::ACTION_EXPORT])
+            ->addFieldToFilter('retry_count', ['lt' => $maxRetryAmount])
+            ->addFieldToFilter('created_at', ['from' => $createdAtFrom]);
+        if ($batchSize) {
+            $items->getSelect()->limit($batchSize);
+        }
+
+        $count = $items->getSize();
+        if (!$count) {
+
+            return 'No items in queue to retry.';
+        }
+
+        $erroredCustomersForEmailReport = [];
+        /** @var \MalibuCommerce\MConnect\Model\Queue $item */
+        foreach ($items as $item) {
+            if (!$item->getEntityId()) {
+
+                continue;
+            }
+
+            $success = $this->queueCollectionFactory->create()
+                ->addFieldToFilter('status', ['eq' => QueueModel::STATUS_SUCCESS])
+                ->addFieldToFilter('code', ['eq' => CustomerModel::CODE])
+                ->addFieldToFilter('action', ['eq' => QueueModel::ACTION_EXPORT])
+                ->addFieldToFilter('entity_id', ['eq' => $item->getEntityId()])
+                ->addFieldToFilter('created_at', ['from' => $item->getCreatedAt()])
+                ->getSize();
+            if ($success) {
+                // queue item was successfully processed elsewhere, prevent this queue from retrying again
+                $item->setRetryCount($maxRetryAmount)->save();
+                continue;
+            }
+
+            $customerDataModel = $this->customerFactory->create()->load($item->getEntityId());
+            if (!$customerDataModel->getId()) {
+
+                continue;
+            }
+
+            $status = $item->process();
+            if ($item->getRetryCount() == ($maxRetryAmount - 1) && $status == QueueModel::STATUS_ERROR) {
+                $erroredCustomersForEmailReport[] = $customerDataModel->getId();
+            }
+            $item->getResource()->incrementRetryCount($item->getId());
+            sleep($retryDelay);
+        }
+
+        if (count($erroredCustomersForEmailReport) > 0) {
+            $this->mConnectMailer->sendRetryCustomerErrorEmail([
+                'error_title' => 'List of customers with error status after ' . $maxRetryAmount . ' attempts to retry',
+                'customer'    => implode(", ", $erroredCustomersForEmailReport),
+                'attempts'    => $maxRetryAmount
+            ]);
+        }
+
+        return sprintf('Resynced %d errored previously customer(s) in the queue.', $count);
     }
 }

@@ -13,7 +13,9 @@
         <job name="malibucommerce_mconnect_queue_order_resync" instance="MalibuCommerce\MConnect\Model\Cron\Queue" method="autoResyncErrorOrders">
             <config_path>malibucommerce_mconnect/order/auto_retry_cron</config_path>
         </job>
-
+        <job name="malibucommerce_mconnect_queue_customers_resync" instance="MalibuCommerce\MConnect\Model\Cron\Queue" method="autoResyncErroredCustomers">
+            <config_path>malibucommerce_mconnect/customer/auto_retry_cron</config_path>
+        </job>
         <job name="malibucommerce_mconnect_navision_order_export" instance="MalibuCommerce\MConnect\Model\Cron\Queue" method="exportOrders">
             <config_path>malibucommerce_mconnect/order/cron_expr_export</config_path>
         </job>

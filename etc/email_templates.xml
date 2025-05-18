@@ -2,5 +2,6 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
     <template id="malibucommerce_mconnect_nav_connection_error_email_template" label="Navision Request Errors Notification" file="navision_error_notification.html" type="html" module="MalibuCommerce_MConnect" area="adminhtml"/>
     <template id="malibucommerce_mconnect_nav_connection_retry_error_orders_email_template" label="Navision Retry Order Errors Notification" file="navision_retry_order_error_notification.html" type="html" module="MalibuCommerce_MConnect" area="adminhtml"/>
+    <template id="malibucommerce_mconnect_nav_connection_retry_error_customers_email_template" label="Navision Retry Customer Errors Notification" file="navision_retry_customer_error_notification.html" type="html" module="MalibuCommerce_MConnect" area="adminhtml"/>
     <template id="malibucommerce_mconnect_customer_new_customer_email_template" label="Navision New Customer Password Reset" file="navision_customer_reset_password.html" type="html" module="MalibuCommerce_MConnect" area="frontend"/>
 </config>
