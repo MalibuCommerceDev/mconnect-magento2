@@ -40,6 +40,7 @@ class Index extends AbstractController
     public function execute()
     {
         $this->messageManager->addNoticeMessage($this->getMaxUploadSizeMessage());
+        $this->messageManager->addWarningMessage(__('Warning: before importing price rules from the CSV file all existing rules will be removed. To import price rules w/o removal of all existing rules, please use CLI commad "php bin/magento mconnect:import:price-rules"'));
 
         $resultPage = $this->resultPageFactory->create();
         $resultPage->initLayout();

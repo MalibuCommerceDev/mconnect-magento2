@@ -95,6 +95,7 @@ class ImportProcessor
                 $rowData = array_combine($headers, $csvRow);
 
                 $startTime = strtotime($rowData['Starting Date']);
+                $endTime = strtotime($rowData['Ending Date']);
                 $batchOfPriceRules[] = [
                     'nav_id'               => $rowData['Unique ID'],
                     'website_id'           => $priceRuleImport->getWebsiteId(),
@@ -104,6 +105,7 @@ class ImportProcessor
                     'price'                => $rowData['Unit Price'],
                     'customer_price_group' => $rowData['Sales Code'],
                     'date_start'           => $startTime && $startTime > 0 ? date('Y:m:d H:i:s', $startTime) : null,
+                    'date_end'             => $endTime !== null ? date('Y:m:d H:i:s', $endTime) : null,
                 ];
 
                 if (count($batchOfPriceRules) >= self::DEFAULT_BATCH_SIZE) {
