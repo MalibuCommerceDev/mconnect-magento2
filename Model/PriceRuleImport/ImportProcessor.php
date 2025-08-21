@@ -78,7 +78,7 @@ class ImportProcessor
             $this->validator->validate($priceRuleImport);
 
             //Clear existing rules
-            $connection->delete($tableName);
+            $connection->delete($tableName, 'website_id = ' . $priceRuleImport->getWebsiteId());
 
             $directory = $this->fileProcessor->getImportDirectory();
             $filePath = $this->fileProcessor->getDirectoryFilePath($directory, $priceRuleImport->getFilename());
