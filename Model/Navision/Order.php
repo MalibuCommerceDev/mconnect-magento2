@@ -446,6 +446,7 @@ class Order extends AbstractModel
                 && $item->getProductType() == \Magento\GiftCard\Model\Catalog\Product\Type\Giftcard::TYPE_GIFTCARD
             )
             || $item->getProductType() == ProductType::TYPE_VIRTUAL
+            || $item->getProductType() == \Magento\Downloadable\Model\Product\Type::TYPE_DOWNLOADABLE
         ) {
             $child = $root->addChild('order_item');
 
